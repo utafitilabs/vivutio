@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
+use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
@@ -66,6 +67,9 @@ return static function (ContainerConfigurator $container): void {
      * @see vendor/doctrine/doctrine-bundle/src/DependencyInjection/Compiler/ServiceRepositoryCompilerPass.php
      */
     $services->set(UserRepository::class)
+        ->args([service('doctrine')])
+        ->tag('doctrine.repository_service');
+    $services->set(PositionRepository::class)
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
 };

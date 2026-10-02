@@ -58,6 +58,10 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Position $position = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -138,6 +142,18 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getPosition(): ?Position
+    {
+        return $this->position;
+    }
+
+    public function setPosition(?Position $position): static
+    {
+        $this->position = $position;
 
         return $this;
     }
