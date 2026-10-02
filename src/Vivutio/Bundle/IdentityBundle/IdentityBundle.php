@@ -16,7 +16,7 @@ namespace Vivutio\Bundle\IdentityBundle;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 /**
- * The home of the organisation an installation serves and of the people in
+ * The home of the organization an installation serves and of the people in
  * it: users, tiers and positions, the permissions every package declares, and
  * the voters that decide each of them.
  */

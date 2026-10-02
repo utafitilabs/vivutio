@@ -16,7 +16,7 @@ namespace Vivutio\Bundle\PartnerBundle;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 /**
- * The home of the organisations an installation trades with, of the channel
+ * The home of the organizations an installation trades with, of the channel
  * each one is reached through, and of the manual channel, which needs nothing
  * outside the installation.
  */

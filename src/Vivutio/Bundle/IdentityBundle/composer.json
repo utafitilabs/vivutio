@@ -1,7 +1,7 @@
 {
     "name": "vivutio/identity-bundle",
     "type": "symfony-bundle",
-    "description": "The vivutio identity: the organisation, its users, tiers and positions, the permissions packages declare and the voters that decide them.",
+    "description": "The vivutio identity: the organization, its users, tiers and positions, the permissions packages declare and the voters that decide them.",
     "keywords": [
         "identity",
         "symfony",

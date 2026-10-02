@@ -1,7 +1,7 @@
 {
     "name": "vivutio/partner-bundle",
     "type": "symfony-bundle",
-    "description": "The vivutio partner bundle: the organisations an installation trades with and the channel each is reached through.",
+    "description": "The vivutio partner bundle: the organizations an installation trades with and the channel each is reached through.",
     "keywords": [
         "partner",
         "symfony",

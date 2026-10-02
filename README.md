@@ -1,7 +1,7 @@
 # vivutio/vivutio
 
-**The vivutio core.** vivutio is a platform for the travel trade: accommodation suppliers,
-tour operators and travel agents each run their own installation and add the
+**The vivutio core.** vivutio is a platform for the travel trade: suppliers who
+run properties, tour operators and travel agents each run their own installation and add the
 modules that apply to them. This package is what every installation shares.
 
 It is one repository and one version, made of the packages below. It has no
@@ -20,10 +20,10 @@ release yet.
 |---|---|---|
 | `vivutio/contracts` | `src/Vivutio/Contracts` | The interfaces a module declares itself with and the core's packages meet each other through |
 | `vivutio/registry-bundle` | `src/Vivutio/Bundle/RegistryBundle` | The modules an installation holds and what each declares |
-| `vivutio/identity-bundle` | `src/Vivutio/Bundle/IdentityBundle` | The organisation, its users, tiers and positions, permissions and the voters that decide them |
+| `vivutio/identity-bundle` | `src/Vivutio/Bundle/IdentityBundle` | The organization, its users, tiers and positions, permissions and the voters that decide them |
 | `vivutio/shell-bundle` | `src/Vivutio/Bundle/ShellBundle` | The design system, the layouts and the navigation |
 | `vivutio/place-bundle` | `src/Vivutio/Bundle/PlaceBundle` | Countries, destinations and their fees |
-| `vivutio/partner-bundle` | `src/Vivutio/Bundle/PartnerBundle` | The organisations an installation trades with and the channel each is reached through |
+| `vivutio/partner-bundle` | `src/Vivutio/Bundle/PartnerBundle` | The organizations an installation trades with and the channel each is reached through |
 | `vivutio/connect-bundle` | `src/Vivutio/Bundle/ConnectBundle` | The connection to the vivutio hub, off until an installation turns it on |
 
 The contracts are MIT while everything else here is AGPL: a module declares
