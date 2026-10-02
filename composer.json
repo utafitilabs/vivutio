@@ -19,6 +19,7 @@
     ],
     "require": {
         "php": ">=8.4",
+        "symfony/dependency-injection": "^8.0",
         "symfony/http-kernel": "^8.0"
     },
     "replace": {
@@ -47,6 +48,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Vivutio\\Bundle\\IdentityBundle\\Tests\\": "src/Vivutio/Bundle/IdentityBundle/tests/",
             "Vivutio\\Contracts\\Tests\\": "src/Vivutio/Contracts/tests/",
             "Vivutio\\Core\\Tests\\": "tests/"
         }

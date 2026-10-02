@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Vivutio\Bundle\IdentityBundle;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 /**
@@ -35,5 +37,18 @@ final class IdentityBundle extends AbstractBundle
     public function getPath(): string
     {
         return __DIR__;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @see https://symfony.com/doc/current/bundles/extension.html — "In bundles
+     *      extending the AbstractBundle class, you can define the
+     *      loadExtension() method to load service definitions from
+     *      configuration files"
+     */
+    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        $container->import('config/services.php');
     }
 }

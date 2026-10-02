@@ -18,7 +18,9 @@
     ],
     "require": {
         "php": ">=8.4",
-        "symfony/http-kernel": "^8.0"
+        "symfony/dependency-injection": "^8.0",
+        "symfony/http-kernel": "^8.0",
+        "vivutio/contracts": "^0.1"
     },
     "autoload": {
         "psr-4": {

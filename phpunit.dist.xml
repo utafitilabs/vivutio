@@ -24,6 +24,9 @@
         <testsuite name="Contracts">
             <directory>src/Vivutio/Contracts/tests</directory>
         </testsuite>
+        <testsuite name="IdentityBundle">
+            <directory>src/Vivutio/Bundle/IdentityBundle/tests</directory>
+        </testsuite>
     </testsuites>
     <source restrictNotices="true" restrictWarnings="true">
         <include>
