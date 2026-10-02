@@ -1,0 +1,127 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the vivutio core.
+ *
+ * (c) Ezekiel Mjema <https://github.com/eemjema>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/*
+ * Every package's composer.json is its boundary, and this checks it.
+ *
+ * composer-require-checker fails on any symbol a package uses without declaring
+ * the dependency that provides it. That is what makes the manifest of each
+ * package under src/ true, and what would make splitting this repository a
+ * move of files and nothing else.
+ *
+ * Two things have to be arranged before it can run here, and both follow from
+ * how it finds a dependency's sources: it reads
+ * `<package>/<config.vendor-dir>/composer/installed.json` for the autoload of
+ * every package in `require`, then reads that package's files from
+ * `<package>/<config.vendor-dir>/<name>`.
+ *
+ * @see vendor/maglnet/composer-require-checker/src/ComposerRequireChecker/FileLocator/LocateComposerPackageDirectDependenciesSourceFiles.php
+ *
+ *   1. A package here has no vendor directory of its own: it shares the root's.
+ *   2. The packages it depends on that live in this repository are not in
+ *      vendor/ at all, because Composer resolves them through the root's
+ *      `replace` block.
+ *
+ * So an overlay vendor directory is built once: every real vendor entry
+ * symlinked into it, a symlink per package of this repository, and an
+ * installed.json describing them all. Each manifest is then copied beside
+ * itself with `config.vendor-dir` pointing at the overlay, checked, and the
+ * copy removed. The published composer.json never carries a path that only
+ * makes sense inside this repository.
+ *
+ * The whitelist in composer-require-checker.dist.json exists because a PHP
+ * service file declares the configurator's own namespace, so `service()`,
+ * `param()` and `tagged_iterator()` are written unqualified and no scan can
+ * attribute them to the package that defines them.
+ *
+ * @see vendor/maglnet/composer-require-checker/README.md — "Configuration"
+ */
+
+$root = __DIR__;
+$overlay = $root.'/var/require-check/vendor';
+$checker = $root.'/vendor/bin/composer-require-checker';
+
+$manifests = [
+    ...glob($root.'/src/Vivutio/Contracts/composer.json') ?: [],
+    ...glob($root.'/src/Vivutio/Bundle/*/composer.json') ?: [],
+];
+
+/** @var array<string, array{name: string, dir: string, autoload: array<string, mixed>}> $local */
+$local = [];
+foreach ($manifests as $manifest) {
+    $json = json_decode((string) file_get_contents($manifest), true, 512, \JSON_THROW_ON_ERROR);
+    \assert(\is_array($json) && \is_string($json['name']));
+    $local[$json['name']] = [
+        'name' => $json['name'],
+        'dir' => \dirname($manifest),
+        'autoload' => \is_array($json['autoload'] ?? null) ? $json['autoload'] : [],
+    ];
+}
+
+// Rebuilt from nothing on every run, so a dependency that was removed cannot linger.
+exec('rm -rf '.escapeshellarg(\dirname($overlay)));
+mkdir($overlay.'/composer', 0o777, true);
+
+foreach (glob($root.'/vendor/*/*', \GLOB_ONLYDIR) ?: [] as $package) {
+    $link = $overlay.'/'.basename(\dirname($package)).'/'.basename($package);
+    if (!is_dir(\dirname($link))) {
+        mkdir(\dirname($link), 0o777, true);
+    }
+    symlink($package, $link);
+}
+
+$installed = json_decode((string) file_get_contents($root.'/vendor/composer/installed.json'), true, 512, \JSON_THROW_ON_ERROR);
+\assert(\is_array($installed));
+
+foreach ($local as $package) {
+    $link = $overlay.'/'.$package['name'];
+    if (!is_dir(\dirname($link))) {
+        mkdir(\dirname($link), 0o777, true);
+    }
+    if (!file_exists($link)) {
+        symlink($package['dir'], $link);
+    }
+    $installed['packages'][] = ['name' => $package['name'], 'version' => 'dev-main', 'autoload' => $package['autoload']];
+}
+
+file_put_contents($overlay.'/composer/installed.json', json_encode($installed, \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
+
+$status = 0;
+
+foreach ($manifests as $manifest) {
+    $dir = \dirname($manifest);
+    $json = json_decode((string) file_get_contents($manifest), true, 512, \JSON_THROW_ON_ERROR);
+    \assert(\is_array($json));
+
+    $depth = substr_count(substr($dir, \strlen($root) + 1), '/') + 1;
+    $json['config']['vendor-dir'] = str_repeat('../', $depth).'var/require-check/vendor';
+
+    $copy = $dir.'/.composer-require-checker.json';
+    file_put_contents($copy, json_encode($json, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
+
+    echo \PHP_EOL, '== ', basename($dir), \PHP_EOL;
+    passthru(
+        escapeshellarg($checker)
+        .' check --config-file='.escapeshellarg($root.'/composer-require-checker.dist.json')
+        .' '.escapeshellarg($copy),
+        $exit,
+    );
+    unlink($copy);
+
+    if (0 !== $exit) {
+        $status = 1;
+    }
+}
+
+exit($status);

@@ -5,6 +5,9 @@
 /tests/Application/var/
 /tests/Application/config/reference.php
 /src/Vivutio/Bundle/*/config/reference.php
+/src/Vivutio/Bundle/*/.composer-require-checker.json
+/src/Vivutio/Contracts/.composer-require-checker.json
+/var/
 
 /.idea/
 /.vscode/

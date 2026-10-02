@@ -4,5 +4,7 @@
 /phpunit.dist.xml export-ignore
 /phpstan.dist.neon export-ignore
 /.php-cs-fixer.dist.php export-ignore
+/require-check export-ignore
+/composer-require-checker.dist.json export-ignore
 /src/Vivutio/Bundle/*/tests export-ignore
 /src/Vivutio/Contracts/tests export-ignore

@@ -49,8 +49,13 @@ composer check
 ```
 
 `composer check` runs the code style check, static analysis at the highest
-level and the test suite. It passes before every commit; `composer cs:fix`
-applies the code style first.
+level, the boundary check and the test suite. It passes before every commit;
+`composer cs:fix` applies the code style first.
+
+The boundary check is `composer require-check`: each package's `composer.json`
+declares what that package may use, and a symbol it uses without declaring the
+dependency that provides it fails the build. That is what keeps each manifest
+true, and what would make splitting this repository a move of files.
 
 The specifications about the bundles together are in `tests/Core`, and run
 inside the application in `tests/Application`, which registers every core

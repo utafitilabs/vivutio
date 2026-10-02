@@ -33,6 +33,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.95",
+        "maglnet/composer-require-checker": "^4.16",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^13.2",
         "symfony/framework-bundle": "^8.0"
@@ -58,13 +59,16 @@
         "cs:check": "php-cs-fixer fix --dry-run --diff",
         "phpstan": "phpstan analyse --no-progress --memory-limit=1G",
         "test": "phpunit",
+        "require-check": "@php require-check",
         "check": [
             "@cs:check",
             "@phpstan",
+            "@require-check",
             "@test"
         ]
     },
     "config": {
+        "process-timeout": 1800,
         "sort-packages": true
     },
     "minimum-stability": "stable",

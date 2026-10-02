@@ -1,0 +1,27 @@
+{
+    "symbol-whitelist": [
+        "service",
+        "param",
+        "tagged_iterator",
+        "ref",
+        "abstract_arg",
+        "env",
+        "expr",
+        "inline_service",
+        "service_closure",
+        "service_locator"
+    ],
+    "php-core-extensions": [
+        "Core",
+        "date",
+        "json",
+        "hash",
+        "pcre",
+        "Phar",
+        "Reflection",
+        "SPL",
+        "random",
+        "standard"
+    ],
+    "scan-files": []
+}

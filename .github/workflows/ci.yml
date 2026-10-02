@@ -1,7 +1,7 @@
 name: CI
 
 # Every push and pull request passes the whole standard before it is reviewed:
-# composer validate, code style, static analysis, tests.
+# composer validate, code style, static analysis, boundaries, tests.
 on:
   push:
     branches: ['**']
@@ -59,6 +59,11 @@ jobs:
 
       - name: Static analysis (PHPStan max)
         run: composer phpstan
+
+      # The boundary between the packages, enforced: a symbol a package uses
+      # without declaring the dependency that provides it fails the build.
+      - name: Boundaries (composer-require-checker)
+        run: composer require-check
 
       - name: Tests (PHPUnit)
         run: composer test
