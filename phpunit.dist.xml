@@ -15,11 +15,14 @@
     <testsuites>
         <!--
             The core as one installation: the specifications that are about the
-            bundles together, not about any one of them. A bundle gains a suite
-            of its own here with its first test.
+            bundles together, not about any one of them.
         -->
         <testsuite name="Core">
             <directory>tests/Core</directory>
+        </testsuite>
+        <!-- One suite per package: a suite is a package, exactly as after a split. -->
+        <testsuite name="Contracts">
+            <directory>src/Vivutio/Contracts/tests</directory>
         </testsuite>
     </testsuites>
     <source restrictNotices="true" restrictWarnings="true">
