@@ -40,6 +40,54 @@ final class IdentityBundle extends AbstractBundle
     }
 
     /**
+     * What an installation never has to write for this bundle: where its
+     * entities are mapped, and where the versions that build its tables are.
+     *
+     * Both are prepended, so the bundle states its default and the
+     * installation keeps the last word:
+     *
+     *   "As this method only prepends settings, any other settings done
+     *    explicitly inside the config/* files would override these prepended
+     *    settings."
+     *
+     * Each is guarded: an application may hold this bundle without the ORM or
+     * without the migrations bundle, and must still boot.
+     *
+     * The migrations namespace is mapped to a lowercase directory by an
+     * explicit prefix in composer.json; under the bundle's own prefix it would
+     * resolve to nothing on a case-sensitive filesystem.
+     *
+     * @see https://symfony.com/doc/current/bundles/prepend_extension.html
+     * @see https://symfony.com/bundles/DoctrineMigrationsBundle/current/index.html — "List of namespace/path pairs to search for migrations"
+     * @see vendor/doctrine/doctrine-migrations-bundle/src/DependencyInjection/Configuration.php — the migrations_paths node
+     */
+    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        if ($builder->hasExtension('doctrine')) {
+            $builder->prependExtensionConfig('doctrine', [
+                'orm' => [
+                    'mappings' => [
+                        'Identity' => [
+                            'type' => 'attribute',
+                            'dir' => __DIR__.'/Entity',
+                            'prefix' => 'Vivutio\\Bundle\\IdentityBundle\\Entity',
+                            'is_bundle' => false,
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($builder->hasExtension('doctrine_migrations')) {
+            $builder->prependExtensionConfig('doctrine_migrations', [
+                'migrations_paths' => [
+                    'Vivutio\\Bundle\\IdentityBundle\\Migrations' => __DIR__.'/migrations',
+                ],
+            ]);
+        }
+    }
+
+    /**
      * @param array<string, mixed> $config
      *
      * @see https://symfony.com/doc/current/bundles/extension.html — "In bundles

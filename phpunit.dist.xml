@@ -12,6 +12,15 @@
         several bundles, so an env var could only ever name one of their
         kernels; every test names its own in code.
     -->
+    <php>
+        <!--
+            One database for the whole core. Port 5434 is the local PostgreSQL
+            server, 5432 in CI. A specification empties it, so it is named for
+            this repository alone and used by nothing else.
+        -->
+        <env name="VIVUTIO_TEST_DATABASE_URL"
+             value="postgresql://app:app@127.0.0.1:5434/vivutio_core_test?serverVersion=17&amp;charset=utf8"/>
+    </php>
     <testsuites>
         <!--
             The core as one installation: the specifications that are about the

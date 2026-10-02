@@ -20,6 +20,27 @@ jobs:
       matrix:
         php: ['8.4', '8.5']
 
+    # A real PostgreSQL server: the core owns tables, and a specification about
+    # what is stored has no honest version that does not connect. Locally the
+    # same database is on port 5434.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: vivutio_core_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      VIVUTIO_TEST_DATABASE_URL: "postgresql://app:app@127.0.0.1:5432/vivutio_core_test?serverVersion=17&charset=utf8"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +48,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: ctype, iconv
+          extensions: ctype, iconv, pdo_pgsql
           coverage: none
           tools: composer:v2
 

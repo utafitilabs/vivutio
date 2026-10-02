@@ -11,6 +11,8 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Vivutio\Bundle\ConnectBundle\ConnectBundle;
 use Vivutio\Bundle\IdentityBundle\IdentityBundle;
@@ -21,6 +23,8 @@ use Vivutio\Bundle\ShellBundle\ShellBundle;
 
 return [
     FrameworkBundle::class => ['all' => true],
+    DoctrineBundle::class => ['all' => true],
+    DoctrineMigrationsBundle::class => ['all' => true],
     RegistryBundle::class => ['all' => true],
     IdentityBundle::class => ['all' => true],
     ShellBundle::class => ['all' => true],

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Application;
 
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
@@ -54,7 +56,28 @@ final class Kernel extends BaseKernel
             'php_errors' => ['log' => true],
         ]);
 
+        // One database for the whole core: the bundles are released together,
+        // so their specifications never run against two schemas. The naming
+        // strategy and identity columns are what an installation runs.
+        //
+        // @see https://symfony.com/doc/current/doctrine.html
+        $container->extension('doctrine', [
+            'dbal' => ['url' => '%env(VIVUTIO_TEST_DATABASE_URL)%'],
+            'orm' => [
+                'controller_resolver' => ['auto_mapping' => false],
+                'naming_strategy' => 'doctrine.orm.naming_strategy.underscore',
+                'identity_generation_preferences' => [
+                    PostgreSQLPlatform::class => 'identity',
+                ],
+            ],
+        ]);
+
         $services = $container->services();
+
+        // An installation provides a logger that writes to its own files. This
+        // application has none to write to, and without one Symfony's default
+        // logger prints every console event to the test run.
+        $services->set('logger', NullLogger::class);
 
         // A package's declarations, tagged by hand as a reusable bundle tags
         // its own.

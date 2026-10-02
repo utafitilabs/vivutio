@@ -19,8 +19,17 @@
     ],
     "require": {
         "php": ">=8.4",
+        "doctrine/dbal": "^4.0",
+        "doctrine/doctrine-bundle": "^3.0",
+        "doctrine/doctrine-migrations-bundle": "^4.0",
+        "doctrine/migrations": "^3.9",
+        "doctrine/orm": "^3.5",
+        "doctrine/persistence": "^3.1 || ^4.0",
         "symfony/dependency-injection": "^8.0",
-        "symfony/http-kernel": "^8.0"
+        "symfony/doctrine-bridge": "^8.0",
+        "symfony/http-kernel": "^8.0",
+        "symfony/security-core": "^8.0",
+        "symfony/uid": "^8.0"
     },
     "replace": {
         "vivutio/connect-bundle": "self.version",
@@ -41,6 +50,7 @@
     "autoload": {
         "psr-4": {
             "Vivutio\\Bundle\\": "src/Vivutio/Bundle/",
+            "Vivutio\\Bundle\\IdentityBundle\\Migrations\\": "src/Vivutio/Bundle/IdentityBundle/migrations/",
             "Vivutio\\Contracts\\": "src/Vivutio/Contracts/"
         },
         "exclude-from-classmap": [
