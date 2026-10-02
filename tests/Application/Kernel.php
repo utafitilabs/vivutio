@@ -18,6 +18,8 @@ use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
 use Vivutio\Core\Tests\Application\Fixtures\NotesConcerns;
@@ -72,7 +74,39 @@ final class Kernel extends BaseKernel
             ],
         ]);
 
+        // What an installation writes in its own security.yaml; the core
+        // ships none of it. The hasher's cost is the lowest the algorithm
+        // allows, so a suite that creates accounts does not spend its time
+        // hashing.
+        //
+        // @see https://symfony.com/doc/current/security/passwords.html
+        $container->extension('security', [
+            'password_hashers' => [
+                PasswordAuthenticatedUserInterface::class => [
+                    'algorithm' => 'auto',
+                    'cost' => 4,
+                    'time_cost' => 3,
+                    'memory_cost' => 10,
+                ],
+            ],
+            'providers' => [
+                'identity_user_provider' => [
+                    'entity' => ['class' => User::class, 'property' => 'email'],
+                ],
+            ],
+            'firewalls' => [
+                'main' => [
+                    'lazy' => true,
+                    'provider' => 'identity_user_provider',
+                ],
+            ],
+        ]);
+
         $services = $container->services();
+
+        // The framework's own hasher, made reachable: a specification proving
+        // a stored password verifies uses the service a firewall does.
+        $services->alias('test_public.hasher', 'security.user_password_hasher')->public();
 
         // An installation provides a logger that writes to its own files. This
         // application has none to write to, and without one Symfony's default

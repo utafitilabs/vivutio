@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
+use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
+use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
 
@@ -57,6 +60,41 @@ return static function (ContainerConfigurator $container): void {
             tagged_iterator(ScopeSourceInterface::TAG),
         ]);
     $services->alias(ConcernCatalogue::class, 'identity.access.catalogue');
+
+    /*
+     * Every way an account comes into being or changes. The hasher is the
+     * framework's own, the one a firewall verifies a password with, so an
+     * account made here is one the installation's sign-in accepts.
+     */
+    $services->set('identity.accounts', UserService::class)
+        ->args([
+            service('doctrine.orm.entity_manager'),
+            service('security.user_password_hasher'),
+        ]);
+    $services->alias(UserService::class, 'identity.accounts');
+
+    /*
+     * The one command the bundle contributes: the account an installation is
+     * bootstrapped with.
+     *
+     * A bare tag, because the name and the description are on the class: the
+     * compiler pass reads the #[AsCommand] attribute whether or not anything
+     * was autoconfigured, and registers the service lazily under the name it
+     * finds, which is how the framework's own commands are wired.
+     *
+     * Guarded on the component, as FrameworkBundle guards the file that
+     * carries its own commands: a container compiled where there is no console
+     * must not carry a service whose class it cannot load.
+     *
+     * @see https://symfony.com/doc/current/console.html#registering-the-command
+     * @see vendor/symfony/console/DependencyInjection/AddConsoleCommandPass.php
+     * @see vendor/symfony/framework-bundle/DependencyInjection/FrameworkExtension.php — hasConsole()
+     */
+    if (class_exists(Application::class)) {
+        $services->set('identity.command.create_user', CreateUserCommand::class)
+            ->args([service('identity.accounts')])
+            ->tag('console.command');
+    }
 
     /*
      * A repository keeps its class name as its id, the one place the bundle's

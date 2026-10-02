@@ -35,6 +35,9 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     use TimestampableTrait;
     use UuidTrait;
 
+    /** The fewest characters a password may have. */
+    public const int PASSWORD_MIN_LENGTH = 12;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
