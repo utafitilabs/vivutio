@@ -1,0 +1,37 @@
+{
+    "name": "vivutio/contracts",
+    "type": "library",
+    "description": "The contracts a vivutio module declares itself with and the core's packages meet each other through.",
+    "keywords": [
+        "abstractions",
+        "contract",
+        "interfaces",
+        "symfony",
+        "vivutio"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ezekiel Mjema",
+            "homepage": "https://github.com/eemjema"
+        }
+    ],
+    "require": {
+        "php": ">=8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vivutio\\Contracts\\": ""
+        },
+        "exclude-from-classmap": [
+            "/tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vivutio\\Contracts\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -1,0 +1,11 @@
+/vendor/
+/.phpunit.cache/
+/.php-cs-fixer.cache
+/composer.lock
+/tests/Application/var/
+/tests/Application/config/reference.php
+/src/Vivutio/Bundle/*/config/reference.php
+
+/.idea/
+/.vscode/
+*.iml

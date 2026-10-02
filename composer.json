@@ -1,0 +1,69 @@
+{
+    "name": "vivutio/vivutio",
+    "type": "library",
+    "description": "The vivutio core: identity, the shell, the registry, places, partners and the hub connection, shipped as one package and one version.",
+    "keywords": [
+        "core",
+        "platform",
+        "symfony",
+        "tourism",
+        "travel",
+        "vivutio"
+    ],
+    "license": "AGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Ezekiel Mjema",
+            "homepage": "https://github.com/eemjema"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "symfony/http-kernel": "^8.0"
+    },
+    "replace": {
+        "vivutio/connect-bundle": "self.version",
+        "vivutio/contracts": "self.version",
+        "vivutio/identity-bundle": "self.version",
+        "vivutio/partner-bundle": "self.version",
+        "vivutio/place-bundle": "self.version",
+        "vivutio/registry-bundle": "self.version",
+        "vivutio/shell-bundle": "self.version"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^13.2",
+        "symfony/framework-bundle": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vivutio\\Bundle\\": "src/Vivutio/Bundle/",
+            "Vivutio\\Contracts\\": "src/Vivutio/Contracts/"
+        },
+        "exclude-from-classmap": [
+            "**/tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vivutio\\Core\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "cs:fix": "php-cs-fixer fix",
+        "cs:check": "php-cs-fixer fix --dry-run --diff",
+        "phpstan": "phpstan analyse --no-progress --memory-limit=1G",
+        "test": "phpunit",
+        "check": [
+            "@cs:check",
+            "@phpstan",
+            "@test"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

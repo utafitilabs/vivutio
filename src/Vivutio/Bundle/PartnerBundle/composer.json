@@ -1,0 +1,38 @@
+{
+    "name": "vivutio/partner-bundle",
+    "type": "symfony-bundle",
+    "description": "The vivutio partner bundle: the organisations an installation trades with and the channel each is reached through.",
+    "keywords": [
+        "partner",
+        "symfony",
+        "tourism",
+        "travel",
+        "vivutio"
+    ],
+    "license": "AGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Ezekiel Mjema",
+            "homepage": "https://github.com/eemjema"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "symfony/http-kernel": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vivutio\\Bundle\\PartnerBundle\\": ""
+        },
+        "exclude-from-classmap": [
+            "/tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vivutio\\Bundle\\PartnerBundle\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

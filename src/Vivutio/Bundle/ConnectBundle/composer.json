@@ -1,0 +1,38 @@
+{
+    "name": "vivutio/connect-bundle",
+    "type": "symfony-bundle",
+    "description": "The vivutio connection to the hub: one implementation of the partner channel, off until an installation turns it on.",
+    "keywords": [
+        "connect",
+        "symfony",
+        "tourism",
+        "travel",
+        "vivutio"
+    ],
+    "license": "AGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Ezekiel Mjema",
+            "homepage": "https://github.com/eemjema"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "symfony/http-kernel": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vivutio\\Bundle\\ConnectBundle\\": ""
+        },
+        "exclude-from-classmap": [
+            "/tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vivutio\\Bundle\\ConnectBundle\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

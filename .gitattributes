@@ -1,0 +1,8 @@
+/tests export-ignore
+/.github export-ignore
+/.git* export-ignore
+/phpunit.dist.xml export-ignore
+/phpstan.dist.neon export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/src/Vivutio/Bundle/*/tests export-ignore
+/src/Vivutio/Contracts/tests export-ignore

@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the vivutio core.
+ *
+ * (c) Ezekiel Mjema <https://github.com/eemjema>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Vivutio\Bundle\ConnectBundle\ConnectBundle;
+use Vivutio\Bundle\IdentityBundle\IdentityBundle;
+use Vivutio\Bundle\PartnerBundle\PartnerBundle;
+use Vivutio\Bundle\PlaceBundle\PlaceBundle;
+use Vivutio\Bundle\RegistryBundle\RegistryBundle;
+use Vivutio\Bundle\ShellBundle\ShellBundle;
+
+return [
+    FrameworkBundle::class => ['all' => true],
+    RegistryBundle::class => ['all' => true],
+    IdentityBundle::class => ['all' => true],
+    ShellBundle::class => ['all' => true],
+    PlaceBundle::class => ['all' => true],
+    PartnerBundle::class => ['all' => true],
+    ConnectBundle::class => ['all' => true],
+];

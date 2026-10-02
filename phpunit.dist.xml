@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
+         colors="true"
+         failOnDeprecation="true"
+         failOnNotice="true"
+         failOnWarning="true">
+    <!--
+        No KERNEL_CLASS. The core is one repository with one phpunit config and
+        several bundles, so an env var could only ever name one of their
+        kernels; every test names its own in code.
+    -->
+    <testsuites>
+        <!--
+            The core as one installation: the specifications that are about the
+            bundles together, not about any one of them. A bundle gains a suite
+            of its own here with its first test.
+        -->
+        <testsuite name="Core">
+            <directory>tests/Core</directory>
+        </testsuite>
+    </testsuites>
+    <source restrictNotices="true" restrictWarnings="true">
+        <include>
+            <directory>src</directory>
+        </include>
+        <exclude>
+            <directory>src/Vivutio/Bundle/*/tests</directory>
+            <directory>src/Vivutio/Contracts/tests</directory>
+        </exclude>
+    </source>
+</phpunit>
