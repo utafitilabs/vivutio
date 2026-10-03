@@ -46,4 +46,33 @@ final readonly class OrganizationIdentity
             throw new \InvalidArgumentException('An organization is known by its name: it cannot be empty.');
         }
     }
+
+    /**
+     * The zone's offset as it is drawn beside it, "UTC+3", or null where no
+     * zone is set, and null again where the name is one PHP does not know,
+     * because a wrong offset is worse than none.
+     */
+    public function utcOffset(\DateTimeImmutable $at): ?string
+    {
+        if (null === $this->timeZone) {
+            return null;
+        }
+
+        try {
+            $zone = new \DateTimeZone($this->timeZone);
+        } catch (\Exception) {
+            return null;
+        }
+
+        $minutes = intdiv($at->setTimezone($zone)->getOffset(), 60);
+        $sign = $minutes < 0 ? '-' : '+';
+        $minutes = abs($minutes);
+
+        return \sprintf(
+            0 === $minutes % 60 ? 'UTC%s%d' : 'UTC%s%d:%02d',
+            $sign,
+            intdiv($minutes, 60),
+            $minutes % 60,
+        );
+    }
 }

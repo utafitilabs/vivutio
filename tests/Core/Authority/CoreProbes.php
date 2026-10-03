@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Vivutio\Core\Tests\Core\Authority;
 
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
+use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 
@@ -33,6 +34,9 @@ final class CoreProbes
             new Probe(DashboardController::HOME, 'GET', '/'),
             new Probe(DashboardController::MINE, 'GET', '/me'),
             new Probe(TeamController::TEAM, 'GET', '/team'),
+            new Probe(SettingsController::ORGANIZATION, 'GET', '/settings/organization'),
+            new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'GET', '/settings/configure/organization'),
+            new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'POST', '/settings/configure/organization', ['name' => 'Taken over']),
         ];
     }
 }

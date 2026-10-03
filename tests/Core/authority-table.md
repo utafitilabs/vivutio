@@ -73,3 +73,45 @@ Checks: `directory.read`
 | Staff holding all but the pair | refused |
 | Admin | allowed: Team · vivutio |
 | Super Admin | allowed: Team · vivutio |
+
+## identity_settings_organization: GET /settings/organization
+
+Checks: `settings.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Organization · vivutio |
+| Super Admin | allowed: Organization · vivutio |
+
+## identity_settings_configure_organization: GET /settings/configure/organization
+
+Checks: `settings.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Configure organization · vivutio |
+| Super Admin | allowed: Configure organization · vivutio |
+
+## identity_settings_configure_organization: POST /settings/configure/organization
+
+Checks: `settings.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | answered 422 |
+| Super Admin | answered 422 |

@@ -1,0 +1,55 @@
+{# Settings › Organization › Configure, as designed in
+   vivutio-designs/settings/configure/organization.html: every value a field
+   with what it is for under it; Discard puts the form back, and nothing is
+   saved until Save. A refusal is said beside the field it is about. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Configure organization{% endblock %}
+{% block here %}settings{% endblock %}
+
+{% block page %}
+<header class="page-head">
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('identity_settings_organization') }}">Settings</a> / Configure</nav><div class="title"><h1>Organization</h1></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_settings_organization') }}">{{ icons.icon('left', 15) }} Back</a></div>
+</header>
+<div class="stack">
+    {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Save again.</span></div>{% endif %}
+    <form method="post" class="panel" novalidate>
+        <header class="panel-head"><h2>Identity</h2><p>What the organization is called, and where it is</p></header>
+        <input type="hidden" name="_token" value="{{ csrf_token(token) }}">
+        <div class="grid-2">
+            <div class="field{{ wrong.name is defined ? ' wrong' }}">
+                <label for="org-name">Name</label>
+                <input class="input" id="org-name" name="name" value="{{ values.name }}" required maxlength="160">
+                <div class="hint"><span>{{ wrong.name ?? 'Heads the menu and the dashboard' }}</span></div>
+            </div>
+            <div class="field{{ wrong.short_name is defined ? ' wrong' }}">
+                <label for="org-short">Short name <small>&middot; optional</small></label>
+                <input class="input" id="org-short" name="short_name" value="{{ values.short_name }}" maxlength="12">
+                <div class="hint"><span>{{ wrong.short_name ?? 'Drawn where the full name will not fit; up to 12 characters' }}</span></div>
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="field{{ wrong.time_zone is defined ? ' wrong' }}">
+                <label for="org-zone">Time zone <small>&middot; optional</small></label>
+                <select class="select" id="org-zone" name="time_zone">
+                    <option value="">Not set</option>
+                    {% for region, names in zones %}
+                        <optgroup label="{{ region }}">
+                            {% for zone in names %}<option value="{{ zone }}"{{ zone == values.time_zone ? ' selected' }}>{{ zone }}</option>{% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                </select>
+                <div class="hint"><span>{{ wrong.time_zone ?? 'The organization’s own clock' }}</span></div>
+            </div>
+            <div class="field{{ wrong.country is defined ? ' wrong' }}">
+                <label for="org-country">Country <small>&middot; optional</small></label>
+                <input class="input" id="org-country" name="country" value="{{ values.country }}" maxlength="80">
+                <div class="hint"><span>{{ wrong.country ?? 'Where the organization works' }}</span></div>
+            </div>
+        </div>
+        <footer class="panel-foot"><span class="state">Nothing is saved until Save</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save identity</button></footer>
+    </form>
+</div>
+{% endblock %}

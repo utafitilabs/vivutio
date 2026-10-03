@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Vivutio\Bundle\ShellBundle\Access\SettingsConcerns;
 use Vivutio\Bundle\ShellBundle\Access\ShellConcerns;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
@@ -31,16 +32,12 @@ return static function (ContainerConfigurator $container): void {
     $services = $container->services();
 
     /*
-     * door(), the one helper a template draws a control by. Tagged by hand:
-     * the Twig bundle collects its extensions by this tag.
-     *
-     * @see vendor/symfony/twig-bundle/Resources/config/twig.php — ->tag('twig.extension')
-     */
-    /*
      * Who lands on the organization's dashboard, declared like any package's
      * permissions, through the tag the catalogue collects.
      */
     $services->set('shell.access.concerns', ShellConcerns::class)
+        ->tag(ConcernSourceInterface::TAG);
+    $services->set('shell.access.settings_concerns', SettingsConcerns::class)
         ->tag(ConcernSourceInterface::TAG);
 
     /*
@@ -64,6 +61,12 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('twig')])
         ->tag('kernel.event_listener', ['event' => 'kernel.exception', 'method' => 'onException', 'priority' => 0]);
 
+    /*
+     * door(), the one helper a template draws a control by. Tagged by hand:
+     * the Twig bundle collects its extensions by this tag.
+     *
+     * @see vendor/symfony/twig-bundle/Resources/config/twig.php — ->tag('twig.extension')
+     */
     $services->set('shell.twig.door', DoorExtension::class)
         ->args([service('security.authorization_checker')])
         ->tag('twig.extension');

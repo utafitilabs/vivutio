@@ -18,6 +18,7 @@ use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
+use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 use Vivutio\Bundle\IdentityBundle\Repository\OrganizationRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
@@ -115,6 +116,17 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(OrganizationService::class, 'identity.organizations');
     $services->alias(OrganizationIdentitySourceInterface::SERVICE, 'identity.organizations');
     $services->alias(OrganizationIdentitySourceInterface::class, 'identity.organizations');
+
+    $services->set('identity.controller.settings', SettingsController::class)
+        ->args([
+            service('twig'),
+            service('identity.organizations'),
+            service('identity.organizations'),
+            service('security.csrf.token_manager'),
+            service('router'),
+        ])
+        ->public();
+    $services->alias(SettingsController::class, 'identity.controller.settings')->public();
 
     /*
      * The rules between tiers, where Symfony's access decision manager asks

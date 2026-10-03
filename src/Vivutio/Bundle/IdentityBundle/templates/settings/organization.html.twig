@@ -1,0 +1,31 @@
+{# Settings › Organization, as designed in vivutio-designs/settings/organization.html
+   after uhifadhi's ruling: the identity read as plain values, each with what
+   it is for, and a Configure door to change it. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Organization{% endblock %}
+{% block here %}settings{% endblock %}
+
+{% block page %}
+{%- set not_set = '<span class="quiet">Not set</span>' -%}
+{%- set offset = identity and identity.timeZone ? identity.utcOffset(now) : null -%}
+<header class="page-head">
+    <div><nav class="trail" aria-label="Where you are">Settings</nav><div class="title"><h1>Organization</h1></div></div>
+    {% if door('settings.configure') %}<div class="actions"><a class="button outline" href="{{ path('identity_settings_configure_organization') }}">Configure</a></div>{% endif %}
+</header>
+<div class="stack">
+    {% if saved %}<div class="notice" role="status">{{ icons.icon('check') }}<span>The organization is saved.</span></div>{% endif %}
+    <section class="panel">
+        <header class="panel-head"><h2>Identity</h2><p>What the organization is called, and where it is</p></header>
+        <table class="table">
+            <tbody data-identity>
+                <tr><td>Name</td><td>{{ identity ? ('<b>' ~ identity.name|e ~ '</b>')|raw : not_set|raw }}</td><td class="quiet">heads the menu and the dashboard</td></tr>
+                <tr><td>Short name</td><td>{{ identity and identity.shortName ? ('<b>' ~ identity.shortName|e ~ '</b>')|raw : not_set|raw }}</td><td class="quiet">drawn where the full name will not fit</td></tr>
+                <tr><td>Time zone</td><td>{% if identity and identity.timeZone %}<b>{{ identity.timeZone }}</b>{% if offset %} <span class="quiet">{{ offset }}</span>{% endif %}{% else %}{{ not_set|raw }}{% endif %}</td><td class="quiet">the organization’s own clock, for whatever is counted by the day</td></tr>
+                <tr><td>Country</td><td>{{ identity and identity.country ? ('<b>' ~ identity.country|e ~ '</b>')|raw : not_set|raw }}</td><td class="quiet">where the organization works</td></tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}
