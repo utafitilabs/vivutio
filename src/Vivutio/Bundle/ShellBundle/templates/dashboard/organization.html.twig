@@ -9,7 +9,7 @@
 
 {% block page %}
 <header class="page-head" data-dashboard="organization">
-    <div><div class="title"><h1>Dashboard</h1>{% if organization_name|default(null) %}<span class="about">{{ organization_name }}</span>{% endif %}</div></div>
+    <div><div class="title"><h1>Dashboard</h1>{% if organization() %}<span class="about">{{ organization().name }}</span>{% endif %}</div></div>
     {% if door('dashboard.read') %}<div class="actions"><a class="button outline" href="{{ path('shell_my_dashboard') }}">My dashboard</a></div>{% endif %}
 </header>
 <section class="panel">

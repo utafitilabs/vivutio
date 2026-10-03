@@ -43,7 +43,7 @@ final class MigrationsCoverSchemaTest extends MigrationsTestCase
     {
         $this->migrate();
 
-        self::assertSame(['doctrine_migration_versions', 'identity_position', 'identity_user'], $this->tableNames());
+        self::assertSame(['doctrine_migration_versions', 'identity_organization', 'identity_position', 'identity_user'], $this->tableNames());
     }
 
     public function testAnEmptyDatabaseMigratedLeavesNothingForDiffToWrite(): void

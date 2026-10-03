@@ -17,7 +17,9 @@ use Vivutio\Bundle\ShellBundle\Access\ShellConcerns;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
+use Vivutio\Bundle\ShellBundle\Twig\OrganizationExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
+use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
 
 /*
  * Every service is defined explicitly, with an id prefixed by the bundle's
@@ -64,5 +66,9 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set('shell.twig.door', DoorExtension::class)
         ->args([service('security.authorization_checker')])
+        ->tag('twig.extension');
+
+    $services->set('shell.twig.organization', OrganizationExtension::class)
+        ->args([service(OrganizationIdentitySourceInterface::SERVICE)])
         ->tag('twig.extension');
 };

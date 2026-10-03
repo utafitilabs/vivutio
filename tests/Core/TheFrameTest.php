@@ -20,6 +20,8 @@ use Symfony\Component\DomCrawler\Crawler;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
+use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
+use Vivutio\Core\Tests\Application\Kernel;
 
 /**
  * The frame every signed-in page wears, as designed in
@@ -121,6 +123,18 @@ final class TheFrameTest extends MigrationsTestCase
         $page = $this->open('/', $this->person('Neema', TierEnum::SuperAdmin));
 
         self::assertSame('Organization', trim($page->filter('nav.menu h2')->first()->text()));
+    }
+
+    public function testOnceRecordedTheOrganizationsNameHeadsTheMenuAndTheDashboard(): void
+    {
+        $organizations = static::getContainer()->get(Kernel::ORGANIZATIONS);
+        self::assertInstanceOf(OrganizationService::class, $organizations);
+        $organizations->record('Vivutio Camps', 'VC', null, null);
+
+        $page = $this->open('/', $this->person('Neema', TierEnum::SuperAdmin));
+
+        self::assertSame('Vivutio Camps', trim($page->filter('nav.menu h2')->first()->text()));
+        self::assertSame('Vivutio Camps', trim($page->filter('.page-head .about')->text()));
     }
 
     /**

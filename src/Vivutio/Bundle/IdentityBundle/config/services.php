@@ -19,16 +19,19 @@ use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
+use Vivutio\Bundle\IdentityBundle\Repository\OrganizationRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
+use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionService;
 use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
+use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
 
 /*
  * Every service is defined explicitly, with an id prefixed by the bundle's
@@ -99,6 +102,19 @@ return static function (ContainerConfigurator $container): void {
             service('identity.access.catalogue'),
         ]);
     $services->alias(PositionService::class, 'identity.positions');
+
+    /*
+     * Whose installation this is: recorded on Settings, read by the frame and
+     * by any module that prints the name, through the contract's service id.
+     */
+    $services->set('identity.organizations', OrganizationService::class)
+        ->args([
+            service('doctrine.orm.entity_manager'),
+            service(OrganizationRepository::class),
+        ]);
+    $services->alias(OrganizationService::class, 'identity.organizations');
+    $services->alias(OrganizationIdentitySourceInterface::SERVICE, 'identity.organizations');
+    $services->alias(OrganizationIdentitySourceInterface::class, 'identity.organizations');
 
     /*
      * The rules between tiers, where Symfony's access decision manager asks
@@ -192,6 +208,9 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
     $services->set(PositionRepository::class)
+        ->args([service('doctrine')])
+        ->tag('doctrine.repository_service');
+    $services->set(OrganizationRepository::class)
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
 };

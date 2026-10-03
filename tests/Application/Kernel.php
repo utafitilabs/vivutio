@@ -24,6 +24,7 @@ use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
+use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
 use Vivutio\Core\Tests\Application\Fixtures\NotesConcerns;
 use Vivutio\Core\Tests\Application\Fixtures\NotesScopes;
 use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
@@ -57,6 +58,8 @@ final class Kernel extends BaseKernel
     public const string VOTERS = 'test_public.voters';
 
     public const string CONCERN_SOURCES = 'test_public.concern_sources';
+
+    public const string ORGANIZATIONS = 'test_public.organizations';
 
     public function getProjectDir(): string
     {
@@ -174,6 +177,11 @@ final class Kernel extends BaseKernel
         //
         // @see vendor/symfony/security-bundle/Security.php — getAccessDecisionForUser()
         $services->alias(self::SECURITY, 'security.helper')->public();
+
+        // Recording the organization is reached by the Settings page; until
+        // that page exists, a specification records it directly.
+        $services->alias(self::ORGANIZATIONS, 'identity.organizations')->public();
+        $services->alias('test_public.organization_identity', OrganizationIdentitySourceInterface::SERVICE)->public();
 
         // An installation provides a logger that writes to its own files. This
         // application has none to write to, and without one Symfony's default

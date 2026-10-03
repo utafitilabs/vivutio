@@ -10,6 +10,7 @@
 
 {% block body %}
 {%- set person = app.user -%}
+{%- set organization = organization() -%}
 <header class="bar">
     <a class="brand" href="{{ path('shell_dashboard') }}">{% include '@Shell/_mark.html.twig' with {size: 28} only %}<span>vivutio</span></a>
     <button type="button" class="fold" onclick="foldMenu()" title="Fold or open the menu" aria-label="Fold or open the menu">{{ icons.icon('fold') }}</button>
@@ -29,7 +30,7 @@
 <div class="shell">
     <nav class="menu" aria-label="Menu">
         {%- set here = block('here') is defined ? block('here')|trim : '' -%}
-        {% if organization_name|default(null) %}<h2>{{ organization_name }}</h2>{% endif %}
+        {% if organization %}<h2>{{ organization.name }}</h2>{% endif %}
         <a href="{{ path('shell_dashboard') }}" title="Dashboard"{{ 'dashboard' == here ? ' class="here"' }}>{{ icons.icon('dashboard') }}<span>Dashboard</span></a>
         {% if door('directory.read') %}
             <h2>Organization</h2>
