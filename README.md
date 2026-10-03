@@ -4,8 +4,8 @@
 run properties, tour operators and travel agents each run their own installation and add the
 modules that apply to them. This package is what every installation shares.
 
-It is one repository and one version, made of the packages below. It has no
-release yet.
+It is one repository and one version, made of the packages below, released on
+Packagist as `vivutio/vivutio` (first release 0.1.0, 3 October 2026).
 
 ## Contents
 
@@ -13,6 +13,7 @@ release yet.
 - [Requirements](#requirements)
 - [Development](#development)
 - [A module's authority suite](#a-modules-authority-suite)
+- [Releases](#releases)
 - [Licence](#licence)
 
 ## The packages
@@ -108,6 +109,21 @@ VIVUTIO_RECORD_AUTHORITY_TABLE=1 vendor/bin/phpunit --filter PropertyAuthorityTe
 
 and every later change to it fails until it is recorded again and its diff is
 read. `tests/Application/NotesModule` is a stand-in module built this way.
+
+## Releases
+
+A version is tagged only by the release workflow, never by hand:
+
+```
+gh workflow run release.yml --ref 0.1 -f version=0.1.1
+```
+
+It runs the fleet gate in head mode over the line, insisting the line has not
+moved since the release was asked for; tags that commit; waits until Packagist
+lists the version; then runs the gate in released mode, which creates a project
+from Packagist as the skeleton's README says and reports what it installed. The
+gate and the tag are workflows of `vivutio/devkit-module`, shared by every
+repository of the platform. 0.x versions are tagged this way; 1.0 is the owner's.
 
 ## Licence
 
