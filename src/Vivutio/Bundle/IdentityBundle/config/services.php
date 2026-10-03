@@ -19,6 +19,7 @@ use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
+use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
@@ -85,6 +86,14 @@ return static function (ContainerConfigurator $container): void {
      */
     $services->set('identity.voter.account', AccountVoter::class)
         ->args([service('identity.accounts')])
+        ->tag('security.voter');
+
+    /*
+     * Every declared pair, `<concern>.<verb>`, the attribute a route's
+     * #[IsGranted] and a control name.
+     */
+    $services->set('identity.voter.grant', GrantVoter::class)
+        ->args([service('identity.access.catalogue')])
         ->tag('security.voter');
 
     /*

@@ -24,6 +24,7 @@ use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
 use Vivutio\Core\Tests\Application\Fixtures\NotesConcerns;
 use Vivutio\Core\Tests\Application\Fixtures\NotesScopes;
+use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
 
 /**
  * The application the core's own specifications run inside: every core bundle
@@ -128,10 +129,11 @@ final class Kernel extends BaseKernel
             ->tag(ConcernSourceInterface::TAG);
         $services->set('test.notes.scopes', NotesScopes::class)
             ->tag(ScopeSourceInterface::TAG);
+        $services->set('test.notices.concerns', NoticesConcerns::class)
+            ->tag(ConcernSourceInterface::TAG);
 
-        // Nothing in this application references the catalogue yet, and a
-        // private service nothing references is removed when the container
-        // compiles. The alias keeps it for the specifications to ask.
+        // The catalogue, made reachable for the specifications to ask what
+        // was declared.
         $services->alias(self::CATALOGUE, 'identity.access.catalogue')->public();
     }
 }
