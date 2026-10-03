@@ -22,8 +22,8 @@ use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 
 /**
  * The team list, ported from uhifadhi's table: who may open it, what each
- * viewer is shown of each person, and the search, filters, counts, pager and
- * export, driven over HTTP.
+ * viewer is shown of each person, and the search, filters, counts and pager,
+ * driven over HTTP.
  */
 final class TheTeamListTest extends MigrationsTestCase
 {
@@ -54,6 +54,17 @@ final class TheTeamListTest extends MigrationsTestCase
         $this->browser->request('GET', '/team');
 
         self::assertResponseStatusCodeSame(403);
+    }
+
+    /** The team is read on screen; nothing carries the list out as a file. */
+    public function testTheListHasNoExport(): void
+    {
+        $this->theCamp();
+        $this->signedInAs($this->person('Zawadi', 'Lema', TierEnum::SuperAdmin));
+
+        self::assertCount(0, $this->list()->filter('a[data-export]'));
+        $this->browser->request('GET', '/team/export');
+        self::assertResponseStatusCodeSame(404);
     }
 
     public function testItListsEverybodyToWhoeverMayReadTheDirectory(): void
@@ -169,62 +180,6 @@ final class TheTeamListTest extends MigrationsTestCase
 
         self::assertCount(0, $page->filter('form[data-tools]'));
         self::assertCount(1, $page->filter('[data-first-run]'));
-    }
-
-    public function testTheExportIsTheFilteredSetOnEveryPage(): void
-    {
-        for ($i = 1; $i <= 30; ++$i) {
-            $this->person('Person', \sprintf('%02d', $i), TierEnum::Staff);
-        }
-        $this->signedInAs($this->person('Zawadi', 'Lema', TierEnum::SuperAdmin));
-
-        $this->browser->request('GET', '/team/export?account=active');
-
-        self::assertResponseIsSuccessful();
-        self::assertResponseHeaderSame('content-type', 'text/csv; charset=UTF-8');
-        $rows = array_values(array_filter(explode("\n", (string) $this->browser->getInternalResponse()->getContent())));
-        self::assertSame('Name,Email,Tier,Position,Account', $rows[0]);
-        self::assertCount(32, $rows, 'a header and every one of the 31, not the 25 on the first page');
-    }
-
-    /** The export shows what the list shows to the same viewer, and no more. */
-    public function testTheExportHidesWhatTheViewerMayNotSee(): void
-    {
-        $this->theCamp();
-        $this->signedInAs($this->person('Neema', 'Mollel', TierEnum::Staff, $this->position('Clerk', ['directory.read', 'directory.export'])));
-
-        $this->browser->request('GET', '/team/export');
-
-        $csv = (string) $this->browser->getInternalResponse()->getContent();
-        self::assertStringStartsWith("Name,Position,Account\n", $csv);
-        self::assertStringNotContainsString('@', $csv);
-        self::assertStringNotContainsString('Super Admin', $csv);
-    }
-
-    /**
-     * A spreadsheet runs a cell that starts with = + - or @ as a formula. A
-     * name typed that way leaves the export as text, never as a formula.
-     */
-    public function testANameThatLooksLikeAFormulaIsExportedAsText(): void
-    {
-        $this->person('=HYPERLINK("http://example.test")', 'Kimaro', TierEnum::Staff);
-        $this->signedInAs($this->person('Zawadi', 'Lema', TierEnum::SuperAdmin));
-
-        $this->browser->request('GET', '/team/export');
-
-        $csv = (string) $this->browser->getInternalResponse()->getContent();
-        self::assertStringContainsString("'=HYPERLINK", $csv);
-        self::assertStringNotContainsString("\n\"=HYPERLINK", $csv);
-    }
-
-    public function testTheExportIsRefusedWithoutItsOwnGrant(): void
-    {
-        $this->signedInAs($this->person('Neema', 'Mollel', TierEnum::Staff, $this->position('Clerk', ['directory.read'])));
-
-        $this->browser->request('GET', '/team/export');
-
-        self::assertResponseStatusCodeSame(403);
-        self::assertCount(0, $this->list()->filter('a[data-export]'), 'and the list draws no export button');
     }
 
     /**

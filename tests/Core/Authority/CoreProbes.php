@@ -31,7 +31,6 @@ final class CoreProbes
             new Probe(SecurityController::SIGN_OUT, 'GET', '/logout'),
             new Probe('test_landing', 'GET', '/'),
             new Probe(TeamController::TEAM, 'GET', '/team'),
-            new Probe(TeamController::EXPORT, 'GET', '/team/export'),
         ];
     }
 }

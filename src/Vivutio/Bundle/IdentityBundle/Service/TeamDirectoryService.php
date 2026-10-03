@@ -65,19 +65,6 @@ final readonly class TeamDirectoryService
         );
     }
 
-    /**
-     * Everybody the query matches, on every page: what an export of it holds.
-     *
-     * @return list<User>
-     */
-    public function all(TeamQuery $query, bool $withTiers, bool $withAddresses): array
-    {
-        /** @var list<User> $people */
-        $people = $this->matching($query, $withTiers, $withAddresses)->getQuery()->getResult();
-
-        return $people;
-    }
-
     private function matching(TeamQuery $query, bool $withTiers, bool $withAddresses): QueryBuilder
     {
         $matching = $this->users->createQueryBuilder('u')

@@ -59,17 +59,3 @@ Checks: `directory.read`
 | Staff holding all but the pair | refused |
 | Admin | allowed |
 | Super Admin | allowed |
-
-## identity_team_export: GET /team/export
-
-Checks: `directory.export`
-
-| Person | Outcome |
-|---|---|
-| signed out | sent to sign-in |
-| deactivated while signed in | sent to sign-in |
-| Staff, no position | refused |
-| Staff holding the pair | allowed |
-| Staff holding all but the pair | refused |
-| Admin | allowed |
-| Super Admin | allowed |

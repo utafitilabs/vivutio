@@ -43,9 +43,6 @@
                 <a data-chip href="{{ path('identity_team', query.toParams({account: 'deactivated', page: null})) }}">Deactivated <span>{{ page.deactivated }}</span></a>
             </div>
 
-            {% if door('directory.export') %}
-                <a data-export href="{{ path('identity_team_export', query.toParams({page: null})) }}">Export {{ page.total }} rows · CSV</a>
-            {% endif %}
             <span data-shown>showing {{ page.people|length }} of {{ page.total }}</span>
         </form>
     {% endif %}

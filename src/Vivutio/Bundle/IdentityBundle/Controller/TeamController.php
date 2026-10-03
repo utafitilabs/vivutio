@@ -25,12 +25,11 @@ use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
 
 /**
- * The team list and its export.
+ * The team list.
  *
- * What a viewer sees of each person is asked of the voters here, once, and
- * passed on: whether they see tiers and whether they may read addresses. The
- * list, its filters and its export follow the same two answers, so a column a
- * viewer is not shown is never a filter or a cell of the file either.
+ * What a viewer sees of each person is asked of the voters: whether they see
+ * tiers, and whether they may read addresses. The list and its filters follow
+ * the same two answers, so a column a viewer is not shown is never a filter.
  *
  * It extends nothing and is handed what it uses, as the framework's own
  * controllers are.
@@ -40,7 +39,6 @@ use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
 final readonly class TeamController
 {
     public const string TEAM = 'identity_team';
-    public const string EXPORT = 'identity_team_export';
 
     public function __construct(
         private Environment $twig,
@@ -67,63 +65,8 @@ final readonly class TeamController
         ]));
     }
 
-    /**
-     * Everybody the list's filter matches, on every page, as a file: the
-     * columns the viewer is shown, and no other.
-     */
-    #[Route('/team/export', name: self::EXPORT, methods: ['GET'])]
-    #[IsGranted('directory.export')]
-    public function export(Request $request): Response
-    {
-        $withTiers = $this->authorization->isGranted(AccountVoter::SEE_TIERS);
-        $withAddresses = $this->withAddresses();
-
-        $rows = [['Name', ...$withAddresses ? ['Email'] : [], ...$withTiers ? ['Tier'] : [], 'Position', 'Account']];
-        foreach ($this->directory->all(TeamQuery::fromRequest($request), $withTiers, $withAddresses) as $person) {
-            $rows[] = [
-                $person->getFullName(),
-                ...$withAddresses ? [(string) $person->getEmail()] : [],
-                ...$withTiers ? [$person->getTier()->label()] : [],
-                (string) $person->getPosition()?->getName(),
-                $person->isActive() ? 'Active' : 'Deactivated',
-            ];
-        }
-
-        return new Response(self::csv($rows), Response::HTTP_OK, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="team.csv"',
-        ]);
-    }
-
     private function withAddresses(): bool
     {
         return $this->authorization->isGranted('personal_details.read');
-    }
-
-    /**
-     * A spreadsheet runs a cell that starts with = + - or @ as a formula, so
-     * such a cell is written as text.
-     *
-     * @param list<list<string>> $rows
-     *
-     * @see https://owasp.org/www-community/attacks/CSV_Injection
-     */
-    private static function csv(array $rows): string
-    {
-        $file = fopen('php://temp', 'r+');
-        \assert(false !== $file);
-
-        foreach ($rows as $row) {
-            fputcsv($file, array_map(
-                static fn (string $cell): string => 1 === preg_match('/^[=+\-@]/', $cell) ? "'".$cell : $cell,
-                $row,
-            ), escape: '');
-        }
-
-        rewind($file);
-        $csv = (string) stream_get_contents($file);
-        fclose($file);
-
-        return $csv;
     }
 }

@@ -49,7 +49,7 @@ final class TheCoreDeclaresItsPeopleConcernsTest extends KernelTestCase
         $catalogue = $this->catalogue();
 
         self::assertTrue($catalogue->has(Grant::of('directory', Verb::Read)), 'who is on the team');
-        self::assertTrue($catalogue->has(Grant::of('directory', Verb::Export)), 'the team, taken out as a file');
+        self::assertFalse($catalogue->has(Grant::of('directory', Verb::Export)), 'the team is read on screen and never exported');
         self::assertTrue($catalogue->has(Grant::of('personal_details', Verb::Read)), 'a person\'s contact details');
 
         self::assertSame('Team', $catalogue->declarerOf('directory'));
@@ -66,7 +66,7 @@ final class TheCoreDeclaresItsPeopleConcernsTest extends KernelTestCase
 
     public function testEveryPairOfThemIsOneAPositionMayCarry(): void
     {
-        foreach (['directory.read', 'directory.export', 'personal_details.read'] as $pair) {
+        foreach (['directory.read', 'personal_details.read'] as $pair) {
             self::assertContains($pair, $this->catalogue()->positionPairs());
         }
     }

@@ -48,7 +48,7 @@ final readonly class IdentityConcerns implements ConcernSourceInterface
             key: self::DIRECTORY,
             label: 'Directory',
             description: 'Who is on the team: their name, their position and whether their account is in use.',
-            verbs: [Verb::Read, Verb::Export],
+            verbs: [Verb::Read],
             scopes: [Scope::ORGANIZATION],
         );
 
