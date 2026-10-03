@@ -18,7 +18,6 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
@@ -27,6 +26,7 @@ use Vivutio\Contracts\Access\Grant;
 use Vivutio\Contracts\Access\Verb;
 use Vivutio\Core\Tests\Application\Fixtures\TaggedServices;
 use Vivutio\Core\Tests\Application\Kernel;
+use Vivutio\Core\Tests\Core\Authority\RouteGates;
 
 /**
  * The route walk: what a route enforces and what the installation declares
@@ -185,9 +185,6 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
     }
 
     /**
-     * Every route by name, with the attributes its controller's
-     * #[IsGranted] names, on the class and on the method.
-     *
      * @return array<string, list<string>>
      */
     private function gates(): array
@@ -195,26 +192,7 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
         $router = static::getContainer()->get('router');
         self::assertInstanceOf(RouterInterface::class, $router);
 
-        $gates = [];
-        foreach ($router->getRouteCollection()->all() as $name => $route) {
-            $controller = $route->getDefault('_controller');
-            self::assertIsString($controller, $name.' names no controller');
-
-            [$class, $method] = str_contains($controller, '::') ? explode('::', $controller, 2) : [$controller, '__invoke'];
-            self::assertTrue(class_exists($class), $name.' names a controller that does not exist: '.$class);
-
-            $reflection = new \ReflectionMethod($class, $method);
-            $attributes = [];
-            foreach ([...$reflection->getDeclaringClass()->getAttributes(IsGranted::class), ...$reflection->getAttributes(IsGranted::class)] as $attribute) {
-                $attribute = $attribute->newInstance()->attribute;
-                self::assertIsString($attribute, $name.' checks an expression; name an attribute a voter answers instead, so it can be walked.');
-                $attributes[] = $attribute;
-            }
-
-            $gates[$name] = $attributes;
-        }
-
-        return $gates;
+        return RouteGates::of($router);
     }
 
     /**

@@ -153,6 +153,57 @@ final class SignInTest extends MigrationsTestCase
         self::assertResponseRedirects('http://localhost/login');
     }
 
+    /**
+     * Deactivating somebody takes effect on their next click, not when their
+     * session would have expired.
+     */
+    public function testDeactivatingAnAccountEndsTheSessionItAlreadyHas(): void
+    {
+        $neema = $this->person('neema.mollel@vivutio-camps.example');
+        $this->signIn('neema.mollel@vivutio-camps.example', self::PASSWORD);
+
+        $this->connection->executeStatement('UPDATE identity_user SET active = false WHERE id = ?', [$neema->getId()]);
+
+        $this->browser->request('GET', '/');
+        self::assertResponseRedirects('http://localhost/login');
+    }
+
+    /** A demoted Admin does not carry the old tier's standing to the end of the session. */
+    public function testChangingTheTierEndsTheSessionItAlreadyHas(): void
+    {
+        $neema = $this->person('neema.mollel@vivutio-camps.example');
+        $this->connection->executeStatement("UPDATE identity_user SET tier = 'admin' WHERE id = ?", [$neema->getId()]);
+        $this->signIn('neema.mollel@vivutio-camps.example', self::PASSWORD);
+
+        $this->connection->executeStatement("UPDATE identity_user SET tier = 'staff' WHERE id = ?", [$neema->getId()]);
+
+        $this->browser->request('GET', '/');
+        self::assertResponseRedirects('http://localhost/login');
+    }
+
+    /** A password changed elsewhere ends every other session with the old one. */
+    public function testChangingThePasswordEndsTheSessionItAlreadyHas(): void
+    {
+        $neema = $this->person('neema.mollel@vivutio-camps.example');
+        $this->signIn('neema.mollel@vivutio-camps.example', self::PASSWORD);
+
+        $this->connection->executeStatement("UPDATE identity_user SET password = 'another hash' WHERE id = ?", [$neema->getId()]);
+
+        $this->browser->request('GET', '/');
+        self::assertResponseRedirects('http://localhost/login');
+    }
+
+    public function testAnUnchangedAccountKeepsItsSession(): void
+    {
+        $this->person('neema.mollel@vivutio-camps.example');
+        $this->signIn('neema.mollel@vivutio-camps.example', self::PASSWORD);
+
+        $this->browser->request('GET', '/');
+        self::assertResponseIsSuccessful();
+        $this->browser->request('GET', '/');
+        self::assertResponseIsSuccessful();
+    }
+
     public function testRememberMeKeepsSomebodySignedInForAWeek(): void
     {
         $this->person('neema.mollel@vivutio-camps.example');

@@ -72,4 +72,44 @@ final class UserTest extends TestCase
         yield 'an Admin' => [TierEnum::Admin, ['ROLE_USER', 'ROLE_ADMIN']];
         yield 'Staff, whose permissions are asked of their position' => [TierEnum::Staff, ['ROLE_USER']];
     }
+
+    /**
+     * Whether the account a session holds is still the one in the database.
+     * Anything that changes what its holder may do ends the session.
+     */
+    #[DataProvider('changesThatEndASession')]
+    public function testAChangeToWhatTheHolderMayDoMakesItAnotherAccount(\Closure $change): void
+    {
+        $inTheSession = self::neema();
+        $inTheDatabase = self::neema();
+        $change($inTheDatabase);
+
+        self::assertFalse($inTheSession->isEqualTo($inTheDatabase));
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(User): User}>
+     */
+    public static function changesThatEndASession(): iterable
+    {
+        yield 'deactivated' => [static fn (User $user) => $user->setActive(false)];
+        yield 'given another tier' => [static fn (User $user) => $user->setTier(TierEnum::Admin)];
+        yield 'given another password' => [static fn (User $user) => $user->setPassword('another hash')];
+        yield 'given another address' => [static fn (User $user) => $user->setEmail('neema@elsewhere.example')];
+    }
+
+    public function testAnUnchangedAccountIsTheSameAccount(): void
+    {
+        self::assertTrue(self::neema()->isEqualTo(self::neema()));
+    }
+
+    private static function neema(): User
+    {
+        return (new User())
+            ->setEmail('neema.mollel@vivutio-camps.example')
+            ->setFirstName('Neema')
+            ->setLastName('Mollel')
+            ->setTier(TierEnum::Staff)
+            ->setPassword('a hash');
+    }
 }

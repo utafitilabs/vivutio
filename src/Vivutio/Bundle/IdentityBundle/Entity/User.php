@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Vivutio\Bundle\IdentityBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Vivutio\Bundle\IdentityBundle\Entity\Trait\TimestampableTrait;
@@ -30,7 +31,7 @@ use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'identity_user')]
 #[ORM\HasLifecycleCallbacks]
-class User implements PasswordAuthenticatedUserInterface, UserInterface
+class User implements EquatableInterface, PasswordAuthenticatedUserInterface, UserInterface
 {
     use TimestampableTrait;
     use UuidTrait;
@@ -185,6 +186,29 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
             TierEnum::Admin => ['ROLE_USER', 'ROLE_ADMIN'],
             TierEnum::Staff => ['ROLE_USER'],
         };
+    }
+
+    /**
+     * Whether the account a session holds is still this one. Asked on every
+     * request with the account re-read from the database; when it answers no,
+     * the session ends and its holder signs in again.
+     *
+     * Without it the framework compares only the address, the password and the
+     * roles, and deactivating an account changes none of them: a person
+     * deactivated while signed in would keep every page that checks no pair
+     * until the session expired. So the comparison is taken over whole, and
+     * keeps the framework's three while adding what decides standing.
+     *
+     * @see https://symfony.com/doc/current/security.html#comparing-users-manually-with-equatableinterface
+     * @see vendor/symfony/security-http/Firewall/ContextListener.php — hasUserChanged() asks this first
+     */
+    public function isEqualTo(UserInterface $user): bool
+    {
+        return $user instanceof self
+            && $user->getEmail() === $this->email
+            && $user->getPassword() === $this->password
+            && $user->getTier() === $this->tier
+            && $user->isActive() === $this->active;
     }
 
     public function __toString(): string
