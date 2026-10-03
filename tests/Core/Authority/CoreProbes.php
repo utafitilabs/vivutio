@@ -59,6 +59,7 @@ final class CoreProbes
             new Probe(PersonController::POSITION, 'POST', self::CANARY.'/configure/position', ['position' => ''], formAt: self::CANARY.'/configure'),
             new Probe(PersonController::DEACTIVATE, 'POST', self::CANARY.'/deactivate', formAt: self::CANARY.'/configure'),
             new Probe(PersonController::REACTIVATE, 'POST', self::CANARY.'/reactivate', formAt: self::CANARY.'/configure'),
+            new Probe(PersonController::SEND_RESET, 'POST', self::CANARY.'/send-reset', formAt: self::CANARY.'/configure'),
             new Probe(PositionController::REGISTER, 'GET', '/team/positions'),
             new Probe(PositionController::ADD, 'POST', '/team/positions', ['name' => 'Added by a probe'], formAt: '/team/positions'),
             new Probe(PositionController::SHOW, 'GET', self::POSITION),

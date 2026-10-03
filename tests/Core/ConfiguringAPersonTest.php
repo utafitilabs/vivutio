@@ -16,10 +16,12 @@ namespace Vivutio\Core\Tests\Core;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\Mime\Email;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
+use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
 use Vivutio\Core\Tests\Application\Kernel;
 
 /**
@@ -215,6 +217,40 @@ final class ConfiguringAPersonTest extends MigrationsTestCase
 
         self::assertCount(0, $page->selectButton('Deactivate'));
         self::assertStringContainsString('only active Super Admin', $page->filter('[data-account-actions]')->text());
+    }
+
+    /** As uhifadhi's ruled sign-in help (D): sent from the record, said in one line, remembered on the card. */
+    public function testATierSendsALinkToSetANewPassword(): void
+    {
+        $amani = $this->person('Amani', TierEnum::Staff);
+        $this->signedInAs($this->person('Baraka', TierEnum::Admin));
+
+        $page = $this->browser->request('GET', $this->address($amani).'/configure');
+        $this->browser->submit($page->selectButton('Send')->form());
+
+        self::assertResponseRedirects($this->address($amani).'/configure');
+        self::assertEmailCount(1);
+        $email = self::getMailerMessage();
+        self::assertInstanceOf(Email::class, $email);
+        self::assertSame('amani@vivutio-camps.example', $email->getTo()[0]->getAddress());
+        self::assertStringContainsString('Baraka Kimaro sent you a link', (string) $email->getTextBody());
+
+        $page = $this->browser->followRedirect();
+        self::assertSelectorTextContains('.notice[role="status"]', 'A link was sent to amani@vivutio-camps.example. It works once and expires in an hour.');
+        self::assertStringContainsString('by Baraka Kimaro', $page->filter('[data-account-actions]')->text());
+        self::assertCount(1, $page->selectButton('Send again'));
+    }
+
+    public function testWithoutMailNoLinkIsOfferedAndTheCardSaysWhy(): void
+    {
+        $amani = $this->person('Amani', TierEnum::Staff);
+        $this->signedInAs($this->person('Baraka', TierEnum::Admin));
+        static::getContainer()->set('identity.mail_availability', new MailAvailability(false));
+
+        $page = $this->browser->request('GET', $this->address($amani).'/configure');
+
+        self::assertCount(0, $page->selectButton('Send'));
+        self::assertStringContainsString('cannot send email yet', $page->filter('[data-account-actions]')->text());
     }
 
     /** A form whose token is missing changes nothing. */

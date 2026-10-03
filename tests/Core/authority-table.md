@@ -242,6 +242,20 @@ Checks: `directory.manage`, `identity.act_on_account`
 | Admin | refused |
 | Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a |
 
+## identity_person_send_reset: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/send-reset
+
+Checks: `directory.manage`, `identity.act_on_account`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure |
+
 ## identity_positions: GET /team/positions
 
 Checks: `positions.read`

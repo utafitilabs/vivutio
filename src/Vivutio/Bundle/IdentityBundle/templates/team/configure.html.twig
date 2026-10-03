@@ -81,6 +81,13 @@
     <aside class="aside stack">
         <section class="panel small" data-account-actions>
             <header class="panel-head"><h2>{{ icons.icon('shield', 16) }} Account</h2></header>
+            {% if person.active %}
+                {% if not mail_available %}
+                    <div class="action"><div><b>Password reset</b><span>This installation cannot send email yet</span></div></div>
+                {% else %}
+                    <form class="action" method="post" action="{{ path('identity_person_send_reset', {uuid: person.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('person_account') }}"><div><b>Password reset</b><span>{% if last_link %}Last link sent {{ last_link.createdAt|date('j M Y, H:i') }}{% if last_link.sentBy %} by {{ last_link.sentBy.fullName }}{% endif %}{% else %}Mails them a link{% endif %}</span></div><button type="submit" class="button small">{{ icons.icon('mail', 14) }} {{ last_link ? 'Send again' : 'Send' }}</button></form>
+                {% endif %}
+            {% endif %}
             {% if not person.active %}
                 <form class="action" method="post" action="{{ path('identity_person_reactivate', {uuid: person.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('person_account') }}"><div><b>Bring back</b><span>Signs in again with everything they had</span></div><button type="submit" class="button small">{{ icons.icon('user_check', 14) }} Bring back</button></form>
             {% elseif may_deactivate %}

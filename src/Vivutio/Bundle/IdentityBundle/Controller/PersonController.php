@@ -24,16 +24,21 @@ use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
+use Vivutio\Bundle\IdentityBundle\Enum\LinkPurposeEnum;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\EmailAlreadyUsedException;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidPersonException;
 use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Model\TierChange;
+use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
+use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
+use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 
 /**
@@ -53,6 +58,7 @@ final readonly class PersonController
     public const string POSITION = 'identity_person_position';
     public const string DEACTIVATE = 'identity_person_deactivate';
     public const string REACTIVATE = 'identity_person_reactivate';
+    public const string SEND_RESET = 'identity_person_send_reset';
 
     public const string MANAGE = 'directory.manage';
     public const string MANAGE_PERSONAL_DETAILS = 'personal_details.manage';
@@ -66,6 +72,9 @@ final readonly class PersonController
         private AuthorizationCheckerInterface $authorization,
         private CsrfTokenManagerInterface $tokens,
         private UrlGeneratorInterface $urls,
+        private AccountLinkService $links,
+        private AccountLinkRepository $sentLinks,
+        private MailAvailability $mail,
     ) {
     }
 
@@ -220,6 +229,32 @@ final readonly class PersonController
     }
 
     /**
+     * A link to set a new password, mailed to the person and sent by whoever
+     * configures them, as uhifadhi's ruled sign-in help (D).
+     */
+    #[Route('/team/{uuid}/send-reset', name: self::SEND_RESET, requirements: ['uuid' => Requirement::UUID], methods: ['POST'])]
+    #[IsGranted(self::MANAGE)]
+    #[IsGranted(AccountVoter::ACT_ON, subject: 'person')]
+    public function sendReset(
+        Request $request,
+        #[MapEntity(mapping: ['uuid' => 'uuid'])]
+        User $person,
+        #[CurrentUser]
+        ?User $sender,
+    ): Response {
+        if (!$this->tokenIsValid('person_account', $request)) {
+            return $this->form($person, expired: true);
+        }
+        if (!$this->mail->isAvailable() || !$person->isActive()) {
+            return $this->form($person, wrong: ['account' => 'No link can be sent to this account now.']);
+        }
+
+        $this->links->sendReset($person, $sender);
+
+        return $this->savedTo($request, $person, \sprintf('A link was sent to %s. It works once and expires in an hour.', $person->getEmail()));
+    }
+
+    /**
      * @param array<string, string> $typed what was sent, shown back in place of what is stored
      * @param array<string, string> $wrong a refusal, keyed by the field it is about
      */
@@ -249,6 +284,8 @@ final readonly class PersonController
             'positions' => $this->positions->findBy([], ['name' => 'ASC']),
             'last_super_admin' => $this->accounts->isLastActiveSuperAdmin($person),
             'may_deactivate' => $person->isActive() && $this->authorization->isGranted(AccountVoter::DEACTIVATE, $person),
+            'mail_available' => $this->mail->isAvailable(),
+            'last_link' => $this->sentLinks->findOneBy(['account' => $person, 'purpose' => LinkPurposeEnum::Reset], ['createdAt' => 'DESC']),
         ]), [] === $wrong && !$expired ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 

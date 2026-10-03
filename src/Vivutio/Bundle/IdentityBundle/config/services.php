@@ -235,6 +235,9 @@ return static function (ContainerConfigurator $container): void {
             service('security.authorization_checker'),
             service('security.csrf.token_manager'),
             service('router'),
+            service('identity.account_links'),
+            service(AccountLinkRepository::class),
+            service('identity.mail_availability'),
         ])
         ->public();
     $services->alias(PersonController::class, 'identity.controller.person')->public();
