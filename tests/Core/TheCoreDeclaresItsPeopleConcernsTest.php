@@ -57,6 +57,14 @@ final class TheCoreDeclaresItsPeopleConcernsTest extends KernelTestCase
         self::assertNull($catalogue->moduleOf('personal_details'));
     }
 
+    /** Who lands on the organization's dashboard is a grant of its own, the shell's. */
+    public function testTheOrganizationsDashboardIsAGrantOfItsOwn(): void
+    {
+        self::assertTrue($this->catalogue()->has(Grant::of('dashboard', Verb::Read)));
+        self::assertSame('Dashboard', $this->catalogue()->declarerOf('dashboard'));
+        self::assertContains('dashboard.read', $this->catalogue()->positionPairs());
+    }
+
     /** Knowing somebody is on the team and knowing how to reach them are separate grants. */
     public function testPersonalDetailsAreSensitiveAndTheDirectoryIsNot(): void
     {

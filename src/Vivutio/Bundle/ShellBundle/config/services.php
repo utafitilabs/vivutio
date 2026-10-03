@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Vivutio\Bundle\ShellBundle\Access\ShellConcerns;
+use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
+use Vivutio\Contracts\Access\ConcernSourceInterface;
 
 /*
  * Every service is defined explicitly, with an id prefixed by the bundle's
@@ -30,6 +33,24 @@ return static function (ContainerConfigurator $container): void {
      *
      * @see vendor/symfony/twig-bundle/Resources/config/twig.php — ->tag('twig.extension')
      */
+    /*
+     * Who lands on the organization's dashboard, declared like any package's
+     * permissions, through the tag the catalogue collects.
+     */
+    $services->set('shell.access.concerns', ShellConcerns::class)
+        ->tag(ConcernSourceInterface::TAG);
+
+    /*
+     * Where everybody lands. Public, with an alias from its class, because a
+     * route names the class and the resolver asks the container for it.
+     *
+     * @see vendor/symfony/framework-bundle/Resources/config/routing.php — TemplateController registered with its arguments and public
+     */
+    $services->set('shell.controller.dashboard', DashboardController::class)
+        ->args([service('twig'), service('security.authorization_checker')])
+        ->public();
+    $services->alias(DashboardController::class, 'shell.controller.dashboard')->public();
+
     $services->set('shell.twig.door', DoorExtension::class)
         ->args([service('security.authorization_checker')])
         ->tag('twig.extension');

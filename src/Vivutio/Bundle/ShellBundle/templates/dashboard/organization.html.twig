@@ -1,0 +1,16 @@
+{# The organization's dashboard. Its cards are contributed by the packages
+   installed; until one does, it says so. #}
+{% extends '@Shell/document.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<main data-dashboard="organization">
+    <h1>Dashboard</h1>
+    {% if door('dashboard.read') %}<a href="{{ path('shell_my_dashboard') }}">My dashboard</a>{% endif %}
+    <div class="empty" data-nothing-yet>
+        <b>Nothing here yet</b>
+        <span>The modules you install put their cards here.</span>
+    </div>
+</main>
+{% endblock %}

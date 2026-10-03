@@ -21,6 +21,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
+use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\Grant;
 use Vivutio\Contracts\Access\Verb;
@@ -55,7 +56,8 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
     private const array OPEN = [
         SecurityController::SIGN_IN => 'A stranger has to reach the form to become anybody at all.',
         SecurityController::SIGN_OUT => 'Ending one\'s own session confers nothing, and the firewall answers it before any controller.',
-        'test_landing' => 'This application\'s front page, standing in for an installation\'s: it only says who is signed in.',
+        DashboardController::HOME => 'Everybody signed in lands here; dashboard.read decides whether it is the organization\'s dashboard or their own, never whether there is one.',
+        DashboardController::MINE => 'One\'s own dashboard, showing nothing but what is one\'s own.',
     ];
 
     protected static function getKernelClass(): string

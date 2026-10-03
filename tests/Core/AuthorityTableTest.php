@@ -230,8 +230,12 @@ final class AuthorityTableTest extends MigrationsTestCase
             return '/login' === $to ? 'sent to sign-in' : 'redirected to '.$to;
         }
 
+        // Allowed is not enough: which page somebody was given matters as much,
+        // the organization's dashboard or their own, so its title is recorded.
+        $title = 1 === preg_match('/<title>(.*?)<\/title>/s', (string) $response->getContent(), $found) ? trim(html_entity_decode($found[1])) : '';
+
         return match (true) {
-            $response->isSuccessful() => 'allowed',
+            $response->isSuccessful() => '' === $title ? 'allowed' : 'allowed: '.$title,
             403 === $status => 'refused',
             404 === $status => 'not found',
             default => 'answered '.$status,

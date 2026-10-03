@@ -10,8 +10,8 @@ Checks: nothing (an open route)
 
 | Person | Outcome |
 |---|---|
-| signed out | allowed |
-| deactivated while signed in | allowed |
+| signed out | allowed: Sign in · vivutio |
+| deactivated while signed in | allowed: Sign in · vivutio |
 | Staff, no position | redirected to / |
 | Staff holding the pair | redirected to / |
 | Staff holding all but the pair | redirected to / |
@@ -32,7 +32,7 @@ Checks: nothing (an open route)
 | Admin | sent to sign-in |
 | Super Admin | sent to sign-in |
 
-## test_landing: GET /
+## shell_dashboard: GET /
 
 Checks: nothing (an open route)
 
@@ -40,11 +40,25 @@ Checks: nothing (an open route)
 |---|---|
 | signed out | sent to sign-in |
 | deactivated while signed in | sent to sign-in |
-| Staff, no position | allowed |
-| Staff holding the pair | allowed |
-| Staff holding all but the pair | allowed |
-| Admin | allowed |
-| Super Admin | allowed |
+| Staff, no position | allowed: My dashboard · vivutio |
+| Staff holding the pair | allowed: My dashboard · vivutio |
+| Staff holding all but the pair | allowed: Dashboard · vivutio |
+| Admin | allowed: Dashboard · vivutio |
+| Super Admin | allowed: Dashboard · vivutio |
+
+## shell_my_dashboard: GET /me
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | allowed: My dashboard · vivutio |
+| Staff holding the pair | allowed: My dashboard · vivutio |
+| Staff holding all but the pair | allowed: My dashboard · vivutio |
+| Admin | allowed: My dashboard · vivutio |
+| Super Admin | allowed: My dashboard · vivutio |
 
 ## identity_team: GET /team
 
@@ -55,7 +69,7 @@ Checks: `directory.read`
 | signed out | sent to sign-in |
 | deactivated while signed in | sent to sign-in |
 | Staff, no position | refused |
-| Staff holding the pair | allowed |
+| Staff holding the pair | allowed: Team · vivutio |
 | Staff holding all but the pair | refused |
-| Admin | allowed |
-| Super Admin | allowed |
+| Admin | allowed: Team · vivutio |
+| Super Admin | allowed: Team · vivutio |

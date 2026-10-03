@@ -103,7 +103,7 @@ final class SignInTest extends MigrationsTestCase
         self::assertResponseRedirects('/');
         $this->browser->followRedirect();
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'neema.mollel@vivutio-camps.example');
+        self::assertSelectorTextContains('[data-dashboard]', 'Neema Mollel');
     }
 
     /** An address is one person however it is typed: it is stored in lowercase. */

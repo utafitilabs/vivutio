@@ -1,0 +1,16 @@
+{# One's own dashboard: everything that is the person's. Its cards are
+   contributed by the packages installed; until one does, it says so. #}
+{% extends '@Shell/document.html.twig' %}
+
+{% block title %}My dashboard{% endblock %}
+
+{% block body %}
+<main data-dashboard="mine">
+    <h1>My dashboard</h1>
+    <p>{{ app.user.fullName }}</p>
+    <div class="empty" data-nothing-yet>
+        <b>Nothing here yet</b>
+        <span>The modules you install put your own cards here.</span>
+    </div>
+</main>
+{% endblock %}

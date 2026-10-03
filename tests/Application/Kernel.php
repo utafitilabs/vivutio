@@ -24,7 +24,6 @@ use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
-use Vivutio\Core\Tests\Application\Fixtures\LandingController;
 use Vivutio\Core\Tests\Application\Fixtures\NotesConcerns;
 use Vivutio\Core\Tests\Application\Fixtures\NotesScopes;
 use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
@@ -75,13 +74,12 @@ final class Kernel extends BaseKernel
     }
 
     /**
-     * The core's own routes, mounted as an installation's recipe mounts them,
-     * and this application's front page.
+     * The core's own routes, mounted as an installation mounts them.
      */
     protected function configureRoutes(RoutingConfigurator $routes): void
     {
         $routes->import('@IdentityBundle/Controller/', 'attribute');
-        $routes->import(__DIR__.'/Fixtures/LandingController.php', 'attribute');
+        $routes->import('@ShellBundle/Controller/', 'attribute');
     }
 
     protected function configureContainer(ContainerConfigurator $container): void
@@ -181,10 +179,6 @@ final class Kernel extends BaseKernel
         // application has none to write to, and without one Symfony's default
         // logger prints every console event to the test run.
         $services->set('logger', NullLogger::class);
-
-        $services->set(LandingController::class)
-            ->args([service('security.token_storage')])
-            ->public();
 
         // A package's declarations, tagged by hand as a reusable bundle tags
         // its own.
