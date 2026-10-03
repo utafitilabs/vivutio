@@ -12,6 +12,7 @@ release yet.
 - [The packages](#the-packages)
 - [Requirements](#requirements)
 - [Development](#development)
+- [A module's authority suite](#a-modules-authority-suite)
 - [Licence](#licence)
 
 ## The packages
@@ -60,6 +61,53 @@ true, and what would make splitting this repository a move of files.
 The specifications about the bundles together are in `tests/Core`, and run
 inside the application in `tests/Application`, which registers every core
 bundle the way an installation does.
+
+## A module's authority suite
+
+Every module's suite is held to the same five proofs as the core: every route
+names the attribute it checks, one voter answers each question, the reviewed
+authority table holds, no write leaves anybody holding more than its sender
+could grant, and no marker value reaches somebody who may not see it. The proofs
+ship in the Identity bundle; a module's suite extends them and says only what
+is its own:
+
+```php
+use Vivutio\Bundle\IdentityBundle\Test\AuthorityTestCase;
+use Vivutio\Bundle\IdentityBundle\Test\Probe;
+
+final class PropertyAuthorityTest extends AuthorityTestCase
+{
+    protected static function probes(): array
+    {
+        return [
+            new Probe('property_list', 'GET', '/properties'),
+            new Probe('property_save', 'POST', '/properties/new', ['name' => 'A camp'], formAt: '/properties/new'),
+        ];
+    }
+
+    protected static function packageDirectory(): string
+    {
+        return \dirname(__DIR__).'/src';
+    }
+
+    protected static function authorityTable(): string
+    {
+        return __DIR__.'/authority-table.md';
+    }
+}
+```
+
+Its test kernel turns on `framework.test` and uses PostgreSQL, which the base
+empties and migrates for each test. A route of the module that checks nothing
+is listed in `openRoutes()` with its reason, and a sensitive field of its own is
+seeded with a marker in `seedCanaries()`. The first run asks for the table:
+
+```
+VIVUTIO_RECORD_AUTHORITY_TABLE=1 vendor/bin/phpunit --filter PropertyAuthorityTest
+```
+
+and every later change to it fails until it is recorded again and its diff is
+read. `tests/Application/NotesModule` is a stand-in module built this way.
 
 ## Licence
 
