@@ -154,7 +154,7 @@ final class ConcernTest extends TestCase
     public function testASensitiveConcernSaysSo(): void
     {
         $concern = new Concern(
-            key: 'personal-details',
+            key: 'personal_details',
             label: 'Personal details',
             description: 'What is known about a person: their address, their phone, their documents.',
             verbs: [Verb::Read, Verb::Manage],

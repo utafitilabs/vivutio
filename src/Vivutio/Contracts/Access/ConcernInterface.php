@@ -31,7 +31,7 @@ interface ConcernInterface
 {
     /**
      * The key a route, a control and a grant all name it by: lowercase
-     * letters, digits and hyphens. Unique across the whole installation; the
+     * letters, digits and underscores. Unique across the whole installation; the
      * catalogue refuses a second declaration of one key and names both
      * declarers.
      */

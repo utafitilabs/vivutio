@@ -29,11 +29,11 @@ final class PositionTest extends TestCase
 
     public function testItHoldsThePairsItWasGivenOnceEachInTheOrderGiven(): void
     {
-        $position = (new Position())->setGrants(['positions.read', 'personal-details.read', 'positions.read']);
+        $position = (new Position())->setGrants(['positions.read', 'personal_details.read', 'positions.read']);
 
-        self::assertSame(['positions.read', 'personal-details.read'], $position->getGrants());
-        self::assertTrue($position->grants('personal-details.read'));
-        self::assertFalse($position->grants('personal-details.manage'));
+        self::assertSame(['positions.read', 'personal_details.read'], $position->getGrants());
+        self::assertTrue($position->grants('personal_details.read'));
+        self::assertFalse($position->grants('personal_details.manage'));
     }
 
     public function testAPersonIsSeatedInOnePositionOrNone(): void

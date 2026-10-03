@@ -27,7 +27,7 @@ namespace Vivutio\Contracts\Access;
  */
 final readonly class Concern implements ConcernInterface
 {
-    private const string SLUG = '/^[a-z0-9]+(-[a-z0-9]+)*$/';
+    private const string SLUG = '/^[a-z0-9]+(_[a-z0-9]+)*$/';
 
     /** @var list<Verb> */
     private array $verbs;
@@ -58,7 +58,7 @@ final readonly class Concern implements ConcernInterface
         array $tierOnly = [],
     ) {
         if (1 !== preg_match(self::SLUG, $key)) {
-            throw new \InvalidArgumentException(\sprintf('The concern key "%s" is not a slug. Use lowercase letters, digits and hyphens: it is the word a route, a control and a grant all name this concern by.', $key));
+            throw new \InvalidArgumentException(\sprintf('The concern key "%s" is not a slug. Use lowercase letters, digits and underscores: it is the word a route, a control and a grant all name this concern by.', $key));
         }
 
         if ('' === trim($description)) {
@@ -84,7 +84,7 @@ final readonly class Concern implements ConcernInterface
         $seen = [];
         foreach ($scopes as $scope) {
             if (1 !== preg_match(self::SLUG, $scope)) {
-                throw new \InvalidArgumentException(\sprintf('The concern "%s" offers "%s", which is not a scope key. A scope is named by its key: lowercase letters, digits and hyphens.', $key, $scope));
+                throw new \InvalidArgumentException(\sprintf('The concern "%s" offers "%s", which is not a scope key. A scope is named by its key: lowercase letters, digits and underscores.', $key, $scope));
             }
 
             if (isset($seen[$scope])) {

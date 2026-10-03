@@ -36,7 +36,7 @@ final readonly class Scope
     public const string OWN = 'own';
 
     /**
-     * @param string $key   what a concern names it by: lowercase letters, digits and hyphens
+     * @param string $key   what a concern names it by: lowercase letters, digits and underscores
      * @param string $label the word for it in the grants matrix
      * @param string $reach one sentence saying how far a grant at this scope reaches
      */
@@ -45,8 +45,8 @@ final readonly class Scope
         public string $label,
         public string $reach,
     ) {
-        if (1 !== preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $key)) {
-            throw new \InvalidArgumentException(\sprintf('The scope key "%s" is not a slug. Use lowercase letters, digits and hyphens: it is the word a concern names this scope by.', $key));
+        if (1 !== preg_match('/^[a-z0-9]+(_[a-z0-9]+)*$/', $key)) {
+            throw new \InvalidArgumentException(\sprintf('The scope key "%s" is not a slug. Use lowercase letters, digits and underscores: it is the word a concern names this scope by.', $key));
         }
 
         if ('' === trim($label)) {

@@ -21,9 +21,9 @@ namespace Vivutio\Contracts\Access;
  * works while all of them spell a pair the same way, so the spelling lives
  * here and nowhere else: `<concern>.<verb>`, "positions.configure".
  *
- * The verb is the last segment, which is why a concern key may carry hyphens
- * and never a dot: "personal-details.read" has exactly one reading, and a
- * concern key with a dot in it would have two.
+ * The verb is the last segment, which is why a concern key may carry
+ * underscores and never a dot: "personal_details.read" has exactly one
+ * reading, and a concern key with a dot in it would have two.
  *
  * It is a value, not a permission. Holding one of these says nothing about
  * anybody; it is the name of a question. Who may answer it yes is the
@@ -35,8 +35,8 @@ final readonly class Grant implements \Stringable
         public string $concern,
         public Verb $verb,
     ) {
-        if (1 !== preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $concern)) {
-            throw new \InvalidArgumentException(\sprintf('"%s" is not a concern key. Use lowercase letters, digits and hyphens: a dot would make the pair ambiguous, because the verb is the segment after the last one.', $concern));
+        if (1 !== preg_match('/^[a-z0-9]+(_[a-z0-9]+)*$/', $concern)) {
+            throw new \InvalidArgumentException(\sprintf('"%s" is not a concern key. Use lowercase letters, digits and underscores: a dot would make the pair ambiguous, because the verb is the segment after the last one.', $concern));
         }
     }
 

@@ -79,7 +79,8 @@ final class ScopeTest extends TestCase
     {
         yield 'empty' => [''];
         yield 'uppercase' => ['Notebooks'];
-        yield 'underscore' => ['note_books'];
+        yield 'hyphen' => ['note-books'];
+        yield 'leading underscore' => ['_notebooks'];
         yield 'dot' => ['note.books'];
         yield 'space' => ['note books'];
     }

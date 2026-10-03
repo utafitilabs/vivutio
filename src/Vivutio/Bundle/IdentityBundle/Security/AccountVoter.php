@@ -41,16 +41,16 @@ use Vivutio\Bundle\IdentityBundle\Service\UserService;
 final class AccountVoter extends Voter
 {
     /** Change the account's name or address, send it a reset link, or bring it back. Subject: the account. */
-    public const string ACT_ON = 'identity.act-on-account';
+    public const string ACT_ON = 'identity.act_on_account';
 
     /** Subject: a {@see TierChange}. */
-    public const string CHANGE_TIER = 'identity.change-tier';
+    public const string CHANGE_TIER = 'identity.change_tier';
 
     /** Subject: the account. */
     public const string DEACTIVATE = 'identity.deactivate';
 
     /** Sign in as the account, to see what its holder sees. Subject: the account. */
-    public const string SIGN_IN_AS = 'identity.sign-in-as';
+    public const string SIGN_IN_AS = 'identity.sign_in_as';
 
     private const array ATTRIBUTES = [self::ACT_ON, self::CHANGE_TIER, self::DEACTIVATE, self::SIGN_IN_AS];
 

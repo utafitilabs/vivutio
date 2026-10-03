@@ -28,14 +28,14 @@ final class APositionIsStoredTest extends MigrationsTestCase
         $this->migrate();
 
         $manager = $this->entityManager();
-        $manager->persist((new Position())->setName('Reservations Manager')->setGrants(['positions.read', 'personal-details.read']));
+        $manager->persist((new Position())->setName('Reservations Manager')->setGrants(['positions.read', 'personal_details.read']));
         $manager->flush();
         $manager->clear();
 
         $stored = $this->positions()->findOneBy(['name' => 'Reservations Manager']);
 
         self::assertInstanceOf(Position::class, $stored);
-        self::assertSame(['positions.read', 'personal-details.read'], $stored->getGrants());
+        self::assertSame(['positions.read', 'personal_details.read'], $stored->getGrants());
         self::assertNotNull($stored->getUuid());
     }
 

@@ -41,11 +41,11 @@ final class ConcernCatalogueTest extends TestCase
         );
 
         self::assertSame(['Team', 'Notes'], array_keys($catalogue->grouped()));
-        self::assertSame(['positions', 'personal-details'], self::keys($catalogue->grouped()['Team']));
+        self::assertSame(['positions', 'personal_details'], self::keys($catalogue->grouped()['Team']));
         self::assertSame(['notes'], self::keys($catalogue->grouped()['Notes']));
-        self::assertSame(['positions', 'personal-details', 'notes'], self::keys($catalogue->all()));
+        self::assertSame(['positions', 'personal_details', 'notes'], self::keys($catalogue->all()));
         self::assertSame('Notes', $catalogue->declarerOf('notes'));
-        self::assertNull($catalogue->declarerOf('nobody-declared-this'));
+        self::assertNull($catalogue->declarerOf('nobody_declared_this'));
     }
 
     public function testAPackageThatDeclaresNothingStillHasItsGroup(): void
@@ -68,7 +68,7 @@ final class ConcernCatalogueTest extends TestCase
         $catalogue = new ConcernCatalogue([self::concerns('Team', self::positions(), self::personalDetails())]);
 
         self::assertSame(
-            ['positions.read', 'positions.configure', 'personal-details.read', 'personal-details.manage'],
+            ['positions.read', 'positions.configure', 'personal_details.read', 'personal_details.manage'],
             $catalogue->pairs(),
         );
     }
@@ -89,7 +89,7 @@ final class ConcernCatalogueTest extends TestCase
 
         self::assertTrue($catalogue->has(Grant::of('positions', Verb::Read)));
         self::assertFalse($catalogue->has(Grant::of('positions', Verb::Export)));
-        self::assertFalse($catalogue->has(Grant::of('nobody-declared-this', Verb::Read)));
+        self::assertFalse($catalogue->has(Grant::of('nobody_declared_this', Verb::Read)));
     }
 
     public function testTwoPackagesDeclaringOneConcernIsRefusedAndBothAreNamed(): void
@@ -112,11 +112,11 @@ final class ConcernCatalogueTest extends TestCase
             [self::scopes('Notes', new Scope('notebooks', 'Notebooks', 'One or more named notebooks.'))],
         );
 
-        self::assertNull($catalogue->moduleOf('personal-details'));
+        self::assertNull($catalogue->moduleOf('personal_details'));
         self::assertSame('notes', $catalogue->moduleOf('notes'));
-        self::assertTrue($catalogue->isSensitive('personal-details'));
+        self::assertTrue($catalogue->isSensitive('personal_details'));
         self::assertFalse($catalogue->isSensitive('notes'));
-        self::assertFalse($catalogue->isSensitive('nobody-declared-this'));
+        self::assertFalse($catalogue->isSensitive('nobody_declared_this'));
     }
 
     public function testATierOnlyPairIsDeclaredButNeverOfferedToAPosition(): void
@@ -126,7 +126,7 @@ final class ConcernCatalogueTest extends TestCase
         self::assertTrue($catalogue->isTierOnly('positions.configure'));
         self::assertFalse($catalogue->isTierOnly('positions.read'));
         self::assertFalse($catalogue->isTierOnly('not a pair'));
-        self::assertFalse($catalogue->isTierOnly('nobody-declared-this.read'));
+        self::assertFalse($catalogue->isTierOnly('nobody_declared_this.read'));
 
         self::assertSame(['positions.read', 'positions.configure'], $catalogue->pairs());
         self::assertSame(['positions.read'], $catalogue->positionPairs());
@@ -138,7 +138,7 @@ final class ConcernCatalogueTest extends TestCase
 
         self::assertSame(['organization', 'department', 'own'], self::scopeKeys($catalogue->scopes()));
         self::assertSame('Organization', $catalogue->scope(Scope::ORGANIZATION)?->label);
-        self::assertNull($catalogue->scope('nobody-declared-this'));
+        self::assertNull($catalogue->scope('nobody_declared_this'));
     }
 
     public function testAScopeAPackageDeclaresFollowsTheCoresOwnAndNamesItsDeclarer(): void
@@ -202,7 +202,7 @@ final class ConcernCatalogueTest extends TestCase
     private static function personalDetails(): Concern
     {
         return new Concern(
-            key: 'personal-details',
+            key: 'personal_details',
             label: 'Personal details',
             description: 'What is known about a person.',
             verbs: [Verb::Read, Verb::Manage],

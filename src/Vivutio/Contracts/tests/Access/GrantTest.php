@@ -31,11 +31,11 @@ final class GrantTest extends TestCase
         self::assertSame('positions.configure', (string) Grant::of('positions', Verb::Configure));
     }
 
-    public function testAConcernKeyMayCarryHyphensBecauseTheVerbIsTheLastSegment(): void
+    public function testAConcernKeyMayCarryUnderscoresBecauseTheVerbIsTheLastSegment(): void
     {
-        $grant = Grant::parse('personal-details.read');
+        $grant = Grant::parse('personal_details.read');
 
-        self::assertSame('personal-details', $grant->concern);
+        self::assertSame('personal_details', $grant->concern);
         self::assertSame(Verb::Read, $grant->verb);
     }
 
@@ -103,9 +103,10 @@ final class GrantTest extends TestCase
     {
         yield 'empty' => [''];
         yield 'uppercase' => ['Offices'];
-        yield 'underscore' => ['personal_details'];
-        yield 'leading hyphen' => ['-offices'];
-        yield 'trailing hyphen' => ['offices-'];
+        yield 'hyphen' => ['personal-details'];
+        yield 'leading underscore' => ['_offices'];
+        yield 'trailing underscore' => ['offices_'];
+        yield 'two underscores together' => ['personal__details'];
         yield 'space' => ['personal details'];
     }
 
@@ -115,7 +116,7 @@ final class GrantTest extends TestCase
      */
     public function testAnUnreadablePairCanBeAskedAboutWithoutThrowing(): void
     {
-        self::assertNull(Grant::tryParse('leftover-from-a-module'));
+        self::assertNull(Grant::tryParse('leftover_from_a_module'));
         self::assertNotNull(Grant::tryParse('offices.manage'));
     }
 }
