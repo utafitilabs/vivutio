@@ -1,0 +1,28 @@
+{# Configuring a position, ported from uhifadhi's (team/positions/configure.html):
+   its name and the matrix, saved together. A cell is a box only where a
+   position may carry the pair. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/positions/_macros.html.twig' as positions %}
+
+{% block title %}Configure {{ position.name }}{% endblock %}
+{% block here %}positions{% endblock %}
+
+{% block page %}
+<header class="page-head">
+    <span class="initials">{{ positions.initials(position.name) }}</span>
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('identity_positions') }}">Positions</a> / <a href="{{ path('identity_position', {uuid: position.uuid}) }}">{{ position.name }}</a> / Configure</nav><div class="title"><h1>{{ position.name }}</h1></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_position', {uuid: position.uuid}) }}">{{ icons.icon('record', 15) }} View position</a></div>
+</header>
+
+<form class="panel" method="post" action="{{ path('identity_position_configure', {uuid: position.uuid}) }}" novalidate>
+    <header class="panel-head"><h2>{{ icons.icon('seat', 16) }} Position</h2><p>Its name, and what whoever holds it may do</p></header>
+    <input type="hidden" name="_token" value="{{ csrf_token('position_configure') }}">
+    {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Save again.</span></div>{% endif %}
+    {% if wrong.grants is defined %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>{{ wrong.grants }}</span></div>{% endif %}
+    <div class="grid-2"><div class="field{{ wrong.name is defined ? ' wrong' }}"><label for="position-name">Name</label><input class="input" id="position-name" name="name" value="{{ name }}" required maxlength="120">{% if wrong.name is defined %}<div class="hint"><span>{{ wrong.name }}</span></div>{% endif %}</div></div>
+    <span class="label">What it grants</span>
+    {{ positions.matrix(matrix, grants, true) }}
+    <footer class="panel-foot"><span class="state">Nothing is saved until Save</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save position</button></footer>
+</form>
+{% endblock %}

@@ -1,0 +1,38 @@
+{# What a position grants, said in a line: "reads 8 concerns · exports 5". #}
+{% macro grants_line(summary) %}
+{%- set words = {read: 'reads', record: 'records', manage: 'manages', configure: 'configures', delete: 'deletes', export: 'exports'} -%}
+{%- if summary.concernsByVerb is empty -%}Grants nothing{%- else -%}
+{%- for verb, count in summary.concernsByVerb -%}{{ words[verb] }} {{ count }}{% if loop.first %} {{ count == 1 ? 'concern' : 'concerns' }}{% endif %}{{ not loop.last ? ' · ' }}{%- endfor -%}
+{%- endif -%}
+{% endmacro %}
+
+{% macro initials(name) %}{% for word in name|split(' ')|slice(0, 2) %}{{ word|first|upper }}{% endfor %}{% endmacro %}
+
+{# The matrix, one table a package: a cell only where a position may carry the
+   pair. Read-only marks it held or not; on the configure page it is a box. #}
+{% macro matrix(groups, held, editable) %}
+{%- set verbs = {read: 'Read', record: 'Record', manage: 'Manage', configure: 'Configure', delete: 'Delete', export: 'Export'} -%}
+<div class="stack" data-matrix>
+{% for group in groups %}
+    <table class="table">
+        <thead><tr><th>{{ group.declaredBy }}</th>{% for verb, label in verbs %}<th class="mid">{{ label }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for row in group.rows %}
+            <tr><td>{{ row.label }}{% if row.sensitive %} <span class="chip warn">sensitive</span>{% endif %}</td>
+            {% for verb, label in verbs %}
+                {%- set pair = row.cells[verb] -%}
+                <td class="mid">
+                {%- if pair is null -%}
+                {%- elseif editable -%}<input type="checkbox" name="grants[]" value="{{ pair }}" aria-label="{{ row.label }}: {{ label }}"{{ pair in held ? ' checked' }}>
+                {%- elseif pair in held -%}<span class="chip ok" data-pair="{{ pair }}" data-on>{{ label }}</span>
+                {%- else -%}<span class="quiet" data-pair="{{ pair }}">&mdash;</span>
+                {%- endif -%}
+                </td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endfor %}
+</div>
+{% endmacro %}

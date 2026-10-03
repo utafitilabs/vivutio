@@ -33,13 +33,14 @@ class Position
 {
     use TimestampableTrait;
     use UuidTrait;
+    public const int NAME_MAX_LENGTH = 120;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null; // @phpstan-ignore property.unusedType (assigned by Doctrine)
 
-    #[ORM\Column(length: 120)]
+    #[ORM\Column(length: self::NAME_MAX_LENGTH)]
     private ?string $name = null;
 
     /** @var list<string> each written "<concern>.<verb>" */

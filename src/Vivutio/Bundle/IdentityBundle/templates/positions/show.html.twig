@@ -1,0 +1,40 @@
+{# A position's record, ported from uhifadhi's (team/positions/show.html): the
+   band of figures, what it grants read-only, and who holds it. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/positions/_macros.html.twig' as positions %}
+
+{% block title %}{{ position.name }}{% endblock %}
+{% block here %}positions{% endblock %}
+
+{% block page %}
+<header class="page-head">
+    <span class="initials">{{ positions.initials(position.name) }}</span>
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('identity_positions') }}">Positions</a> / {{ position.name }}</nav><div class="title"><h1>{{ position.name }}</h1><span class="about">{{ positions.grants_line(summary) }}</span></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_positions') }}">{{ icons.icon('left', 15) }} Back to positions</a>{% if door('positions.configure') %}<a class="button outline" href="{{ path('identity_position_configure', {uuid: position.uuid}) }}">Configure</a>{% endif %}</div>
+</header>
+
+{% if saved %}<div class="notice" role="status" style="margin-bottom:16px">{{ icons.icon('check') }}<span>The position is saved.</span></div>{% endif %}
+
+<div class="band">
+    <span class="f"><span class="k">Holders</span><span class="v">{{ summary.holders|length }}<em>{{ summary.holders|length == 1 ? 'person' : 'people' }}</em></span></span>
+    <span class="f"><span class="k">Sensitive</span><span class="v">{{ summary.sensitive }}<em>concerns about a person or a case</em></span></span>
+</div>
+
+<div class="columns">
+    <section class="panel">
+        <header class="panel-head"><h2>What it grants</h2><p>Generated from what the installed packages declare</p></header>
+        {{ positions.matrix(matrix, position.getGrants(), false) }}
+    </section>
+    <aside class="aside stack">
+        <section class="panel small" data-holders>
+            <header class="panel-head"><h2>Holders</h2></header>
+            {% for person in summary.holders %}
+                <div class="action"><div><a href="{{ path('identity_team_member', {uuid: person.uuid}) }}"><b>{{ person.fullName }}</b></a><span>{{ person.active ? 'Active' : 'Deactivated' }}</span></div></div>
+            {% else %}
+                <p class="hint">Nobody holds it yet.</p>
+            {% endfor %}
+        </section>
+    </aside>
+</div>
+{% endblock %}

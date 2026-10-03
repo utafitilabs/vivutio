@@ -108,6 +108,15 @@ abstract class AuthorityTestCase extends WebTestCase
     }
 
     /**
+     * Seeds what the package's probes address, under the fixed identifiers
+     * written into their paths: a record to open, a thing to configure. Runs
+     * before every test, after the canary.
+     */
+    protected function seedSubjects(EntityManagerInterface $entityManager): void
+    {
+    }
+
+    /**
      * Seeds the package's own marker values, and says which attribute lets
      * somebody see each. The core's are seeded already: a person's address,
      * readable with personal_details.read, and a Super Admin's tier.
@@ -136,6 +145,7 @@ abstract class AuthorityTestCase extends WebTestCase
             ->setFirstName('Aaron')
             ->setLastName('Canary')
             ->setUuid(Uuid::fromString(self::CANARY_UUID));
+        $this->seedSubjects($this->entityManager());
         $this->entityManager()->flush();
     }
 
@@ -386,6 +396,12 @@ abstract class AuthorityTestCase extends WebTestCase
 
         if ($response->isRedirection()) {
             $to = (string) parse_url((string) $response->headers->get('Location'), \PHP_URL_PATH);
+            // A record the write just made has an identifier no run repeats.
+            $to = (string) preg_replace_callback(
+                '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/',
+                static fn (array $found): string => str_contains($probe->path, $found[0]) ? $found[0] : '{new}',
+                $to,
+            );
 
             return '/login' === $to ? 'sent to sign-in' : 'redirected to '.$to;
         }

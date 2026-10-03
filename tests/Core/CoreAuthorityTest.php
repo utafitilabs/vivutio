@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Core;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
+use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Test\AuthorityTestCase;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Core\Tests\Application\Kernel;
@@ -45,6 +48,15 @@ final class CoreAuthorityTest extends AuthorityTestCase
     protected static function authorityTable(): string
     {
         return __DIR__.'/authority-table.md';
+    }
+
+    /** The position the core's probes open and configure. */
+    protected function seedSubjects(EntityManagerInterface $entityManager): void
+    {
+        $entityManager->persist((new Position())
+            ->setName('Probed seat')
+            ->setGrants(['directory.read'])
+            ->setUuid(Uuid::fromString(CoreProbes::POSITION_UUID)));
     }
 
     protected static function openRoutes(): array

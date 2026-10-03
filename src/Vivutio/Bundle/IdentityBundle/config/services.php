@@ -18,6 +18,7 @@ use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
+use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
@@ -29,6 +30,7 @@ use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
 use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
+use Vivutio\Bundle\IdentityBundle\Service\PositionMatrixService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionService;
 use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
@@ -231,6 +233,21 @@ return static function (ContainerConfigurator $container): void {
         ])
         ->public();
     $services->alias(PersonController::class, 'identity.controller.person')->public();
+
+    $services->set('identity.position_matrix', PositionMatrixService::class)
+        ->args([service('identity.access.catalogue'), service(UserRepository::class)]);
+
+    $services->set('identity.controller.positions', PositionController::class)
+        ->args([
+            service('twig'),
+            service(PositionRepository::class),
+            service('identity.positions'),
+            service('identity.position_matrix'),
+            service('security.csrf.token_manager'),
+            service('router'),
+        ])
+        ->public();
+    $services->alias(PositionController::class, 'identity.controller.positions')->public();
 
     /*
      * A repository keeps its class name as its id, the one place the bundle's

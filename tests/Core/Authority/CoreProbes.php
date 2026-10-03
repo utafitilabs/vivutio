@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Vivutio\Core\Tests\Core\Authority;
 
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
+use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
@@ -26,7 +27,11 @@ use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
  */
 final class CoreProbes
 {
+    public const string POSITION_UUID = '0199a6f0-5ea7-7e10-8000-0000000005ea';
+
     private const string CANARY = '/team/'.AuthorityTestCase::CANARY_UUID;
+
+    private const string POSITION = '/team/positions/'.self::POSITION_UUID;
 
     /**
      * @return list<Probe>
@@ -47,6 +52,12 @@ final class CoreProbes
             new Probe(PersonController::POSITION, 'POST', self::CANARY.'/configure/position', ['position' => ''], formAt: self::CANARY.'/configure'),
             new Probe(PersonController::DEACTIVATE, 'POST', self::CANARY.'/deactivate', formAt: self::CANARY.'/configure'),
             new Probe(PersonController::REACTIVATE, 'POST', self::CANARY.'/reactivate', formAt: self::CANARY.'/configure'),
+            new Probe(PositionController::REGISTER, 'GET', '/team/positions'),
+            new Probe(PositionController::ADD, 'POST', '/team/positions', ['name' => 'Added by a probe'], formAt: '/team/positions'),
+            new Probe(PositionController::SHOW, 'GET', self::POSITION),
+            new Probe(PositionController::CONFIGURE, 'GET', self::POSITION.'/configure'),
+            // What it already grants, so a write that is allowed leaves it as it was.
+            new Probe(PositionController::CONFIGURE, 'POST', self::POSITION.'/configure', ['name' => 'Probed seat', 'grants' => ['directory.read']], formAt: self::POSITION.'/configure'),
             new Probe(SettingsController::ORGANIZATION, 'GET', '/settings/organization'),
             new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'GET', '/settings/configure/organization'),
             new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'POST', '/settings/configure/organization', ['name' => 'Taken over'], formAt: '/settings/configure/organization'),

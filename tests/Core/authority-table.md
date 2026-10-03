@@ -172,6 +172,76 @@ Checks: `directory.manage`, `identity.act_on_account`
 | Admin | refused |
 | Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a |
 
+## identity_positions: GET /team/positions
+
+Checks: `positions.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Positions · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Positions · vivutio |
+| Super Admin | allowed: Positions · vivutio |
+
+## identity_position_add: POST /team/positions
+
+Checks: `positions.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/positions/{new}/configure |
+| Super Admin | redirected to /team/positions/{new}/configure |
+
+## identity_position: GET /team/positions/0199a6f0-5ea7-7e10-8000-0000000005ea
+
+Checks: `positions.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Probed seat · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Probed seat · vivutio |
+| Super Admin | allowed: Probed seat · vivutio |
+
+## identity_position_configure: GET /team/positions/0199a6f0-5ea7-7e10-8000-0000000005ea/configure
+
+Checks: `positions.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Configure Probed seat · vivutio |
+| Super Admin | allowed: Configure Probed seat · vivutio |
+
+## identity_position_configure: POST /team/positions/0199a6f0-5ea7-7e10-8000-0000000005ea/configure
+
+Checks: `positions.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/positions/0199a6f0-5ea7-7e10-8000-0000000005ea |
+| Super Admin | redirected to /team/positions/0199a6f0-5ea7-7e10-8000-0000000005ea |
+
 ## identity_settings_organization: GET /settings/organization
 
 Checks: `settings.read`

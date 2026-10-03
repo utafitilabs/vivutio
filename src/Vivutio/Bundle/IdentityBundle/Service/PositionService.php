@@ -16,6 +16,7 @@ namespace Vivutio\Bundle\IdentityBundle\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidPositionException;
 use Vivutio\Bundle\IdentityBundle\Exception\UngrantablePairsException;
 use Vivutio\Contracts\Access\Grant;
 
@@ -40,13 +41,15 @@ final readonly class PositionService
     /**
      * @param list<string> $grants each written "<concern>.<verb>"
      *
+     * @throws InvalidPositionException  when the name is empty or too long
      * @throws UngrantablePairsException when a pair is one no position may carry
      */
     public function create(string $name, array $grants): Position
     {
+        $name = self::name($name);
         $this->refuseUngrantable($grants);
 
-        $position = (new Position())->setName(trim($name))->setGrants($grants);
+        $position = (new Position())->setName($name)->setGrants($grants);
 
         $this->entityManager->persist($position);
         $this->entityManager->flush();
@@ -68,6 +71,41 @@ final readonly class PositionService
         $position->setGrants($grants);
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * The name and what the position grants, changed together, as its
+     * configure page saves them.
+     *
+     * @param list<string> $grants each written "<concern>.<verb>"
+     *
+     * @throws InvalidPositionException  when the name is empty or too long
+     * @throws UngrantablePairsException when a pair is one no position may carry
+     */
+    public function change(Position $position, string $name, array $grants): void
+    {
+        $name = self::name($name);
+        $this->refuseUngrantable($grants);
+
+        $position->setName($name)->setGrants(array_values(array_unique($grants)));
+
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @throws InvalidPositionException
+     */
+    private static function name(string $name): string
+    {
+        $name = trim($name);
+        if ('' === $name) {
+            throw new InvalidPositionException('name', 'A position is known by its name: it cannot be empty.');
+        }
+        if (mb_strlen($name) > Position::NAME_MAX_LENGTH) {
+            throw new InvalidPositionException('name', \sprintf('A name can be at most %d characters.', Position::NAME_MAX_LENGTH));
+        }
+
+        return $name;
     }
 
     /**

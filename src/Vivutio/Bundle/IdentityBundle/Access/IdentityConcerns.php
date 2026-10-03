@@ -36,6 +36,7 @@ final readonly class IdentityConcerns implements ConcernSourceInterface
 {
     public const string DIRECTORY = 'directory';
     public const string PERSONAL_DETAILS = 'personal_details';
+    public const string POSITIONS = 'positions';
 
     public function declaredBy(): string
     {
@@ -66,6 +67,17 @@ final readonly class IdentityConcerns implements ConcernSourceInterface
             // Changing somebody's address is taking over their account at the
             // next reset link: the tiers' alone.
             tierOnly: [Verb::Manage],
+        );
+
+        yield new Concern(
+            key: self::POSITIONS,
+            label: 'Positions',
+            description: 'What each position grants and who holds it.',
+            verbs: [Verb::Read, Verb::Configure],
+            scopes: [Scope::ORGANIZATION],
+            // Configuring them is composing what they grant, so a position
+            // holding it could raise itself: the tiers' alone (uhifadhi #67).
+            tierOnly: [Verb::Configure],
         );
     }
 }
