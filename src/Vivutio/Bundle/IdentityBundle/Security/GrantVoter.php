@@ -61,6 +61,18 @@ final class GrantVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
+        return $this->supportsAttribute($attribute);
+    }
+
+    /**
+     * Only a declared pair. The base voter claims every attribute here, and a
+     * voter that claims a question it never answers is a second voter on it,
+     * the overlap the route walk refuses.
+     *
+     * @see vendor/symfony/security-core/Authorization/Voter/Voter.php — supportsAttribute() returns true unless overridden
+     */
+    public function supportsAttribute(string $attribute): bool
+    {
         $grant = Grant::tryParse($attribute);
 
         return null !== $grant && $this->catalogue->has($grant);

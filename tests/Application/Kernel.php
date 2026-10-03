@@ -28,8 +28,10 @@ use Vivutio\Core\Tests\Application\Fixtures\LandingController;
 use Vivutio\Core\Tests\Application\Fixtures\NotesConcerns;
 use Vivutio\Core\Tests\Application\Fixtures\NotesScopes;
 use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
+use Vivutio\Core\Tests\Application\Fixtures\TaggedServices;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
 /**
  * The application the core's own specifications run inside: every core bundle
@@ -52,6 +54,10 @@ final class Kernel extends BaseKernel
     public const string SECURITY = 'test_public.security';
 
     public const string POSITIONS = 'test_public.positions';
+
+    public const string VOTERS = 'test_public.voters';
+
+    public const string CONCERN_SOURCES = 'test_public.concern_sources';
 
     public function getProjectDir(): string
     {
@@ -186,5 +192,15 @@ final class Kernel extends BaseKernel
         // No screen writes a position yet, and a private service nothing
         // references is removed when the container compiles.
         $services->alias(self::POSITIONS, 'identity.positions')->public();
+
+        // Every voter and every declaration of concerns, by the tags the
+        // security bundle and the catalogue collect them by, for the route
+        // walk to hold them against the routes.
+        $services->set(self::VOTERS, TaggedServices::class)
+            ->args([tagged_iterator('security.voter')])
+            ->public();
+        $services->set(self::CONCERN_SOURCES, TaggedServices::class)
+            ->args([tagged_iterator(ConcernSourceInterface::TAG)])
+            ->public();
     }
 }
