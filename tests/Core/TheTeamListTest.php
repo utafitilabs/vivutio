@@ -136,13 +136,36 @@ final class TheTeamListTest extends MigrationsTestCase
         $this->signedInAs($this->person('Zawadi', 'Lema', TierEnum::SuperAdmin));
 
         $page = $this->list('?q=baraka');
-        self::assertSame(['Any position 6', 'Driver guide 1', 'Housekeeper 2', 'No position 3'], $this->chips($page, 'position'), 'counts are over the whole team, not the search');
-        self::assertSame(['Any account 6', 'Active 5', 'Deactivated 1'], $this->chips($page, 'account'));
+        self::assertSame(['Any 6', 'Driver guide 1', 'Housekeeper 2', 'No position 3'], $this->chips($page, 'position'), 'counts are over the whole team, not the search');
+        self::assertSame(['Any 6', 'Active 5', 'Deactivated 1'], $this->chips($page, 'account'));
 
         $housekeeper = $this->em->getRepository(Position::class)->findOneBy(['name' => 'Housekeeper']);
         self::assertInstanceOf(Position::class, $housekeeper);
         self::assertSame(['Amani Lyimo', 'Jabiri Swai'], $this->names($this->list('?position='.$housekeeper->getUuid())));
         self::assertSame(['Jabiri Swai'], $this->names($this->list('?account=deactivated')));
+    }
+
+    /** The signed-in person's own row says so, as uhifadhi's does. */
+    public function testOnesOwnRowIsMarked(): void
+    {
+        $this->theCamp();
+        $this->signedInAs($this->person('Zawadi', 'Lema', TierEnum::SuperAdmin));
+
+        $page = $this->list();
+
+        self::assertSame(['Zawadi Lema'], $page->filter('tr[data-person]')->reduce(static fn (Crawler $row): bool => $row->filter('.you')->count() > 0)->each(static fn (Crawler $row): string => (string) $row->attr('data-person')));
+    }
+
+    /** "Everything, by tier" names a tier, so it is said only to whoever sees tiers. */
+    public function testEverythingByTierIsSaidOnlyToWhoeverSeesTiers(): void
+    {
+        $this->theCamp();
+
+        $this->signedInAs($this->person('Zawadi', 'Lema', TierEnum::SuperAdmin));
+        self::assertStringContainsString('everything, by tier', $this->list()->filter('tr[data-person="Baraka Kimaro"]')->text());
+
+        $this->signedInAs($this->person('Halima', 'Saidi', TierEnum::Admin));
+        self::assertStringNotContainsString('by tier', (string) $this->list()->html());
     }
 
     public function testAFilterThatMatchesNobodySaysSoAndOffersTheWholeTeam(): void
@@ -253,6 +276,11 @@ final class TheTeamListTest extends MigrationsTestCase
      */
     private function chips(Crawler $page, string $facet): array
     {
-        return $page->filter(\sprintf('[data-facet="%s"] [data-chip]', $facet))->each(static fn (Crawler $chip): string => trim((string) preg_replace('/\s+/', ' ', $chip->text())));
+        return $page->filter(\sprintf('[data-facet="%s"] [data-chip]', $facet))->each(static function (Crawler $chip): string {
+            // The count is its own element, spaced from the label by the stylesheet.
+            $count = trim($chip->filter('em')->text());
+
+            return trim((string) preg_replace('/\s+/', ' ', substr(trim($chip->text()), 0, -\strlen($count)))).' '.$count;
+        });
     }
 }

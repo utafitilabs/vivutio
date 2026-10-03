@@ -1,0 +1,45 @@
+{# The frame every signed-in page wears, as designed in
+   vivutio-designs/shell/dashboard.html: one bar across the top, the menu under
+   it listing only what the person may open, the page in one centred column.
+
+   A page names where it sits in the menu with the `here` block, and fills
+   `page`. Search and notifications are drawn as coming until their features
+   exist; the organization's name heads the menu once it is recorded. #}
+{% extends '@Shell/document.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block body %}
+{%- set person = app.user -%}
+<header class="bar">
+    <a class="brand" href="{{ path('shell_dashboard') }}">{% include '@Shell/_mark.html.twig' with {size: 28} only %}<span>vivutio</span></a>
+    <button type="button" class="fold" onclick="foldMenu()" title="Fold or open the menu" aria-label="Fold or open the menu">{{ icons.icon('fold') }}</button>
+    <label class="search" title="Search is coming">{{ icons.icon('search', 16) }}<input type="search" placeholder="Search people, properties, bookings" aria-label="Search" disabled><kbd>/</kbd></label>
+    <button type="button" class="bar-icon" title="Notifications are coming" aria-label="Notifications are coming" disabled>{{ icons.icon('bell') }}</button>
+    <button type="button" class="bar-icon" onclick="toggleTheme()" title="Dark or light" aria-label="Dark or light">{{ icons.icon('theme') }}</button>
+    <details class="me">
+        <summary class="bar-me">
+            {#- Under the name the tiers read their tier; Staff, who see no
+                tier anywhere, read their position. -#}
+            <span><b>{{ person.fullName }}</b><small>{{ person.tier.holdsEveryPermission ? person.tier.label : (person.position ? person.position.name : 'No position') }}</small></span>
+            <i>{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</i>
+        </summary>
+        <div class="pick-menu"><a href="{{ path('identity_logout') }}">Sign out</a></div>
+    </details>
+</header>
+<div class="shell">
+    <nav class="menu" aria-label="Menu">
+        {%- set here = block('here') is defined ? block('here')|trim : '' -%}
+        {% if organization_name|default(null) %}<h2>{{ organization_name }}</h2>{% endif %}
+        <a href="{{ path('shell_dashboard') }}" title="Dashboard"{{ 'dashboard' == here ? ' class="here"' }}>{{ icons.icon('dashboard') }}<span>Dashboard</span></a>
+        {% if door('directory.read') %}
+            <h2>Organization</h2>
+            <a href="{{ path('identity_team') }}" title="Team"{{ 'team' == here ? ' class="here"' }}>{{ icons.icon('users') }}<span>Team</span></a>
+        {% endif %}
+    </nav>
+    <main>
+        <div class="page">
+            {% block page %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% endblock %}

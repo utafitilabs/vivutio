@@ -1,0 +1,18 @@
+{# A page somebody's position does not reach, as designed in
+   vivutio-designs/shell/not-allowed.html and ruled after uhifadhi's: the same
+   two sentences whatever was asked for, so a refusal confirms nothing exists. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Not allowed{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are"><a href="{{ path('shell_dashboard') }}">vivutio</a> / not allowed</nav></div></header>
+<section class="panel narrow">
+    <div class="empty">
+        <b>There is nothing here you can open</b>
+        <span>The address may be mistyped, or lead somewhere your position does not reach.</span>
+        <div class="actions"><a class="button main" href="javascript:history.back()">{{ icons.icon('left', 15) }} Back</a><a class="button outline" href="{{ path('shell_my_dashboard') }}">Your dashboard</a></div>
+    </div>
+</section>
+{% endblock %}

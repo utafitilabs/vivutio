@@ -1,17 +1,16 @@
 /* vivutio. The look every screen of the product wears.
  *
- * Ported from the design project, vivutio-designs/vivutio.css, approved
- * 2 October 2026; a change to the look is made there first. Soft and rounded:
- * panels float on a light shadow with 16px corners and no edge; every control
- * is a pill; one bar runs across the top and the menu hangs under it; Save and
- * Discard sit in the footer of a panel; a history is a timeline. Type is
- * Figtree, shipped beside this file under the SIL Open Font License
- * (fonts/OFL.txt). Colour is Emerald.
+ * Ported from the design project, vivutio-designs/vivutio.css; a change to
+ * the look is made there first. Soft and rounded: panels float on a light
+ * shadow with 16px corners and no edge; every control is a pill; one bar runs
+ * across the top and the menu hangs under it; Save and Discard sit in the
+ * footer of a panel; a history is a timeline. Type is Figtree, shipped beside
+ * this file under the SIL Open Font License (fonts/OFL.txt). Colour is Emerald.
  *
  * Contents: 0 the typeface · 1 colour and measures · 2 base · 3 the frame ·
  * 4 the page · 5 panels · 6 fields · 7 buttons · 8 choices · 9 chips ·
  * 10 tables and rows · 11 timeline · 12 notices and empty states ·
- * 14 a page for a stranger */
+ * 14 a page for a stranger · 15 lists */
 
 /* 0. The typeface */
 @font-face{font-family:'Figtree';font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/Figtree-normal.woff2) format('woff2');
@@ -66,6 +65,14 @@ html.folded .fold svg{transform:scaleX(-1)}
 .bar-me small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3)}
 .bar-me i,.initials{border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;background:var(--accent-soft);color:var(--accent);flex:none}
 .bar-me i{width:34px;height:34px;font-size:12px}
+.bar-me b{font-weight:600}
+/* The name opens a short menu: signing out. */
+.me{position:relative}
+.me>summary{list-style:none}
+.me>summary::-webkit-details-marker{display:none}
+.me .pick-menu{left:auto;right:0;top:48px;min-width:180px}
+.search:has(input:disabled),.bar-icon:disabled{opacity:.55;cursor:not-allowed}
+.search input:disabled{cursor:not-allowed}
 
 .shell{display:grid;grid-template-columns:var(--menu) minmax(0,1fr);min-height:calc(100vh - var(--bar))}
 .menu{position:sticky;top:var(--bar);height:calc(100vh - var(--bar));overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:18px 14px 16px;background:var(--side);border-right:1px solid var(--line-2)}
@@ -201,9 +208,12 @@ html.folded .menu a{width:44px;padding:0;justify-content:center}
 .notice .button{margin-left:auto}
 .notice[hidden]{display:none}
 .empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px 22px;text-align:center;color:var(--ink-2)}
-.empty svg{width:30px;height:30px;color:var(--ink-3)}
+.empty>svg{width:30px;height:30px;color:var(--ink-3)}
+.empty span{text-wrap:balance}
 .empty b{font-size:15px;color:var(--ink)}
 .empty .button{margin-top:8px}
+.empty .actions{display:flex;gap:8px;margin-top:10px}
+.panel.narrow{max-width:560px;margin:40px auto 0}
 
 /* 14. A page for a stranger: one card on the ground, no bar and no menu. There
    is nobody to act as yet, and a menu drawn for a stranger tells them what the
@@ -214,6 +224,78 @@ html.folded .menu a{width:44px;padding:0;justify-content:center}
 .single-card .notice{margin-bottom:16px;padding:10px 14px;font-size:13px;align-items:flex-start}
 .single-card .notice svg{margin-top:1px}
 .single-card .check{margin:2px 0 18px}
+
+/* 15. Lists: the tool row above a list, its filters, the person cell, the pager.
+   A filter's state is the address: chips and options are links, so a filtered
+   list can be sent, bookmarked and come back to with the back button. */
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px}
+.tools[hidden],.hint[hidden]{display:none}
+.tools .shown{margin-left:auto;font-size:12.5px;color:var(--ink-3)}
+.tools .shown b{color:var(--ink-2);font-weight:600}
+.find{display:flex;align-items:center;gap:9px;height:32px;width:280px;max-width:100%;border-radius:999px;border:1px solid var(--line-2);background:var(--panel);padding:0 14px;color:var(--ink-3)}
+.find input{border:0;background:none;outline:0;flex:1;min-width:0;font-size:13.5px;color:var(--ink)}
+a.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;font-size:12.5px;cursor:pointer}
+a.chip em{font-style:normal;font-weight:400;color:var(--ink-3)}
+a.chip[aria-current=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+a.chip[aria-current=true] em{color:var(--accent)}
+.pick{position:relative}
+.pick>summary{list-style:none;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border:1px solid var(--line-2);border-radius:999px;background:var(--panel);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.pick>summary::-webkit-details-marker{display:none}
+.pick>summary.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.pick[open]>summary svg{transform:rotate(180deg)}
+.pick-menu{position:absolute;z-index:20;top:38px;left:0;min-width:220px;padding:6px;border-radius:14px;background:var(--panel);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.pick-menu h3{font-size:11.5px;font-weight:600;color:var(--ink-3);padding:6px 10px 4px}
+.pick-menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.pick-menu a{display:flex;align-items:center;gap:9px;height:32px;padding:0 10px;border-radius:9px;font-size:13px}
+.pick-menu a:hover{background:var(--well)}
+.pick-menu a i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--line-2);flex:none}
+.pick-menu a[aria-current=true]{font-weight:600;color:var(--accent)}
+.pick-menu a[aria-current=true] i{background:var(--accent);border-color:var(--accent)}
+.pick-menu a em{margin-left:auto;font-style:normal;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.who{display:flex;align-items:center;gap:10px;min-width:0}
+.who .initials{width:30px;height:30px;font-size:11px}
+.who b{font-weight:600}
+.who a,.who small{display:block;font-size:12px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis}
+.who a:hover{color:var(--accent)}
+.table td.quiet{color:var(--ink-3)}
+.table td small{display:block;font-size:12px;color:var(--ink-3)}
+/* A list of people: D's layout (a 40px face, 64px rows, the facts set to the
+   right) with A's quiet values (plain text, the account a dot and a word). */
+.panel.list .table tbody tr:hover td{background:none}
+.panel.list .table th{padding:0 12px 8px}
+.panel.list .table td{height:64px;padding:0 12px}
+.panel.list .table th:not(:first-child),.panel.list .table td:not(:first-child){text-align:right;white-space:nowrap}
+.panel.list .table td:not(:first-child){color:var(--ink-2)}
+.panel.list .who{gap:13px}
+.panel.list .who .initials{width:40px;height:40px;font-size:13px}
+.panel.list .who b{font-size:15px}
+.panel.list .who a{font-size:12.5px;margin-top:1px}
+.panel.list .table td .chip{border:0;background:none;padding:0;font-size:13.5px;font-weight:500;color:var(--ink-2)}
+.panel.list .table td .chip.ok::before{background:var(--ok)}
+.panel.list .table td .chip.danger{color:var(--danger)}
+.you{font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.table tr.off td{color:var(--ink-3)}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;font-size:12.5px;color:var(--ink-3)}
+.pager a{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--ink-2)}
+.pager a:hover{background:var(--well)}
+.pager b{color:var(--ink-2);font-weight:600}
+
+/* A phone: the menu folds to its strip of icons, whatever was chosen, and the
+   bar keeps the mark, the fold, the theme and the initials. A list wider than
+   the screen scrolls inside its panel, never the page. */
+.panel.list{overflow-x:auto}
+@media (max-width:760px){
+  html:root{--menu:64px}
+  .brand{width:auto;padding:0 10px 0 16px}
+  .brand span,.bar-me span{display:none}
+  .bar{padding-right:12px}
+  .menu{align-items:center;padding-left:10px;padding-right:10px}
+  .menu h2,.menu a span{display:none}
+  .menu a{width:44px;padding:0;justify-content:center}
+  .page{padding:0 14px 60px}
+  .find{width:100%}
+  .tools .shown{margin-left:0}
+}
 
 @media (max-width:1100px){
   .columns,.grid-3,.grid-1-2,.grid-2,.tables{grid-template-columns:1fr}

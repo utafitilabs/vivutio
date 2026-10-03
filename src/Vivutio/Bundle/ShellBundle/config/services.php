@@ -15,6 +15,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Vivutio\Bundle\ShellBundle\Access\ShellConcerns;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
+use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 
@@ -50,6 +51,16 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('twig'), service('security.authorization_checker')])
         ->public();
     $services->alias(DashboardController::class, 'shell.controller.dashboard')->public();
+
+    /*
+     * The refusal page: after the firewall's own exception listener
+     * (priority 1), before the framework renders its error page.
+     *
+     * @see vendor/symfony/security-http/Firewall/ExceptionListener.php — register(), priority 1
+     */
+    $services->set('shell.refusal_page', RefusalPage::class)
+        ->args([service('twig')])
+        ->tag('kernel.event_listener', ['event' => 'kernel.exception', 'method' => 'onException', 'priority' => 0]);
 
     $services->set('shell.twig.door', DoorExtension::class)
         ->args([service('security.authorization_checker')])

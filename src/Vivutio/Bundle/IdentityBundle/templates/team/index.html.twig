@@ -1,77 +1,94 @@
-{# The team list, ported from uhifadhi's table: one row per person, one column
-   per fact, the filters above. Its look comes from the design of the screen;
-   what it shows and to whom is settled here.
+{# The team list, as designed in vivutio-designs/team/index.html, ported from
+   uhifadhi's table: the filters above, one row a person, the pager below.
 
-   The filter bar is a GET form and the chips are links, so a filtered list
-   lives in the address: it can be bookmarked and survives the back button.
-   Every count is over the whole team. Tiers are shown to Super Admins alone,
-   and an address to whoever may read personal details. #}
-{% extends '@Shell/document.html.twig' %}
+   The tool row is a GET form and every chip and option is a link, so a
+   filtered list lives in the address. Every count is over the whole team.
+   Tiers are shown to Super Admins alone, and an address to whoever may read
+   personal details. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
 
 {% block title %}Team{% endblock %}
+{% block here %}team{% endblock %}
 
-{% block body %}
-<main>
-    <h1>Team</h1>
+{% block page %}
+{%- set addresses = door('personal_details.read') -%}
+{%- set position_chosen = page.positions|filter(p => p.uuid == query.position)|first -%}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Organization / Team</nav><div class="title"><h1>Team</h1></div></div></header>
 
-    {% if page.isFirstRun %}
-        <p data-first-run>One account, and it is yours. A Super Admin needs no position: the tier passes every permission check on its own. Nobody you add will have that.</p>
-    {% else %}
-        <form data-tools method="get" action="{{ path('identity_team') }}">
-            <input type="search" name="q" value="{{ query.q }}" placeholder="{{ door('personal_details.read') ? 'Name or email' : 'Name' }}" aria-label="Search the team">
+{% if not page.isFirstRun %}
+<form class="tools" method="get" action="{{ path('identity_team') }}" data-tools>
+    <label class="find">{{ icons.icon('search', 16) }}<input type="search" name="q" value="{{ query.q }}" placeholder="{{ addresses ? 'Name or email' : 'Name' }}" aria-label="Search the team"></label>
 
-            {% if with_tiers %}
-                <div data-facet="tier">
-                    <a data-chip href="{{ path('identity_team', query.toParams({tier: null, page: null})) }}">All <span>{{ page.everyone }}</span></a>
-                    {% for tier in tiers %}
-                        <a data-chip href="{{ path('identity_team', query.toParams({tier: tier.value, page: null})) }}">{{ tier.label }} <span>{{ page.tierCounts[tier.value] }}</span></a>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <div data-facet="position">
-                <a data-chip href="{{ path('identity_team', query.toParams({position: null, page: null})) }}">Any position <span>{{ page.everyone }}</span></a>
-                {% for position in page.positions %}
-                    <a data-chip href="{{ path('identity_team', query.toParams({position: position.uuid, page: null})) }}">{{ position.name }} <span>{{ position.count }}</span></a>
-                {% endfor %}
-                <a data-chip href="{{ path('identity_team', query.toParams({position: 'none', page: null})) }}">No position <span>{{ page.noPosition }}</span></a>
-            </div>
-
-            <div data-facet="account">
-                <a data-chip href="{{ path('identity_team', query.toParams({account: null, page: null})) }}">Any account <span>{{ page.everyone }}</span></a>
-                <a data-chip href="{{ path('identity_team', query.toParams({account: 'active', page: null})) }}">Active <span>{{ page.active }}</span></a>
-                <a data-chip href="{{ path('identity_team', query.toParams({account: 'deactivated', page: null})) }}">Deactivated <span>{{ page.deactivated }}</span></a>
-            </div>
-
-            <span data-shown>showing {{ page.people|length }} of {{ page.total }}</span>
-        </form>
+    {% if with_tiers %}
+    <span data-facet="tier">
+        <a class="chip" data-chip href="{{ path('identity_team', query.toParams({tier: null, page: null})) }}"{{ query.tier is null ? ' aria-current="true"' }}>All <em>{{ page.everyone }}</em></a>
+        {% for tier in tiers %}
+            <a class="chip" data-chip href="{{ path('identity_team', query.toParams({tier: tier.value, page: null})) }}"{{ query.tier == tier ? ' aria-current="true"' }}>{{ tier.label }} <em>{{ page.tierCounts[tier.value] }}</em></a>
+        {% endfor %}
+    </span>
     {% endif %}
 
-    <table>
-        <thead><tr><th>Person</th>{% if with_tiers %}<th>Tier</th>{% endif %}<th>Position</th><th>Account</th></tr></thead>
+    <details class="pick" data-facet="position">
+        <summary{{ query.position is not null ? ' class="on"' }}>{{ query.position == 'none' ? 'No position' : (position_chosen ? position_chosen.name : 'Any position') }} {{ icons.icon('down', 14) }}</summary>
+        <div class="pick-menu">
+            <h3>Position</h3>
+            <a data-chip href="{{ path('identity_team', query.toParams({position: null, page: null})) }}"{{ query.position is null ? ' aria-current="true"' }}><i></i>Any<em>{{ page.everyone }}</em></a>
+            {% if page.positions is not empty %}<hr>{% endif %}
+            {% for position in page.positions %}
+                <a data-chip href="{{ path('identity_team', query.toParams({position: position.uuid, page: null})) }}"{{ query.position == position.uuid ? ' aria-current="true"' }}><i></i>{{ position.name }}<em>{{ position.count }}</em></a>
+            {% endfor %}
+            <hr>
+            <a data-chip href="{{ path('identity_team', query.toParams({position: 'none', page: null})) }}"{{ query.position == 'none' ? ' aria-current="true"' }}><i></i>No position<em>{{ page.noPosition }}</em></a>
+        </div>
+    </details>
+
+    <details class="pick" data-facet="account">
+        <summary{{ query.account is not null ? ' class="on"' }}>{{ query.account == 'active' ? 'Active' : (query.account == 'deactivated' ? 'Deactivated' : 'Any account') }} {{ icons.icon('down', 14) }}</summary>
+        <div class="pick-menu">
+            <h3>Account</h3>
+            <a data-chip href="{{ path('identity_team', query.toParams({account: null, page: null})) }}"{{ query.account is null ? ' aria-current="true"' }}><i></i>Any<em>{{ page.everyone }}</em></a>
+            <hr>
+            <a data-chip href="{{ path('identity_team', query.toParams({account: 'active', page: null})) }}"{{ query.account == 'active' ? ' aria-current="true"' }}><i></i>Active<em>{{ page.active }}</em></a>
+            <a data-chip href="{{ path('identity_team', query.toParams({account: 'deactivated', page: null})) }}"{{ query.account == 'deactivated' ? ' aria-current="true"' }}><i></i>Deactivated<em>{{ page.deactivated }}</em></a>
+        </div>
+    </details>
+
+    <span class="shown" data-shown>showing <b>{{ page.people|length }}</b> of {{ page.total }}</span>
+</form>
+{% endif %}
+
+<section class="panel list">
+    <table class="table">
+        <thead><tr><th>Person</th>{% if with_tiers %}<th style="width:150px">Tier</th>{% endif %}<th style="width:220px">Position</th><th style="width:150px">Account</th></tr></thead>
         <tbody>
         {% for person in page.people %}
-            <tr data-person="{{ person.fullName }}">
-                <td><b>{{ person.fullName }}</b>{% if door('personal_details.read') %} <a href="mailto:{{ person.email }}">{{ person.email }}</a>{% endif %}</td>
-                {% if with_tiers %}<td data-tier>{{ person.tier.label }}</td>{% endif %}
-                <td>{{ person.position ? person.position.name : 'No position' }}</td>
-                <td>{{ person.active ? 'Active' : 'Deactivated' }}</td>
+            <tr data-person="{{ person.fullName }}"{{ person.active ? '' : ' class="off"' }}>
+                <td><div class="who"><span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span><div><b>{{ person.fullName }}</b>{% if person == app.user %}<span class="you">you</span>{% endif %}{% if addresses %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% endif %}</div></div></td>
+                {% if with_tiers %}<td data-tier><span class="chip">{{ person.tier.label }}</span></td>{% endif %}
+                {% if person.position %}
+                    <td>{{ person.position.name }}</td>
+                {% else %}
+                    <td class="quiet">No position{% if with_tiers and person.tier.holdsEveryPermission %}<small>everything, by tier</small>{% endif %}</td>
+                {% endif %}
+                <td><span class="chip {{ person.active ? 'ok' : 'danger' }}">{{ person.active ? 'Active' : 'Deactivated' }}</span></td>
             </tr>
         {% else %}
-            <tr><td colspan="{{ with_tiers ? 4 : 3 }}">
-                <div data-nobody>Nobody matches {% if query.q %}“{{ query.q }}”{% else %}these filters{% endif %}. <a href="{{ path('identity_team') }}">Show the whole team</a>.</div>
-            </td></tr>
+            <tr><td colspan="{{ with_tiers ? 4 : 3 }}"><div class="empty" data-nobody><b>Nobody matches {% if query.q %}“{{ query.q }}”{% else %}these filters{% endif %}</b><span><a href="{{ path('identity_team') }}">Show the whole team</a></span></div></td></tr>
         {% endfor %}
         </tbody>
     </table>
-
-    <div data-pager>
-        <span>{{ page.total }} {{ page.total == 1 ? 'person' : 'people' }} · {{ page.perPage }} per page</span>
+    <div class="pager" data-pager>
+        <span><b>{{ page.total }}</b> {{ page.total == 1 ? 'person' : 'people' }} · {{ page.perPage }} per page</span>
         <span>
             {% if page.page > 1 %}<a href="{{ path('identity_team', query.toParams({page: page.page - 1})) }}" aria-label="Previous page">‹</a>{% endif %}
-            page {{ page.page }} of {{ page.pages }}
+            page <b>{{ page.page }}</b> of {{ page.pages }}
             {% if page.page < page.pages %}<a href="{{ path('identity_team', query.toParams({page: page.page + 1})) }}" aria-label="Next page">›</a>{% endif %}
         </span>
     </div>
-</main>
+</section>
+
+{% if page.isFirstRun %}
+    <p class="hint" data-first-run>One account, and it is yours. A Super Admin needs no position: the tier passes every permission check on its own. Nobody you add will have that.</p>
+{% endif %}
 {% endblock %}

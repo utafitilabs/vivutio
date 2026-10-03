@@ -1,16 +1,18 @@
-{# The organization's dashboard. Its cards are contributed by the packages
-   installed; until one does, it says so. #}
-{% extends '@Shell/document.html.twig' %}
+{# The organization's dashboard, as designed in
+   vivutio-designs/shell/dashboard.html. Its cards are contributed by the
+   packages installed; until one does, it says so. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
 
 {% block title %}Dashboard{% endblock %}
+{% block here %}dashboard{% endblock %}
 
-{% block body %}
-<main data-dashboard="organization">
-    <h1>Dashboard</h1>
-    {% if door('dashboard.read') %}<a href="{{ path('shell_my_dashboard') }}">My dashboard</a>{% endif %}
-    <div class="empty" data-nothing-yet>
-        <b>Nothing here yet</b>
-        <span>The modules you install put their cards here.</span>
-    </div>
-</main>
+{% block page %}
+<header class="page-head" data-dashboard="organization">
+    <div><div class="title"><h1>Dashboard</h1>{% if organization_name|default(null) %}<span class="about">{{ organization_name }}</span>{% endif %}</div></div>
+    {% if door('dashboard.read') %}<div class="actions"><a class="button outline" href="{{ path('shell_my_dashboard') }}">My dashboard</a></div>{% endif %}
+</header>
+<section class="panel">
+    <div class="empty" data-nothing-yet>{{ icons.icon('dashboard', 30) }}<b>Nothing here yet</b><span>The modules you install put their cards here.</span></div>
+</section>
 {% endblock %}

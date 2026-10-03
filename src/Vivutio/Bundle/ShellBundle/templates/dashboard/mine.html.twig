@@ -1,16 +1,19 @@
-{# One's own dashboard: everything that is the person's. Its cards are
+{# One's own dashboard, as designed in vivutio-designs/shell/my-dashboard.html:
+   everything that is the person's, naming whose it is. Its cards are
    contributed by the packages installed; until one does, it says so. #}
-{% extends '@Shell/document.html.twig' %}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
 
 {% block title %}My dashboard{% endblock %}
+{% block here %}dashboard{% endblock %}
 
-{% block body %}
-<main data-dashboard="mine">
-    <h1>My dashboard</h1>
-    <p>{{ app.user.fullName }}</p>
-    <div class="empty" data-nothing-yet>
-        <b>Nothing here yet</b>
-        <span>The modules you install put your own cards here.</span>
-    </div>
-</main>
+{% block page %}
+{%- set person = app.user -%}
+<header class="page-head" data-dashboard="mine">
+    <span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span>
+    <div><div class="title"><h1>My dashboard</h1><span class="about">{{ person.fullName }}{% if not person.tier.holdsEveryPermission %} · {{ person.position ? person.position.name : 'No position' }}{% endif %}</span></div></div>
+</header>
+<section class="panel">
+    <div class="empty" data-nothing-yet>{{ icons.icon('dashboard', 30) }}<b>Nothing here yet</b><span>The modules you install put your own cards here.</span></div>
+</section>
 {% endblock %}
