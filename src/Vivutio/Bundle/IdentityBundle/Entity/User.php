@@ -39,6 +39,10 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     /** The fewest characters a password may have. */
     public const int PASSWORD_MIN_LENGTH = 12;
 
+    public const int NAME_MAX_LENGTH = 100;
+
+    public const int PHONE_MAX_LENGTH = 32;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -52,6 +56,10 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
 
     #[ORM\Column(length: 100)]
     private ?string $lastName = null;
+
+    /** A work number, in the reader's own format; a personal detail. */
+    #[ORM\Column(length: self::PHONE_MAX_LENGTH, nullable: true)]
+    private ?string $phone = null;
 
     #[ORM\Column(length: 16, enumType: TierEnum::class)]
     private TierEnum $tier = TierEnum::Staff;
@@ -104,6 +112,18 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     public function setLastName(string $lastName): static
     {
         $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
 
         return $this;
     }

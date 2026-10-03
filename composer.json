@@ -19,6 +19,7 @@
     ],
     "require": {
         "php": ">=8.4",
+        "ext-filter": "*",
         "ext-mbstring": "*",
         "doctrine/dbal": "^4.0",
         "doctrine/doctrine-bundle": "^3.0",

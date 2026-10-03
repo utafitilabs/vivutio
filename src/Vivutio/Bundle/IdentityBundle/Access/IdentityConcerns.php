@@ -48,17 +48,24 @@ final readonly class IdentityConcerns implements ConcernSourceInterface
             key: self::DIRECTORY,
             label: 'Directory',
             description: 'Who is on the team: their name, their position and whether their account is in use.',
-            verbs: [Verb::Read],
+            verbs: [Verb::Read, Verb::Manage],
             scopes: [Scope::ORGANIZATION],
+            // Managing it sets somebody's seat and deactivates accounts, so a
+            // position holding it could raise itself: the tiers' alone, as
+            // ruled in uhifadhi (#67).
+            tierOnly: [Verb::Manage],
         );
 
         yield new Concern(
             key: self::PERSONAL_DETAILS,
             label: 'Personal details',
             description: 'How to reach a person: their address and contact details, distinct from knowing they are on the team.',
-            verbs: [Verb::Read],
+            verbs: [Verb::Read, Verb::Manage],
             scopes: [Scope::ORGANIZATION],
             sensitive: true,
+            // Changing somebody's address is taking over their account at the
+            // next reset link: the tiers' alone.
+            tierOnly: [Verb::Manage],
         );
     }
 }

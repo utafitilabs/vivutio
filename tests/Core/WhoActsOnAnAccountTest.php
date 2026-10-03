@@ -56,7 +56,7 @@ final class WhoActsOnAnAccountTest extends MigrationsTestCase
                 $allowed = match ($target) {
                     TierEnum::SuperAdmin => TierEnum::SuperAdmin === $actor,
                     TierEnum::Admin => TierEnum::Staff !== $actor,
-                    TierEnum::Staff => true,
+                    TierEnum::Staff => TierEnum::Staff !== $actor,
                 };
 
                 yield \sprintf('%s on %s', $actor->label(), $target->label()) => [$actor, $target, $allowed];

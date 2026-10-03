@@ -24,7 +24,7 @@
             <span class="about">{{ person.position ? person.position.name : 'No position' }}{% if since %} &middot; on the team since {{ since }}{% endif %}</span>
         </div>
     </div>
-    <div class="actions"><a class="button outline" href="{{ path('identity_team') }}">{{ icons.icon('left', 15) }} Back to the team</a></div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_team') }}">{{ icons.icon('left', 15) }} Back to the team</a>{% if door('directory.manage') and door('identity.act_on_account', person) %}<a class="button outline" href="{{ path('identity_person_configure', {uuid: person.uuid}) }}">Configure</a>{% endif %}</div>
 </header>
 
 {% if show_grants and not person.tier.holdsEveryPermission %}

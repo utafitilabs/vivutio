@@ -71,15 +71,16 @@ enum TierEnum: string
      * Nobody reaches upward. So no permission over the directory is a way to
      * change an administrator's address and send the reset link to it.
      *
-     * For Staff acting on Staff this is the tier's answer only; whether their
-     * position grants the act is a separate question.
+     * Staff act on no account: managing the directory and personal details
+     * is the tiers' alone (as ruled in uhifadhi, #67), so a position can never
+     * reach a colleague's account through this rule.
      */
     public function mayActOnAccountOf(self $target): bool
     {
         return match ($target) {
             self::SuperAdmin => self::SuperAdmin === $this,
             self::Admin => self::Staff !== $this,
-            self::Staff => true,
+            self::Staff => self::Staff !== $this,
         };
     }
 

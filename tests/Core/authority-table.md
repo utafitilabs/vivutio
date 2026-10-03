@@ -88,6 +88,90 @@ Checks: `directory.read`
 | Admin | allowed: Aaron Canary · vivutio |
 | Super Admin | allowed: Aaron Canary · vivutio |
 
+## identity_person_configure: GET /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure
+
+Checks: `directory.manage`, `identity.act_on_account`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | allowed: Configure Aaron Canary · vivutio |
+
+## identity_person_details: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure/details
+
+Checks: `directory.manage`, `identity.act_on_account`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure |
+
+## identity_person_sign_in: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure/sign-in
+
+Checks: `personal_details.manage`, `identity.act_on_account`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure |
+
+## identity_person_position: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure/position
+
+Checks: `directory.manage`, `identity.act_on_account`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure |
+
+## identity_person_deactivate: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/deactivate
+
+Checks: `directory.manage`, `identity.deactivate`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a |
+
+## identity_person_reactivate: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/reactivate
+
+Checks: `directory.manage`, `identity.act_on_account`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a |
+
 ## identity_settings_organization: GET /settings/organization
 
 Checks: `settings.read`

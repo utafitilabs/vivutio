@@ -435,7 +435,11 @@ abstract class AuthorityTestCase extends WebTestCase
 
         if (null !== $probe->formAt) {
             $page = $this->browser->request('GET', $probe->formAt);
-            $token = $page->filter('input[name="_token"]');
+            // The form that posts to the probe's address, where a page holds several.
+            $token = $page->filter(\sprintf('form[action="%s"] input[name="_token"]', $probe->path));
+            if (0 === $token->count()) {
+                $token = $page->filter('input[name="_token"]');
+            }
             if ($this->browser->getResponse()->isSuccessful() && 1 === $token->count()) {
                 $body['_token'] = (string) $token->attr('value');
             }

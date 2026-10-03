@@ -17,6 +17,7 @@ use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
+use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
@@ -218,6 +219,18 @@ return static function (ContainerConfigurator $container): void {
         ])
         ->public();
     $services->alias(TeamController::class, 'identity.controller.team')->public();
+
+    $services->set('identity.controller.person', PersonController::class)
+        ->args([
+            service('twig'),
+            service('identity.accounts'),
+            service(PositionRepository::class),
+            service('security.authorization_checker'),
+            service('security.csrf.token_manager'),
+            service('router'),
+        ])
+        ->public();
+    $services->alias(PersonController::class, 'identity.controller.person')->public();
 
     /*
      * A repository keeps its class name as its id, the one place the bundle's

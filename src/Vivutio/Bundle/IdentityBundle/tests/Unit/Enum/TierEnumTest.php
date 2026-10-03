@@ -87,7 +87,7 @@ final class TierEnumTest extends TestCase
 
         yield 'Staff on a Super Admin' => [TierEnum::Staff, TierEnum::SuperAdmin, false];
         yield 'Staff on an Admin' => [TierEnum::Staff, TierEnum::Admin, false];
-        yield 'Staff on Staff' => [TierEnum::Staff, TierEnum::Staff, true];
+        yield 'Staff on Staff' => [TierEnum::Staff, TierEnum::Staff, false];
     }
 
     /**

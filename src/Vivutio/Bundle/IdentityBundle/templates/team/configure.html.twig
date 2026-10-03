@@ -1,0 +1,101 @@
+{# Configuring a person, as designed in vivutio-designs/team/member-configure.html:
+   the details, signing in and the position, each a panel saved by itself with
+   Save and Discard in its footer, and the account in the side column.
+
+   Only what is built is drawn. Posting, reach and departments arrive with
+   properties and 0.2; a reset link with mail; signing in as somebody with
+   switching; the history with the audit trail. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Configure {{ person.fullName }}{% endblock %}
+{% block here %}team{% endblock %}
+
+{% macro hint(name, wrong, otherwise) %}<div class="hint"><span>{{ wrong[name] ?? otherwise }}</span></div>{% endmacro %}
+
+{% block page %}
+{%- import _self as form -%}
+{%- set tier_says = {super_admin: 'Every permission, and may sign in as another person', admin: 'Every permission; puts a wrong position right', staff: 'Exactly what their position grants'} -%}
+{%- set chosen_tier = values.tier -%}
+<header class="page-head">
+    <span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span>
+    <div>
+        <nav class="trail" aria-label="Where you are"><a href="{{ path('identity_team') }}">Team</a> / <a href="{{ path('identity_team_member', {uuid: person.uuid}) }}">{{ person.fullName }}</a> / Configure</nav>
+        <div class="title">
+            <h1>{{ person.fullName }}</h1>
+            <span class="chip {{ person.active ? 'ok' : 'danger' }}">{{ person.active ? 'Active' : 'Deactivated' }}</span>
+            <span class="chip">{{ person.tier.label }}</span>
+            <span class="about">{{ person.position ? person.position.name : 'No position' }}</span>
+        </div>
+    </div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_team_member', {uuid: person.uuid}) }}">{{ icons.icon('record', 15) }} View record</a></div>
+</header>
+
+{% if saved %}<div class="notice" role="status" style="margin-bottom:16px">{{ icons.icon('check') }}<span>{{ saved }}</span></div>{% endif %}
+{% if expired %}<div class="notice danger" role="alert" style="margin-bottom:16px">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Save again.</span></div>{% endif %}
+
+<div class="columns">
+    <div class="stack">
+        <form class="panel" method="post" action="{{ path('identity_person_details', {uuid: person.uuid}) }}" novalidate>
+            <header class="panel-head"><h2>{{ icons.icon('person', 16) }} Details</h2><p>Name and work contact</p></header>
+            <input type="hidden" name="_token" value="{{ csrf_token('person_details') }}">
+            <div class="grid-3">
+                <div class="field{{ wrong.first_name is defined ? ' wrong' }}"><label for="first-name">First name</label><input class="input" id="first-name" name="first_name" value="{{ values.first_name }}" required maxlength="100">{% if wrong.first_name is defined %}{{ form.hint('first_name', wrong, '') }}{% endif %}</div>
+                <div class="field{{ wrong.last_name is defined ? ' wrong' }}"><label for="last-name">Last name</label><input class="input" id="last-name" name="last_name" value="{{ values.last_name }}" required maxlength="100">{% if wrong.last_name is defined %}{{ form.hint('last_name', wrong, '') }}{% endif %}</div>
+                <div class="field{{ wrong.phone is defined ? ' wrong' }}"><label for="phone">Phone</label><input class="input" id="phone" name="phone" type="tel" value="{{ values.phone }}" maxlength="32">{% if wrong.phone is defined %}{{ form.hint('phone', wrong, '') }}{% endif %}</div>
+            </div>
+            <footer class="panel-foot"><span class="state">No changes</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save details</button></footer>
+        </form>
+
+        <form class="panel" method="post" action="{{ path('identity_person_sign_in', {uuid: person.uuid}) }}" novalidate>
+            <header class="panel-head"><h2>{{ icons.icon('key', 16) }} Sign-in</h2><p>Email and tier</p></header>
+            <input type="hidden" name="_token" value="{{ csrf_token('person_sign_in') }}">
+            <div class="grid-1-2">
+                <div class="field{{ wrong.email is defined ? ' wrong' }}"><label for="email">Email</label><input class="input" id="email" name="email" type="email" value="{{ values.email }}" required maxlength="180">{% if wrong.email is defined %}{{ form.hint('email', wrong, '') }}{% endif %}</div>
+                <div class="field{{ wrong.tier is defined ? ' wrong' }}"><span class="label">Tier</span>
+                    <div class="options" role="radiogroup" aria-label="Tier" data-tiers>
+                        {% for tier in tiers %}<label class="option" data-says="{{ tier_says[tier.value] }}"><input type="radio" name="tier" value="{{ tier.value }}"{{ tier.value == chosen_tier ? ' checked' }}><i></i>{{ tier.label }}</label>{% endfor %}
+                    </div>
+                    <div class="hint"><span data-tier-says>{{ wrong.tier ?? (last_super_admin ? 'The only active Super Admin keeps the tier. Make somebody else a Super Admin first.' : tier_says[chosen_tier] ?? '') }}</span></div>
+                </div>
+            </div>
+            <footer class="panel-foot"><span class="state">No changes</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save sign-in</button></footer>
+        </form>
+
+        <form class="panel" method="post" action="{{ path('identity_person_position', {uuid: person.uuid}) }}" novalidate>
+            <header class="panel-head"><h2>{{ icons.icon('seat', 16) }} Position</h2><p>Their seat</p></header>
+            <input type="hidden" name="_token" value="{{ csrf_token('person_position') }}">
+                        <div class="grid-2">
+                <div class="field{{ wrong.position is defined ? ' wrong' }}"><label for="position">Assigned position</label>
+                    <select class="select" id="position" name="position">
+                        <option value="">No position</option>
+                        {% for position in positions %}<option value="{{ position.uuid }}"{{ (position.uuid ~ '') == values.position ? ' selected' }}>{{ position.name }}</option>{% endfor %}
+                    </select>
+                    {{ form.hint('position', wrong, person.tier.holdsEveryPermission ? 'A ' ~ person.tier.label ~ ' holds every permission without one' : 'What it grants is what they may do') }}
+                </div>
+            </div>
+            <footer class="panel-foot"><span class="state">No changes</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save position</button></footer>
+        </form>
+    </div>
+
+    <aside class="aside stack">
+        <section class="panel small" data-account-actions>
+            <header class="panel-head"><h2>{{ icons.icon('shield', 16) }} Account</h2></header>
+            {% if not person.active %}
+                <form class="action" method="post" action="{{ path('identity_person_reactivate', {uuid: person.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('person_account') }}"><div><b>Bring back</b><span>Signs in again with everything they had</span></div><button type="submit" class="button small">{{ icons.icon('user_check', 14) }} Bring back</button></form>
+            {% elseif may_deactivate %}
+                <form class="action" method="post" action="{{ path('identity_person_deactivate', {uuid: person.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('person_account') }}"><div><b>Deactivate</b><span>Record kept, reversible</span></div><button type="submit" class="button small danger">{{ icons.icon('user_x', 14) }} Deactivate</button></form>
+            {% elseif last_super_admin %}
+                <div class="action"><div><b>Deactivate</b><span>The only active Super Admin cannot be deactivated. Make somebody else a Super Admin first.</span></div></div>
+            {% endif %}
+            {% if wrong.account is defined %}<p class="hint">{{ wrong.account }}</p>{% endif %}
+        </section>
+    </aside>
+</div>
+<script>
+document.addEventListener("change", function (e) {
+    var option = e.target.closest("[data-tiers] .option");
+    if (option) { document.querySelector("[data-tier-says]").textContent = option.getAttribute("data-says"); }
+});
+</script>
+{% endblock %}

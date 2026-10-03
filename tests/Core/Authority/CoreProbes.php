@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Core\Authority;
 
+use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
@@ -25,6 +26,8 @@ use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
  */
 final class CoreProbes
 {
+    private const string CANARY = '/team/'.AuthorityTestCase::CANARY_UUID;
+
     /**
      * @return list<Probe>
      */
@@ -37,6 +40,13 @@ final class CoreProbes
             new Probe(DashboardController::MINE, 'GET', '/me'),
             new Probe(TeamController::TEAM, 'GET', '/team'),
             new Probe(TeamController::MEMBER, 'GET', '/team/'.AuthorityTestCase::CANARY_UUID),
+            new Probe(PersonController::CONFIGURE, 'GET', self::CANARY.'/configure'),
+            new Probe(PersonController::DETAILS, 'POST', self::CANARY.'/configure/details', ['first_name' => 'Taken', 'last_name' => 'Over'], formAt: self::CANARY.'/configure'),
+            // The canary's own address and tier, so a write that is allowed leaves the canary in place.
+            new Probe(PersonController::SIGN_IN, 'POST', self::CANARY.'/configure/sign-in', ['email' => 'canary.c4f7e1@vivutio-camps.example', 'tier' => 'super_admin'], formAt: self::CANARY.'/configure'),
+            new Probe(PersonController::POSITION, 'POST', self::CANARY.'/configure/position', ['position' => ''], formAt: self::CANARY.'/configure'),
+            new Probe(PersonController::DEACTIVATE, 'POST', self::CANARY.'/deactivate', formAt: self::CANARY.'/configure'),
+            new Probe(PersonController::REACTIVATE, 'POST', self::CANARY.'/reactivate', formAt: self::CANARY.'/configure'),
             new Probe(SettingsController::ORGANIZATION, 'GET', '/settings/organization'),
             new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'GET', '/settings/configure/organization'),
             new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'POST', '/settings/configure/organization', ['name' => 'Taken over'], formAt: '/settings/configure/organization'),

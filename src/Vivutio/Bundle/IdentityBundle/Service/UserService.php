@@ -16,9 +16,11 @@ namespace Vivutio\Bundle\IdentityBundle\Service;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\EmailAlreadyUsedException;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidPersonException;
 use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Exception\PasswordTooShortException;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
@@ -75,6 +77,80 @@ final readonly class UserService
         }
 
         return $user;
+    }
+
+    /**
+     * A person's name and work number. A name is never empty; an empty number
+     * is recorded as none.
+     *
+     * @throws InvalidPersonException
+     */
+    public function changeDetails(User $account, string $firstName, string $lastName, ?string $phone): void
+    {
+        $firstName = trim($firstName);
+        $lastName = trim($lastName);
+        $phone = null === $phone || '' === trim($phone) ? null : trim($phone);
+
+        foreach (['first_name' => [$firstName, 'first name'], 'last_name' => [$lastName, 'last name']] as $field => [$value, $words]) {
+            if ('' === $value) {
+                throw new InvalidPersonException($field, \sprintf('A %s cannot be empty.', $words));
+            }
+            if (mb_strlen($value) > User::NAME_MAX_LENGTH) {
+                throw new InvalidPersonException($field, \sprintf('A %s can be at most %d characters.', $words, User::NAME_MAX_LENGTH));
+            }
+        }
+        if (null !== $phone && mb_strlen($phone) > User::PHONE_MAX_LENGTH) {
+            throw new InvalidPersonException('phone', \sprintf('A number can be at most %d characters.', User::PHONE_MAX_LENGTH));
+        }
+
+        $account->setFirstName($firstName)->setLastName($lastName)->setPhone($phone);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * The address somebody signs in with, kept in lowercase so it is one
+     * person however it is typed.
+     *
+     * @throws InvalidPersonException    when it is not an address
+     * @throws EmailAlreadyUsedException when somebody else signs in with it
+     */
+    public function changeEmail(User $account, string $email): void
+    {
+        $email = mb_strtolower(trim($email));
+        if (false === filter_var($email, \FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 180) {
+            throw new InvalidPersonException('email', 'That is not an email address.');
+        }
+        if ($email === $account->getEmail()) {
+            return;
+        }
+
+        // Asked first: a refused flush closes the entity manager, and the page
+        // saying so could then read nothing. The constraint still settles a race.
+        if (null !== $this->users->findOneBy(['email' => $email])) {
+            throw new EmailAlreadyUsedException($email);
+        }
+
+        $account->setEmail($email);
+
+        try {
+            $this->entityManager->flush();
+        } catch (UniqueConstraintViolationException $clash) {
+            throw new EmailAlreadyUsedException($email, $clash);
+        }
+    }
+
+    /** The seat, or none: a tier holds every permission without one. */
+    public function changePosition(User $account, ?Position $position): void
+    {
+        $account->setPosition($position);
+        $this->entityManager->flush();
+    }
+
+    /** Somebody deactivated may sign in again, with everything they had. */
+    public function reactivate(User $account): void
+    {
+        $account->setActive(true);
+        $this->entityManager->flush();
     }
 
     /**
