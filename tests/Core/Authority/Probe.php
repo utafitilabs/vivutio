@@ -26,12 +26,14 @@ final readonly class Probe
      * @param string               $method the method the request is sent with
      * @param string               $path   the address, with real identifiers in it
      * @param array<string, mixed> $body   the form fields a write sends
+     * @param string|null          $formAt the page the write's form is on: its token is read there, as a browser would, so the write is really made
      */
     public function __construct(
         public string $route,
         public string $method,
         public string $path,
         public array $body = [],
+        public ?string $formAt = null,
     ) {
     }
 }

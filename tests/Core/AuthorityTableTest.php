@@ -27,6 +27,7 @@ use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Contracts\Access\Grant;
 use Vivutio\Core\Tests\Application\Kernel;
 use Vivutio\Core\Tests\Core\Authority\CoreProbes;
+use Vivutio\Core\Tests\Core\Authority\Holdings;
 use Vivutio\Core\Tests\Core\Authority\Person;
 use Vivutio\Core\Tests\Core\Authority\Probe;
 use Vivutio\Core\Tests\Core\Authority\RouteGates;
@@ -133,6 +134,87 @@ final class AuthorityTableTest extends MigrationsTestCase
         self::assertSame([], $leaks, implode("\n", $leaks));
     }
 
+    /**
+     * No self-escalation: every write is sent as every kind of person below
+     * the tiers, and afterwards nobody may hold more than the sender held
+     * before it, whatever the table says. A write that hands out a tier, a
+     * pair or a signed-in account fails here even where it is allowed.
+     */
+    public function testNoWriteLeavesAnybodyHoldingMoreThanTheSenderCouldGrant(): void
+    {
+        $gates = $this->gates();
+        $writes = array_filter(CoreProbes::all(), static fn (Probe $probe): bool => 'GET' !== $probe->method);
+        $belowTheTiers = [Person::Stranger, Person::DeactivatedWhileSignedIn, Person::StaffWithoutPosition, Person::StaffHoldingThePair, Person::StaffHoldingAllButThePair];
+        self::assertNotSame([], $writes, 'there is a write to check');
+
+        $escalations = [];
+        foreach ($writes as $probe) {
+            foreach ($belowTheTiers as $person) {
+                $this->browser->restart();
+                $account = $this->person($person, $gates[$probe->route] ?? []);
+                if (null !== $account) {
+                    $this->browser->loginUser($account);
+                }
+                if (Person::DeactivatedWhileSignedIn === $person) {
+                    $this->connection()->executeStatement('UPDATE identity_user SET active = false WHERE id = ?', [$account?->getId()]);
+                }
+
+                $before = $this->holdings();
+                $this->send($probe);
+                foreach ($this->holdings()->escalationsSince($before, $account?->getId()) as $escalation) {
+                    $escalations[] = \sprintf('%s %s as %s: %s', $probe->method, $probe->path, $person->value, $escalation);
+                }
+            }
+        }
+
+        self::assertSame([], $escalations, implode("\n", $escalations));
+    }
+
+    /**
+     * Sends a probe. A write whose form is on a page reads that page's token
+     * first, as a browser would; a person refused the page gets no token, and
+     * the write goes without one.
+     */
+    private function send(Probe $probe): void
+    {
+        $body = $probe->body;
+
+        if (null !== $probe->formAt) {
+            $page = $this->browser->request('GET', $probe->formAt);
+            $token = $page->filter('input[name="_token"]');
+            if ($this->browser->getResponse()->isSuccessful() && 1 === $token->count()) {
+                $body['_token'] = (string) $token->attr('value');
+            }
+        }
+
+        $this->browser->request($probe->method, $probe->path, $body);
+    }
+
+    /** What every account holds now, read from the database rather than from any object a page may have changed. */
+    private function holdings(): Holdings
+    {
+        $every = $this->catalogue()->pairs();
+        $people = [];
+
+        foreach ($this->connection()->fetchAllAssociative('SELECT u.id, u.tier, u.active, p.grants FROM identity_user u LEFT JOIN identity_position p ON p.id = u.position_id') as $row) {
+            ['id' => $id, 'tier' => $tierName, 'active' => $active, 'grants' => $stored] = $row;
+            self::assertIsInt($id);
+            self::assertIsString($tierName);
+            self::assertIsBool($active);
+            $grants = \is_string($stored) ? json_decode($stored, true, flags: \JSON_THROW_ON_ERROR) : [];
+            self::assertIsArray($grants);
+            $tier = TierEnum::from($tierName);
+
+            $people[$id] = [
+                'tier' => $tier->value,
+                'active' => $active,
+                'pairs' => $tier->holdsEveryPermission() ? $every : array_values(array_intersect(array_filter($grants, \is_string(...)), $every)),
+            ];
+        }
+
+        return new Holdings($people);
+    }
+
     private function may(?User $account, string $attribute): bool
     {
         if (null === $account) {
@@ -166,7 +248,7 @@ final class AuthorityTableTest extends MigrationsTestCase
             $account?->setActive(false);
         }
 
-        $this->browser->request($probe->method, $probe->path, $probe->body);
+        $this->send($probe);
 
         return [$account, (string) $this->browser->getInternalResponse()->getContent()];
     }
@@ -218,7 +300,7 @@ final class AuthorityTableTest extends MigrationsTestCase
             $this->connection()->executeStatement('UPDATE identity_user SET active = false WHERE id = ?', [$account?->getId()]);
         }
 
-        $this->browser->request($probe->method, $probe->path, $probe->body);
+        $this->send($probe);
         $response = $this->browser->getResponse();
         $status = $response->getStatusCode();
 

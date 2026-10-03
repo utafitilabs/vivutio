@@ -113,5 +113,5 @@ Checks: `settings.configure`
 | Staff, no position | refused |
 | Staff holding the pair | refused |
 | Staff holding all but the pair | refused |
-| Admin | answered 422 |
-| Super Admin | answered 422 |
+| Admin | redirected to /settings/organization |
+| Super Admin | redirected to /settings/organization |

@@ -36,7 +36,7 @@ final class CoreProbes
             new Probe(TeamController::TEAM, 'GET', '/team'),
             new Probe(SettingsController::ORGANIZATION, 'GET', '/settings/organization'),
             new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'GET', '/settings/configure/organization'),
-            new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'POST', '/settings/configure/organization', ['name' => 'Taken over']),
+            new Probe(SettingsController::CONFIGURE_ORGANIZATION, 'POST', '/settings/configure/organization', ['name' => 'Taken over'], formAt: '/settings/configure/organization'),
         ];
     }
 }
