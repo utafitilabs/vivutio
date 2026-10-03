@@ -20,6 +20,7 @@ use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
+use Vivutio\Bundle\IdentityBundle\Service\PositionService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
@@ -75,6 +76,17 @@ return static function (ContainerConfigurator $container): void {
             service(UserRepository::class),
         ]);
     $services->alias(UserService::class, 'identity.accounts');
+
+    /*
+     * Every way a position comes into being or changes what it grants,
+     * held to the pairs the catalogue offers a position.
+     */
+    $services->set('identity.positions', PositionService::class)
+        ->args([
+            service('doctrine.orm.entity_manager'),
+            service('identity.access.catalogue'),
+        ]);
+    $services->alias(PositionService::class, 'identity.positions');
 
     /*
      * The rules between tiers, where Symfony's access decision manager asks

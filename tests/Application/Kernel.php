@@ -46,6 +46,8 @@ final class Kernel extends BaseKernel
 
     public const string SECURITY = 'test_public.security';
 
+    public const string POSITIONS = 'test_public.positions';
+
     public function getProjectDir(): string
     {
         return __DIR__;
@@ -135,5 +137,9 @@ final class Kernel extends BaseKernel
         // The catalogue, made reachable for the specifications to ask what
         // was declared.
         $services->alias(self::CATALOGUE, 'identity.access.catalogue')->public();
+
+        // No screen writes a position yet, and a private service nothing
+        // references is removed when the container compiles.
+        $services->alias(self::POSITIONS, 'identity.positions')->public();
     }
 }
