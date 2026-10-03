@@ -16,11 +16,14 @@ namespace Vivutio\Core\Tests\Core;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Routing\RouterInterface;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
+use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Contracts\Access\Grant;
 use Vivutio\Core\Tests\Application\Kernel;
 use Vivutio\Core\Tests\Core\Authority\CoreProbes;
@@ -45,13 +48,26 @@ final class AuthorityTableTest extends MigrationsTestCase
 
     private const string RECORD = 'VIVUTIO_RECORD_AUTHORITY_TABLE';
 
+    /** An address nobody else has, so seeing it anywhere is seeing a person's details. */
+    private const string CANARY = 'canary.c4f7e1@vivutio-camps.example';
+
     private KernelBrowser $browser;
 
     private int $people = 0;
 
+    /**
+     * Without debug, as an installation runs: a refused request answers with
+     * what production serves, never the debug page, which prints source code
+     * and would fail every canary on the source rather than the product.
+     */
     protected function start(): void
     {
-        $this->browser = static::createClient();
+        $this->browser = static::createClient(['debug' => false]);
+    }
+
+    public static function setUpBeforeClass(): void
+    {
+        (new Filesystem())->remove(\dirname(__DIR__).'/Application/var/cache/test_without_debug');
     }
 
     protected function setUp(): void
@@ -85,6 +101,74 @@ final class AuthorityTableTest extends MigrationsTestCase
             $table,
             'Who may open what has changed. If the change is intended, record the table with '.self::RECORD.'=1 and review its diff; if not, a loophole has opened.',
         );
+    }
+
+    /**
+     * Canaries: marker values in what only some may see. A Super Admin is
+     * seeded with an address nobody else has; every route is called as every
+     * kind of person, and the marker must not reach anybody who may not read
+     * personal details, nor the words "Super Admin" anybody who may not see
+     * tiers. A page that opens correctly and shows too much fails here.
+     */
+    public function testNoRouteShowsACanaryToSomebodyWhoMayNotSeeIt(): void
+    {
+        $this->account(TierEnum::SuperAdmin, null, self::CANARY)->setFirstName('Aaron')->setLastName('Canary');
+        $this->entityManager()->flush();
+        $gates = $this->gates();
+        $leaks = [];
+
+        foreach (CoreProbes::all() as $probe) {
+            foreach (Person::cases() as $person) {
+                [$account, $content] = $this->call($probe, $person, $gates[$probe->route] ?? []);
+
+                if (str_contains($content, self::CANARY) && !$this->may($account, 'personal_details.read')) {
+                    $leaks[] = \sprintf('%s %s shows a person\'s address to %s', $probe->method, $probe->path, $person->value);
+                }
+                if (str_contains($content, 'Super Admin') && !$this->may($account, AccountVoter::SEE_TIERS)) {
+                    $leaks[] = \sprintf('%s %s shows a Super Admin\'s tier to %s', $probe->method, $probe->path, $person->value);
+                }
+            }
+        }
+
+        self::assertSame([], $leaks, implode("\n", $leaks));
+    }
+
+    private function may(?User $account, string $attribute): bool
+    {
+        if (null === $account) {
+            return false;
+        }
+
+        $security = static::getContainer()->get(Kernel::SECURITY);
+        self::assertInstanceOf(Security::class, $security);
+
+        return $security->isGrantedForUser($account, $attribute);
+    }
+
+    /**
+     * Sends a probe as a kind of person.
+     *
+     * @param list<string> $checked the attributes the route checks
+     *
+     * @return array{?User, string} the account it was sent as, and what came back
+     */
+    private function call(Probe $probe, Person $person, array $checked): array
+    {
+        $this->browser->restart();
+
+        $account = $this->person($person, $checked);
+        if (null !== $account) {
+            $this->browser->loginUser($account);
+        }
+
+        if (Person::DeactivatedWhileSignedIn === $person) {
+            $this->connection()->executeStatement('UPDATE identity_user SET active = false WHERE id = ?', [$account?->getId()]);
+            $account?->setActive(false);
+        }
+
+        $this->browser->request($probe->method, $probe->path, $probe->body);
+
+        return [$account, (string) $this->browser->getInternalResponse()->getContent()];
     }
 
     private function table(): string
@@ -186,12 +270,12 @@ final class AuthorityTableTest extends MigrationsTestCase
         return $position;
     }
 
-    private function account(TierEnum $tier, ?Position $position = null): User
+    private function account(TierEnum $tier, ?Position $position = null, ?string $email = null): User
     {
         ++$this->people;
 
         $user = (new User())
-            ->setEmail('person'.$this->people.'@vivutio-camps.example')
+            ->setEmail($email ?? 'person'.$this->people.'@vivutio-camps.example')
             ->setFirstName('Person')
             ->setLastName((string) $this->people)
             ->setTier($tier)

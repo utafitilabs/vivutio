@@ -65,6 +65,16 @@ final class Kernel extends BaseKernel
     }
 
     /**
+     * A kernel without debug never rebuilds its cache when a file changes, so
+     * it keeps a folder of its own, which the specifications that run it
+     * empty first: they judge the code as it is, never as it was compiled.
+     */
+    public function getCacheDir(): string
+    {
+        return $this->getProjectDir().'/var/cache/'.$this->environment.($this->debug ? '' : '_without_debug');
+    }
+
+    /**
      * The core's own routes, mounted as an installation's recipe mounts them,
      * and this application's front page.
      */

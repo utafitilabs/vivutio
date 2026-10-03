@@ -58,6 +58,7 @@
         "symfony/browser-kit": "^8.0",
         "symfony/css-selector": "^8.0",
         "symfony/dom-crawler": "^8.0",
+        "symfony/filesystem": "^8.0",
         "symfony/framework-bundle": "^8.0"
     },
     "autoload": {

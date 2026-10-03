@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Vivutio\Core\Tests\Core\Authority;
 
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
+use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 
 /**
  * A probe for every route of the core, and of this application.
@@ -29,6 +30,8 @@ final class CoreProbes
             new Probe(SecurityController::SIGN_IN, 'GET', '/login'),
             new Probe(SecurityController::SIGN_OUT, 'GET', '/logout'),
             new Probe('test_landing', 'GET', '/'),
+            new Probe(TeamController::TEAM, 'GET', '/team'),
+            new Probe(TeamController::EXPORT, 'GET', '/team/export'),
         ];
     }
 }

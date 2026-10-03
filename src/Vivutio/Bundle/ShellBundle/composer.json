@@ -19,7 +19,9 @@
     "require": {
         "php": ">=8.4",
         "symfony/asset": "^8.0",
+        "symfony/dependency-injection": "^8.0",
         "symfony/http-kernel": "^8.0",
+        "symfony/security-core": "^8.0",
         "symfony/twig-bundle": "^8.0",
         "twig/twig": "^3.21"
     },

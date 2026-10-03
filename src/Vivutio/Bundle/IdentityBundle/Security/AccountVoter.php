@@ -17,6 +17,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
+use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Model\TierChange;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 
@@ -29,7 +30,7 @@ use Vivutio\Bundle\IdentityBundle\Service\UserService;
  * which no position can grant or take away; a position decides only whether
  * Staff reach a page at all, and is asked separately.
  *
- * The rules themselves are the tier's ({@see \Vivutio\Bundle\IdentityBundle\Enum\TierEnum}),
+ * The rules themselves are the tier's ({@see TierEnum}),
  * and the last-Super-Admin rule is the account service's, so this voter only
  * puts them where Symfony asks.
  *
@@ -52,7 +53,14 @@ final class AccountVoter extends Voter
     /** Sign in as the account, to see what its holder sees. Subject: the account. */
     public const string SIGN_IN_AS = 'identity.sign_in_as';
 
-    private const array ATTRIBUTES = [self::ACT_ON, self::CHANGE_TIER, self::DEACTIVATE, self::SIGN_IN_AS];
+    /**
+     * See tiers in a list: the column, the chips and their counts. A Super
+     * Admin's alone, since a list shown to an Admin would leave the Super
+     * Admins' cells blank and make them the people in no filter. No subject.
+     */
+    public const string SEE_TIERS = 'identity.see_tiers';
+
+    private const array ATTRIBUTES = [self::ACT_ON, self::CHANGE_TIER, self::DEACTIVATE, self::SIGN_IN_AS, self::SEE_TIERS];
 
     public function __construct(
         private readonly UserService $accounts,
@@ -88,6 +96,7 @@ final class AccountVoter extends Voter
             self::CHANGE_TIER => $this->mayChangeTier($actor, $subject, $vote),
             self::DEACTIVATE => $this->mayDeactivate($actor, $subject, $vote),
             self::SIGN_IN_AS => $this->maySignInAs($actor, $subject, $vote),
+            self::SEE_TIERS => $this->maySeeTiers($actor, $vote),
             default => false,
         };
     }
@@ -144,6 +153,17 @@ final class AccountVoter extends Voter
 
         if ($this->accounts->isLastActiveSuperAdmin($subject)) {
             $vote?->addReason(\sprintf('%s is the only active Super Admin, so the account cannot be deactivated. Make somebody else a Super Admin first.', $subject->getFullName()));
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function maySeeTiers(User $actor, ?Vote $vote): bool
+    {
+        if (TierEnum::SuperAdmin !== $actor->getTier()) {
+            $vote?->addReason('Tiers in a list are shown to Super Admins only, so that no list marks out the Super Admins.');
 
             return false;
         }

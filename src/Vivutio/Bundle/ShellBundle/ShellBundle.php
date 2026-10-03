@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Vivutio\Bundle\ShellBundle;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 /**
@@ -34,5 +36,15 @@ final class ShellBundle extends AbstractBundle
     public function getPath(): string
     {
         return __DIR__;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @see https://symfony.com/doc/current/bundles/extension.html — loadExtension() in a bundle extending AbstractBundle
+     */
+    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        $container->import('config/services.php');
     }
 }

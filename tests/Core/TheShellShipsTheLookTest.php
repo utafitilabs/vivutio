@@ -71,7 +71,7 @@ final class TheShellShipsTheLookTest extends TestCase
      */
     private static function templates(): array
     {
-        $templates = glob(__DIR__.'/../../src/Vivutio/Bundle/*/templates/*.html.twig') ?: [];
+        $templates = glob(__DIR__.'/../../src/Vivutio/Bundle/*/templates/{,*/}*.html.twig', \GLOB_BRACE) ?: [];
         self::assertNotSame([], $templates);
 
         return $templates;

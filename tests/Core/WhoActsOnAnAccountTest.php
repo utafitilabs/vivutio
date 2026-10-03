@@ -182,6 +182,25 @@ final class WhoActsOnAnAccountTest extends MigrationsTestCase
     }
 
     /**
+     * Tiers in a list are a Super Admin's alone: shown to an Admin, the blank
+     * cells and the chips would make a list of the Super Admins.
+     *
+     * @return iterable<string, array{TierEnum, bool}>
+     */
+    public static function seeingTiersInAList(): iterable
+    {
+        yield 'Super Admin' => [TierEnum::SuperAdmin, true];
+        yield 'Admin' => [TierEnum::Admin, false];
+        yield 'Staff' => [TierEnum::Staff, false];
+    }
+
+    #[DataProvider('seeingTiersInAList')]
+    public function testOnlyASuperAdminSeesTiersInAList(TierEnum $viewer, bool $allowed): void
+    {
+        $this->assertDecision($allowed, $this->person('viewer', $viewer), AccountVoter::SEE_TIERS, null);
+    }
+
+    /**
      * A subject the voter cannot read is refused, not waved through: the
      * attribute is the voter's, so nobody else answers it either.
      */

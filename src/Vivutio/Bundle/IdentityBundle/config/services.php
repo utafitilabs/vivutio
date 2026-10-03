@@ -15,14 +15,17 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
+use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
+use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\PositionService;
+use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
@@ -65,6 +68,13 @@ return static function (ContainerConfigurator $container): void {
             tagged_iterator(ScopeSourceInterface::TAG),
         ]);
     $services->alias(ConcernCatalogue::class, 'identity.access.catalogue');
+
+    /*
+     * What a position may grant about people. Declared like any package's,
+     * through the tag the catalogue collects.
+     */
+    $services->set('identity.access.concerns', IdentityConcerns::class)
+        ->tag(ConcernSourceInterface::TAG);
 
     /*
      * Every way an account comes into being or changes. The hasher is the
@@ -153,6 +163,22 @@ return static function (ContainerConfigurator $container): void {
         ])
         ->public();
     $services->alias(SecurityController::class, 'identity.controller.security')->public();
+
+    /*
+     * The team list and its export.
+     */
+    $services->set('identity.team_directory', TeamDirectoryService::class)
+        ->args([service(UserRepository::class)]);
+    $services->alias(TeamDirectoryService::class, 'identity.team_directory');
+
+    $services->set('identity.controller.team', TeamController::class)
+        ->args([
+            service('twig'),
+            service('identity.team_directory'),
+            service('security.authorization_checker'),
+        ])
+        ->public();
+    $services->alias(TeamController::class, 'identity.controller.team')->public();
 
     /*
      * A repository keeps its class name as its id, the one place the bundle's

@@ -112,7 +112,7 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
     {
         $wrong = [];
 
-        foreach ($this->gates() as $route => $attributes) {
+        foreach (['a door in a template' => self::doors(), ...$this->gates()] as $route => $attributes) {
             foreach ($attributes as $attribute) {
                 $claimants = $this->claimants($attribute);
                 if (1 !== \count($claimants)) {
@@ -137,6 +137,7 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
             AccountVoter::CHANGE_TIER,
             AccountVoter::DEACTIVATE,
             AccountVoter::SIGN_IN_AS,
+            AccountVoter::SEE_TIERS,
         ];
 
         $wrong = [];
@@ -158,13 +159,14 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
     }
 
     /**
-     * A pair a real package declares is one some route checks. The test
-     * application's stand-in packages declare pairs no route checks, which is
-     * why only declarations shipped under src/ are held to it.
+     * A pair a real package declares is one some route checks or some control
+     * is drawn by. The test application's stand-in packages declare pairs
+     * nothing checks, which is why only declarations shipped under src/ are
+     * held to it.
      */
-    public function testEveryPairARealPackageDeclaresIsCheckedBySomeRoute(): void
+    public function testEveryPairARealPackageDeclaresIsCheckedBySomeRouteOrControl(): void
     {
-        $checked = [];
+        $checked = [...self::doors()];
         foreach ($this->gates() as $attributes) {
             $checked = [...$checked, ...$attributes];
         }
@@ -181,7 +183,7 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
             }
         }
 
-        self::assertSame([], $unchecked, "These declared pairs are checked by no route, so ticking them changes nothing:\n".implode("\n", $unchecked));
+        self::assertSame([], $unchecked, "These declared pairs are checked by no route and draw no control, so ticking them changes nothing:\n".implode("\n", $unchecked));
     }
 
     /**
@@ -193,6 +195,23 @@ final class EveryRouteNamesItsAttributeTest extends KernelTestCase
         self::assertInstanceOf(RouterInterface::class, $router);
 
         return RouteGates::of($router);
+    }
+
+    /**
+     * Every attribute a shipped template draws a control by, through the one
+     * helper that does it.
+     *
+     * @return list<string>
+     */
+    private static function doors(): array
+    {
+        $doors = [];
+        foreach (glob(\dirname(__DIR__, 2).'/src/Vivutio/Bundle/*/templates/{,*/}*.html.twig', \GLOB_BRACE) ?: [] as $template) {
+            preg_match_all("/door\\(\\s*'([^']+)'/", (string) file_get_contents($template), $matches);
+            $doors = [...$doors, ...$matches[1]];
+        }
+
+        return $doors;
     }
 
     /**
