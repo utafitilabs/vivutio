@@ -18,6 +18,7 @@ use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
+use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
@@ -70,8 +71,21 @@ return static function (ContainerConfigurator $container): void {
         ->args([
             service('doctrine.orm.entity_manager'),
             service('security.user_password_hasher'),
+            service(UserRepository::class),
         ]);
     $services->alias(UserService::class, 'identity.accounts');
+
+    /*
+     * The rules between tiers, where Symfony's access decision manager asks
+     * them. The tag is written by hand: the security bundle collects every
+     * voter by it, and a reusable bundle is not autoconfigured.
+     *
+     * @see https://symfony.com/doc/current/security/voters.html
+     * @see vendor/symfony/security-bundle/DependencyInjection/Compiler/AddSecurityVotersPass.php — findAndSortTaggedServices('security.voter')
+     */
+    $services->set('identity.voter.account', AccountVoter::class)
+        ->args([service('identity.accounts')])
+        ->tag('security.voter');
 
     /*
      * The one command the bundle contributes: the account an installation is

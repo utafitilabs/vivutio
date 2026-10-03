@@ -43,6 +43,8 @@ final class Kernel extends BaseKernel
 
     public const string CATALOGUE = 'test.identity.access.catalogue';
 
+    public const string SECURITY = 'test_public.security';
+
     public function getProjectDir(): string
     {
         return __DIR__;
@@ -107,6 +109,13 @@ final class Kernel extends BaseKernel
         // The framework's own hasher, made reachable: a specification proving
         // a stored password verifies uses the service a firewall does.
         $services->alias('test_public.hasher', 'security.user_password_hasher')->public();
+
+        // The framework's own front to the access decision manager, made
+        // reachable: a specification asks a question about a person exactly
+        // as a page or a command would, and reads the reason it was refused.
+        //
+        // @see vendor/symfony/security-bundle/Security.php — getAccessDecisionForUser()
+        $services->alias(self::SECURITY, 'security.helper')->public();
 
         // An installation provides a logger that writes to its own files. This
         // application has none to write to, and without one Symfony's default

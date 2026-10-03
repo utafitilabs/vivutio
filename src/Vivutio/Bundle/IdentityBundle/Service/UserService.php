@@ -19,7 +19,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\EmailAlreadyUsedException;
+use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Exception\PasswordTooShortException;
+use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 
 /**
  * Every way an account comes into being or changes.
@@ -34,6 +36,7 @@ final readonly class UserService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $hasher,
+        private UserRepository $users,
     ) {
     }
 
@@ -72,5 +75,79 @@ final readonly class UserService
         }
 
         return $user;
+    }
+
+    /**
+     * Whether this account is the only active Super Admin, so that a screen
+     * can give the reason in place of a control instead of after it is used.
+     */
+    public function isLastActiveSuperAdmin(User $account): bool
+    {
+        return TierEnum::SuperAdmin === $account->getTier()
+            && $account->isActive()
+            && 1 >= $this->users->countActiveSuperAdmins();
+    }
+
+    /**
+     * Who may change whose tier is the voter's question; this is the one
+     * change the data itself refuses, whoever asks.
+     *
+     * @throws LastSuperAdminException when it would leave no active Super Admin
+     */
+    public function changeTier(User $account, TierEnum $tier): void
+    {
+        $this->entityManager->getConnection()->transactional(function () use ($account, $tier): void {
+            if (TierEnum::SuperAdmin !== $tier && $this->wouldLeaveNoSuperAdmin($account)) {
+                throw LastSuperAdminException::cannotDemote($account->getFullName());
+            }
+
+            $account->setTier($tier);
+            $this->entityManager->flush();
+        });
+    }
+
+    /**
+     * An account is deactivated, never removed, so that everything its holder
+     * recorded keeps its author.
+     *
+     * @throws LastSuperAdminException when it would leave no active Super Admin
+     */
+    public function deactivate(User $account): void
+    {
+        $this->entityManager->getConnection()->transactional(function () use ($account): void {
+            if ($this->wouldLeaveNoSuperAdmin($account)) {
+                throw LastSuperAdminException::cannotDeactivate($account->getFullName());
+            }
+
+            $account->setActive(false);
+            $this->entityManager->flush();
+        });
+    }
+
+    /**
+     * Asked inside the transaction that makes the change, with the active
+     * Super Admins locked, so that two of them leaving at once cannot each
+     * count on the other.
+     *
+     * The connection's own transaction, not the entity manager's: a refusal
+     * thrown inside the entity manager's closes it, and the request that was
+     * refused could then write nothing more.
+     *
+     * @see vendor/doctrine/orm/src/EntityManager.php — wrapInTransaction() closes the manager on failure
+     * @see vendor/doctrine/dbal/src/Connection.php — transactional() rolls back and leaves it open
+     */
+    private function wouldLeaveNoSuperAdmin(User $account): bool
+    {
+        if (TierEnum::SuperAdmin !== $account->getTier() || !$account->isActive()) {
+            return false;
+        }
+
+        foreach ($this->users->findActiveSuperAdminsForUpdate() as $superAdmin) {
+            if ($superAdmin->getId() !== $account->getId()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
