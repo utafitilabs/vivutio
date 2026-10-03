@@ -206,9 +206,45 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     {
         return $user instanceof self
             && $user->getEmail() === $this->email
-            && $user->getPassword() === $this->password
+            && $this->hasPasswordOf($user)
             && $user->getTier() === $this->tier
             && $user->isActive() === $this->active;
+    }
+
+    /**
+     * What a session keeps of the account: everything but the password hash,
+     * which is replaced by its checksum. A session store is a file or a cache
+     * an installation may guard less closely than its database, and a checksum
+     * cannot be cracked back into a password. A password changed since still
+     * ends the session, because the checksum of the new hash differs.
+     *
+     * @return array<string, mixed>
+     *
+     * @see https://symfony.com/doc/current/security.html#understanding-how-users-are-refreshed-from-the-session
+     * @see vendor/symfony/security-core/User/PasswordAuthenticatedUserInterface.php — the crc32c checksum, "the only algorithm supported"
+     */
+    public function __serialize(): array
+    {
+        $data = (array) $this;
+        $data["\0".self::class."\0password"] = hash('crc32c', (string) $this->password);
+
+        return $data;
+    }
+
+    /**
+     * Whether the other account has this one's password: the same hash, or,
+     * when this one was read back from a session, the hash its checksum was
+     * taken of. The same test the framework makes when it compares accounts
+     * itself.
+     *
+     * @see vendor/symfony/security-http/Firewall/ContextListener.php — hasUserChanged()
+     */
+    private function hasPasswordOf(self $other): bool
+    {
+        $theirs = (string) $other->getPassword();
+
+        return $theirs === $this->password
+            || (8 === \strlen((string) $this->password) && hash('crc32c', $theirs) === $this->password);
     }
 
     public function __toString(): string

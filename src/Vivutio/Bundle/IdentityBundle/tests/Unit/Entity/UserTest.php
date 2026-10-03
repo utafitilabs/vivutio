@@ -103,6 +103,37 @@ final class UserTest extends TestCase
         self::assertTrue(self::neema()->isEqualTo(self::neema()));
     }
 
+    /**
+     * A session store is a file or a cache an installation may not guard as
+     * closely as its database. It holds a checksum of the password hash, which
+     * cannot be cracked back into a password, and never the hash itself.
+     */
+    public function testTheSessionHoldsAChecksumOfThePasswordAndNeverItsHash(): void
+    {
+        $hash = '$2y$13$an.example.bcrypt.hash.of.a.long.passphrase.......';
+        $stored = serialize(self::neema()->setPassword($hash));
+
+        self::assertStringNotContainsString($hash, $stored);
+        self::assertStringContainsString(hash('crc32c', $hash), $stored);
+    }
+
+    public function testAnAccountReadBackFromTheSessionIsStillTheSameAccount(): void
+    {
+        $inTheDatabase = self::neema();
+        $inTheSession = unserialize(serialize(self::neema()));
+        self::assertInstanceOf(User::class, $inTheSession);
+
+        self::assertTrue($inTheSession->isEqualTo($inTheDatabase));
+    }
+
+    public function testAPasswordChangedSinceTheSessionBeganMakesItAnotherAccount(): void
+    {
+        $inTheSession = unserialize(serialize(self::neema()));
+        self::assertInstanceOf(User::class, $inTheSession);
+
+        self::assertFalse($inTheSession->isEqualTo(self::neema()->setPassword('another hash')));
+    }
+
     private static function neema(): User
     {
         return (new User())
