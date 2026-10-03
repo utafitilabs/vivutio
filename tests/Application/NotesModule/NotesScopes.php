@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Vivutio\Core\Tests\Application\Fixtures;
+namespace Vivutio\Core\Tests\Application\NotesModule;
 
 use Vivutio\Contracts\Access\Scope;
 use Vivutio\Contracts\Access\ScopeSourceInterface;

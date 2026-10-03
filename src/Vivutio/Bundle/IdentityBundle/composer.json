@@ -46,7 +46,8 @@
             "Vivutio\\Bundle\\IdentityBundle\\Migrations\\": "migrations/"
         },
         "exclude-from-classmap": [
-            "/tests/"
+            "/tests/",
+            "/Test/*"
         ]
     },
     "autoload-dev": {
@@ -55,5 +56,9 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "suggest": {
+        "phpunit/phpunit": "To run the authority test base (Test/AuthorityTestCase) in a module's suite.",
+        "symfony/browser-kit": "Sends the authority test base's probes."
+    }
 }

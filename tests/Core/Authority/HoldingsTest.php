@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Vivutio\Core\Tests\Core\Authority;
 
 use PHPUnit\Framework\TestCase;
+use Vivutio\Bundle\IdentityBundle\Test\Holdings;
 
 /**
  * The comparison the escalation check makes, on holdings written by hand, so

@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Vivutio\Core\Tests\Core\Authority;
+namespace Vivutio\Bundle\IdentityBundle\Test;
 
 /**
  * How to call one route: what the authority table needs to send it as anybody.

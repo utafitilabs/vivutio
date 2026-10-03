@@ -17,8 +17,8 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Contracts\Access\Grant;
 use Vivutio\Contracts\Access\Verb;
-use Vivutio\Core\Tests\Application\Fixtures\NotesScopes;
 use Vivutio\Core\Tests\Application\Kernel;
+use Vivutio\Core\Tests\Application\NotesModule\NotesScopes;
 
 /**
  * A package puts its concerns and its scopes in an installation's catalogue by

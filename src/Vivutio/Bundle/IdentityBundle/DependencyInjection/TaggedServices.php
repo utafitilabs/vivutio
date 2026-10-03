@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Vivutio\Core\Tests\Application\Fixtures;
+namespace Vivutio\Bundle\IdentityBundle\DependencyInjection;
 
 /**
  * Every service carrying one tag, collected so a specification can walk them:

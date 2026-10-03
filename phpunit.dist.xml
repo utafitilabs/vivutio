@@ -30,6 +30,10 @@
             <directory>tests/Core</directory>
         </testsuite>
         <!-- One suite per package: a suite is a package, exactly as after a split. -->
+        <testsuite name="A stand-in module">
+            <directory>tests/Application/NotesModule</directory>
+        </testsuite>
+
         <testsuite name="Contracts">
             <directory>src/Vivutio/Contracts/tests</directory>
         </testsuite>

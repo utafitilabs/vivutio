@@ -16,6 +16,7 @@ namespace Vivutio\Bundle\IdentityBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Vivutio\Bundle\IdentityBundle\DependencyInjection\TestServicesPass;
 
 /**
  * The home of the organization an installation serves and of the people in
@@ -37,6 +38,19 @@ final class IdentityBundle extends AbstractBundle
     public function getPath(): string
     {
         return __DIR__;
+    }
+
+    /**
+     * The pass that, in a test container only, lets the authority test base
+     * reach every voter and every declaration.
+     *
+     * @see https://symfony.com/doc/current/service_container/compiler_passes.html — "Working with Compiler Passes in Bundles": registered in the bundle class's build()
+     */
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new TestServicesPass());
     }
 
     /**

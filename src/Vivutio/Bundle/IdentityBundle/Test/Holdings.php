@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Vivutio\Core\Tests\Core\Authority;
+namespace Vivutio\Bundle\IdentityBundle\Test;
 
 /**
  * What everybody holds at one moment: each account's tier, whether it can

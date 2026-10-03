@@ -16,6 +16,7 @@ namespace Vivutio\Core\Tests\Core\Authority;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
+use Vivutio\Bundle\IdentityBundle\Test\Probe;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 
 /**
