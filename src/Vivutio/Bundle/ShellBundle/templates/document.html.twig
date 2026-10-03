@@ -1,12 +1,17 @@
-{# The bottom rung every page stands on: the document, and nothing a stranger
-   should not see. A page for somebody signed in adds the frame on top of it;
-   a page for a stranger, such as sign-in, uses this alone. #}
+{# The bottom rung every page stands on: the document and the look, and
+   nothing a stranger should not see. A page for somebody signed in adds the
+   frame on top of it; a page for a stranger, such as sign-in, uses this alone.
+
+   Light until the person has chosen dark: the script reads the stored choice
+   in the head, before anything is drawn, so the page never flashes. #}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}{% endblock %} · vivutio</title>
+    <link rel="stylesheet" href="{{ asset('bundles/shell/vivutio.css') }}">
+    <script src="{{ asset('bundles/shell/vivutio.js') }}"></script>
     {% block stylesheets %}{% endblock %}
 </head>
 <body>

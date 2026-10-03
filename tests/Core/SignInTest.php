@@ -53,6 +53,40 @@ final class SignInTest extends MigrationsTestCase
         self::assertCount(1, $page->filter('form input[name="_remember_me"][type="checkbox"]'));
     }
 
+    /**
+     * The card as designed in vivutio-designs/auth/sign-in.html: one card on
+     * the ground with no bar and no menu, vivutio's mark and no organization,
+     * the two fields, the box to tick and the full-width button.
+     */
+    public function testTheCardIsTheDesignedOne(): void
+    {
+        $page = $this->browser->request('GET', '/login');
+
+        self::assertCount(1, $page->filter('link[rel="stylesheet"][href="/bundles/shell/vivutio.css"]'));
+        self::assertCount(1, $page->filter('script[src="/bundles/shell/vivutio.js"]'));
+        self::assertCount(1, $page->filter('main.single > section.panel.single-card > form[method="post"]'));
+        self::assertCount(0, $page->filter('.bar, .menu'), 'a stranger sees no bar and no menu');
+        self::assertSame('vivutio', trim($page->filter('.single-brand')->text()));
+        self::assertCount(1, $page->filter('.single-brand svg'));
+        self::assertCount(2, $page->filter('.field > label + input.input'));
+        self::assertSame('Remember me for a week', trim($page->filter('label.check')->text()));
+        self::assertSame('Sign in', trim($page->filter('button.button.main.wide[type="submit"]')->text()));
+        self::assertCount(0, $page->filter('[role="alert"]'), 'no refusal before anybody has tried');
+    }
+
+    public function testEachRefusalCarriesItsOwnIcon(): void
+    {
+        $this->person('gone@vivutio-camps.example', active: false);
+
+        $this->signIn('nobody@vivutio-camps.example', self::PASSWORD);
+        $page = $this->browser->followRedirect();
+        self::assertCount(1, $page->filter('.notice.danger[role="alert"] svg.icon-circle-alert'));
+
+        $this->signIn('gone@vivutio-camps.example', self::PASSWORD);
+        $page = $this->browser->followRedirect();
+        self::assertCount(1, $page->filter('.notice.danger[role="alert"] svg.icon-user-x'));
+    }
+
     public function testAnyOtherPageSendsAStrangerToSignIn(): void
     {
         $this->browser->request('GET', '/');

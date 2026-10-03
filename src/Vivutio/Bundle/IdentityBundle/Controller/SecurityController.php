@@ -17,6 +17,9 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Exception\AccountStatusException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Twig\Environment;
@@ -61,10 +64,27 @@ final readonly class SecurityController
             return new RedirectResponse($this->afterSignInPath);
         }
 
+        $error = $this->authenticationUtils->getLastAuthenticationError();
+
         return new Response($this->twig->render('@Identity/login.html.twig', [
             'last_username' => $this->authenticationUtils->getLastUsername(),
-            'error' => $this->authenticationUtils->getLastAuthenticationError(),
+            'error' => $error,
+            'refusal' => self::refusal($error),
         ]));
+    }
+
+    /**
+     * Which kind of refusal it was, for the icon the card draws beside it:
+     * read from the exception's type, never from its text.
+     */
+    private static function refusal(?AuthenticationException $error): ?string
+    {
+        return match (true) {
+            null === $error => null,
+            $error instanceof AccountStatusException => 'deactivated',
+            $error instanceof TooManyLoginAttemptsAuthenticationException => 'throttled',
+            default => 'credentials',
+        };
     }
 
     /**

@@ -1,28 +1,46 @@
-{# The document alone, with no menu and no top bar: there is nobody to act as
-   yet, and a menu drawn for a stranger tells them what the installation holds. #}
+{# The sign-in card, as designed in vivutio-designs/auth/sign-in.html: one
+   card on the ground, the document alone with no bar and no menu, since there
+   is nobody to act as yet and a menu drawn for a stranger tells them what the
+   installation holds. vivutio's mark and no organization: the card is the
+   same for every installation. #}
 {% extends '@Shell/document.html.twig' %}
 
 {% block title %}Sign in{% endblock %}
 
 {% block body %}
-    <main>
+<main class="single">
+    <section class="panel single-card">
         <form method="post" action="{{ path('identity_login') }}">
+            <div class="single-brand">{% include '@Shell/_mark.html.twig' with {size: 38} only %}<span>vivutio</span></div>
+
             {% if error %}
-                {# The framework's own message, never its exception text, which
-                   can carry what a stranger should not read. A wrong password
-                   and an unknown address read the same. #}
-                <div role="alert">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {# The framework's own message, never its exception text,
+                   which can carry what a stranger should not read. A wrong
+                   password and an unknown address read the same. #}
+                <div class="notice danger" role="alert">
+                    {%- if 'deactivated' == refusal -%}
+                        <svg class="icon-user-x" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/></svg>
+                    {%- elseif 'throttled' == refusal -%}
+                        <svg class="icon-hourglass" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+                    {%- else -%}
+                        <svg class="icon-circle-alert" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                    {%- endif -%}
+                    <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+                </div>
             {% endif %}
 
             {# The names are the firewall's form_login defaults: rename one
                here and the form signs nobody in. #}
-            <label for="username">Email</label>
-            <input type="email" id="username" name="_username" value="{{ last_username }}"
-                   autocomplete="email" required autofocus>
-
-            <label for="password">Password</label>
-            <input type="password" id="password" name="_password"
-                   autocomplete="current-password" required>
+            <div class="field">
+                <label for="username">Email</label>
+                <input class="input" type="email" id="username" name="_username" value="{{ last_username }}"
+                       autocomplete="email" placeholder="you@example.test" required autofocus>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input class="input" type="password" id="password" name="_password"
+                       autocomplete="current-password" required>
+            </div>
 
             {# Required by the firewall's enable_csrf; "authenticate" is the
                token id form_login checks. #}
@@ -31,11 +49,10 @@
             {# Does nothing unless the installation's firewall has a
                remember_me key: a box that is ignored, rather than a bundle
                configuring a firewall it does not own. #}
-            <label>
-                <input type="checkbox" name="_remember_me"> Remember me for a week
-            </label>
+            <label class="check"><input type="checkbox" name="_remember_me">Remember me for a week</label>
 
-            <button type="submit">Sign in</button>
+            <button type="submit" class="button main wide">Sign in</button>
         </form>
-    </main>
+    </section>
+</main>
 {% endblock %}
