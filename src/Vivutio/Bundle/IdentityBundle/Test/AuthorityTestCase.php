@@ -25,6 +25,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+use Symfony\Component\Uid\Uuid;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\DependencyInjection\TaggedServices;
 use Vivutio\Bundle\IdentityBundle\DependencyInjection\TestServicesPass;
@@ -66,6 +67,13 @@ use Vivutio\Contracts\Access\Verb;
 abstract class AuthorityTestCase extends WebTestCase
 {
     public const string RECORD = 'VIVUTIO_RECORD_AUTHORITY_TABLE';
+
+    /**
+     * The canary: a Super Admin seeded before every test, at an address
+     * nobody else has and under a fixed identifier, so a probe can open their
+     * record and the canaries are checked on it.
+     */
+    public const string CANARY_UUID = '0199a6f0-c4f7-7e10-8000-00000000ca7a';
 
     /** An address nobody else has, so seeing it anywhere is seeing a person's details. */
     private const string CANARY = 'canary.c4f7e1@vivutio-camps.example';
@@ -123,6 +131,12 @@ abstract class AuthorityTestCase extends WebTestCase
         $this->connection()->executeStatement('DROP SCHEMA IF EXISTS public CASCADE');
         $this->connection()->executeStatement('CREATE SCHEMA public');
         $this->migrate();
+
+        $this->account(TierEnum::SuperAdmin, null, self::CANARY)
+            ->setFirstName('Aaron')
+            ->setLastName('Canary')
+            ->setUuid(Uuid::fromString(self::CANARY_UUID));
+        $this->entityManager()->flush();
     }
 
     protected function tearDown(): void
@@ -193,7 +207,7 @@ abstract class AuthorityTestCase extends WebTestCase
     public function testEveryDeclaredPairAndEveryTierRuleIsAnsweredByExactlyOneVoter(): void
     {
         $wrong = [];
-        foreach ([...$this->catalogue()->pairs(), AccountVoter::ACT_ON, AccountVoter::CHANGE_TIER, AccountVoter::DEACTIVATE, AccountVoter::SIGN_IN_AS, AccountVoter::SEE_TIERS] as $attribute) {
+        foreach ([...$this->catalogue()->pairs(), AccountVoter::ACT_ON, AccountVoter::CHANGE_TIER, AccountVoter::DEACTIVATE, AccountVoter::SIGN_IN_AS, AccountVoter::SEE_TIERS, AccountVoter::SEE_TIER] as $attribute) {
             $claimants = $this->claimants($attribute);
             if (1 !== \count($claimants)) {
                 $wrong[] = \sprintf('"%s" is answered by %s', $attribute, [] === $claimants ? 'no voter' : implode(', ', $claimants));
@@ -295,15 +309,14 @@ abstract class AuthorityTestCase extends WebTestCase
     }
 
     /**
-     * Canaries: a Super Admin is seeded with an address nobody else has, and
-     * the package seeds its own markers. Every probe is sent as every kind of
+     * Canaries: the canary Super Admin carries an address nobody else has,
+     * and the package seeds its own markers. Every probe is sent as every kind of
      * person, and no marker may reach somebody who may not see it, nor the
      * words "Super Admin" anybody who may not see tiers. A page that opens
      * correctly and shows too much fails here.
      */
     public function testNoRouteShowsACanaryToSomebodyWhoMayNotSeeIt(): void
     {
-        $this->account(TierEnum::SuperAdmin, null, self::CANARY)->setFirstName('Aaron')->setLastName('Canary');
         $markers = [self::CANARY => 'personal_details.read', ...$this->seedCanaries($this->entityManager()), 'Super Admin' => AccountVoter::SEE_TIERS];
         $this->entityManager()->flush();
 

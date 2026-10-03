@@ -74,6 +74,20 @@ Checks: `directory.read`
 | Admin | allowed: Team · vivutio |
 | Super Admin | allowed: Team · vivutio |
 
+## identity_team_member: GET /team/0199a6f0-c4f7-7e10-8000-00000000ca7a
+
+Checks: `directory.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Aaron Canary · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Aaron Canary · vivutio |
+| Super Admin | allowed: Aaron Canary · vivutio |
+
 ## identity_settings_organization: GET /settings/organization
 
 Checks: `settings.read`

@@ -60,7 +60,14 @@ final class AccountVoter extends Voter
      */
     public const string SEE_TIERS = 'identity.see_tiers';
 
-    private const array ATTRIBUTES = [self::ACT_ON, self::CHANGE_TIER, self::DEACTIVATE, self::SIGN_IN_AS, self::SEE_TIERS];
+    /**
+     * See one person's tier, on their record. A Super Admin sees every tier,
+     * an Admin sees Admins' and Staff's, and Staff see none. Subject: the
+     * account.
+     */
+    public const string SEE_TIER = 'identity.see_tier';
+
+    private const array ATTRIBUTES = [self::ACT_ON, self::CHANGE_TIER, self::DEACTIVATE, self::SIGN_IN_AS, self::SEE_TIERS, self::SEE_TIER];
 
     public function __construct(
         private readonly UserService $accounts,
@@ -97,6 +104,7 @@ final class AccountVoter extends Voter
             self::DEACTIVATE => $this->mayDeactivate($actor, $subject, $vote),
             self::SIGN_IN_AS => $this->maySignInAs($actor, $subject, $vote),
             self::SEE_TIERS => $this->maySeeTiers($actor, $vote),
+            self::SEE_TIER => $this->maySeeTierOf($actor, $subject, $vote),
             default => false,
         };
     }
@@ -169,6 +177,29 @@ final class AccountVoter extends Voter
         }
 
         return true;
+    }
+
+    private function maySeeTierOf(User $actor, mixed $subject, ?Vote $vote): bool
+    {
+        if (!$subject instanceof User) {
+            $vote?->addReason('The question is not about an account.');
+
+            return false;
+        }
+
+        $sees = match ($actor->getTier()) {
+            TierEnum::SuperAdmin => true,
+            TierEnum::Admin => TierEnum::SuperAdmin !== $subject->getTier(),
+            TierEnum::Staff => false,
+        };
+
+        if (!$sees) {
+            $vote?->addReason(TierEnum::Staff === $actor->getTier()
+                ? 'Staff see no tier: what a colleague may do is their position\'s business.'
+                : 'A Super Admin\'s tier is seen by Super Admins only.');
+        }
+
+        return $sees;
     }
 
     private function maySignInAs(User $actor, mixed $subject, ?Vote $vote): bool

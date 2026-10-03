@@ -9,7 +9,7 @@
 {% import '@Shell/_icons.html.twig' as icons %}
 
 {% block body %}
-{%- set person = app.user -%}
+{%- set signed_in = app.user -%}
 {%- set organization = organization() -%}
 <header class="bar">
     <a class="brand" href="{{ path('shell_dashboard') }}">{% include '@Shell/_mark.html.twig' with {size: 28} only %}<span>vivutio</span></a>
@@ -21,8 +21,8 @@
         <summary class="bar-me">
             {#- Under the name the tiers read their tier; Staff, who see no
                 tier anywhere, read their position. -#}
-            <span><b>{{ person.fullName }}</b><small>{{ person.tier.holdsEveryPermission ? person.tier.label : (person.position ? person.position.name : 'No position') }}</small></span>
-            <i>{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</i>
+            <span><b>{{ signed_in.fullName }}</b><small>{{ signed_in.tier.holdsEveryPermission ? signed_in.tier.label : (signed_in.position ? signed_in.position.name : 'No position') }}</small></span>
+            <i>{{ signed_in.firstName|first|upper }}{{ signed_in.lastName|first|upper }}</i>
         </summary>
         <div class="pick-menu"><a href="{{ path('identity_logout') }}">Sign out</a></div>
     </details>

@@ -1,0 +1,74 @@
+{# A person's record, as designed in vivutio-designs/team/member.html, ported
+   from uhifadhi's: the head with a line of facts, the band of figures, the
+   Position card and what it grants now, the account in the side column.
+
+   An address only with personal details. The tier, the band and the ledger
+   only where the single-record rule lets the tier be seen, since "everything,
+   by tier" names it, and on one's own record. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}{{ person.fullName }}{% endblock %}
+{% block here %}team{% endblock %}
+
+{% block page %}
+{%- set since = person.createdAt ? person.createdAt|date('j M Y') : null -%}
+<header class="page-head">
+    <span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span>
+    <div>
+        <nav class="trail" aria-label="Where you are"><a href="{{ path('identity_team') }}">Team</a> / {{ person.fullName }}</nav>
+        <div class="title">
+            <h1>{{ person.fullName }}</h1>
+            <span class="chip {{ person.active ? 'ok' : 'danger' }}" data-account>{{ person.active ? 'Active' : 'Deactivated' }}</span>
+            {% if sees_tier %}<span class="chip" data-tier>{{ person.tier.label }}</span>{% endif %}
+            <span class="about">{{ person.position ? person.position.name : 'No position' }}{% if since %} &middot; on the team since {{ since }}{% endif %}</span>
+        </div>
+    </div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_team') }}">{{ icons.icon('left', 15) }} Back to the team</a></div>
+</header>
+
+{% if show_grants and not person.tier.holdsEveryPermission %}
+<div class="band" data-band>
+    {% for verb, label in {read: 'Reads', record: 'Records', manage: 'Manages', export: 'Exports'} %}
+        {%- set held = grants|filter(g => g.verbs|filter(v => v.value == verb)|length > 0) -%}
+        {%- set sensitive = held|filter(g => g.sensitive) -%}
+        <span class="f"><span class="k">{{ label }}</span><span class="v">{{ held|length }}{% if sensitive|length > 0 %}<em>{{ sensitive|length }} sensitive &middot; {{ sensitive|map(g => g.label|lower)|join(', ') }}</em>{% endif %}</span></span>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="columns">
+    <div class="stack">
+        <section class="panel">
+            <header class="panel-head"><h2>Position</h2><p>What their seat is</p></header>
+            <div class="fact"><span>Assigned position</span><b data-position>{{ person.position ? person.position.name : 'No position' }}</b></div>
+        </section>
+        {% if show_grants %}
+        <section class="panel" data-grants>
+            <header class="panel-head"><h2>What that grants, right now</h2><p>As the permission checks answer it</p></header>
+            {% if person.tier.holdsEveryPermission %}
+                <p class="hint">Everything, by tier.</p>
+            {% else %}
+                {%- set declarer = null -%}
+                {% for held in grants %}
+                    {% if held.declaredBy != declarer %}{% set declarer = held.declaredBy %}<h3 class="label" style="margin:14px 0 4px">{{ declarer }}</h3>{% endif %}
+                    <div class="fact" data-concern><span><span data-label>{{ held.label }}</span>{% if held.sensitive %} <span class="chip warn" data-sensitive>sensitive</span>{% endif %}</span><b>{% for verb in held.verbs %}<span data-verb>{{ verb.label }}</span>{{ not loop.last ? ', ' }}{% endfor %}</b></div>
+                {% else %}
+                    <p class="hint">Nothing yet: their position grants nothing the checks allow.</p>
+                {% endfor %}
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+    <aside class="aside">
+        <div class="stack">
+            <section class="panel">
+                <header class="panel-head"><h2>Account</h2></header>
+                {% if door('personal_details.read') %}<div class="action"><div><span>Email</span><b data-email>{{ person.email }}</b></div></div>{% endif %}
+                {% if sees_tier %}<div class="action"><div><span>Tier</span><b>{{ person.tier.label }}</b></div></div>{% endif %}
+                <div class="action"><div><span>On the team since</span><b>{{ since ?? '—' }}</b></div></div>
+            </section>
+        </div>
+    </aside>
+</div>
+{% endblock %}

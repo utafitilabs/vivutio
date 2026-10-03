@@ -26,6 +26,7 @@ use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
+use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
 use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionService;
 use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
@@ -199,11 +200,21 @@ return static function (ContainerConfigurator $container): void {
         ->args([service(UserRepository::class)]);
     $services->alias(TeamDirectoryService::class, 'identity.team_directory');
 
+    /*
+     * What somebody may do right now, asked of the voters through the
+     * framework's own front to the access decision manager.
+     *
+     * @see vendor/symfony/security-bundle/Security.php — isGrantedForUser()
+     */
+    $services->set('identity.grants_now', GrantsNowService::class)
+        ->args([service('identity.access.catalogue'), service('security.helper')]);
+
     $services->set('identity.controller.team', TeamController::class)
         ->args([
             service('twig'),
             service('identity.team_directory'),
             service('security.authorization_checker'),
+            service('identity.grants_now'),
         ])
         ->public();
     $services->alias(TeamController::class, 'identity.controller.team')->public();
