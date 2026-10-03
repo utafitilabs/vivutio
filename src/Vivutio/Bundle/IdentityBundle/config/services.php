@@ -17,19 +17,24 @@ use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
+use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
+use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\OrganizationRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
+use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
 use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
+use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
 use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
+use Vivutio\Bundle\IdentityBundle\Service\PasswordRulesService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionMatrixService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionService;
 use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
@@ -250,6 +255,41 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(PositionController::class, 'identity.controller.positions')->public();
 
     /*
+     * Whether mail can be sent at all, read from the transport MAILER_DSN
+     * configures: a null one means a fresh installation nobody has set up.
+     *
+     * @see vendor/symfony/framework-bundle/Resources/config/mailer.php — mailer.default_transport
+     */
+    $services->set('identity.mail_availability', MailAvailability::class)
+        ->factory([MailAvailability::class, 'fromTransport'])
+        ->args([service('mailer.default_transport')]);
+
+    $services->set('identity.password_rules', PasswordRulesService::class);
+
+    $services->set('identity.account_links', AccountLinkService::class)
+        ->args([
+            service('doctrine.orm.entity_manager'),
+            service(AccountLinkRepository::class),
+            service(UserRepository::class),
+            service('mailer.mailer'),
+            service('router'),
+            service('security.user_password_hasher'),
+            service('identity.password_rules'),
+        ]);
+
+    $services->set('identity.controller.password', PasswordController::class)
+        ->args([
+            service('twig'),
+            service('identity.account_links'),
+            service('identity.mail_availability'),
+            service('security.csrf.token_manager'),
+            service('router'),
+            service('security.helper'),
+        ])
+        ->public();
+    $services->alias(PasswordController::class, 'identity.controller.password')->public();
+
+    /*
      * A repository keeps its class name as its id, the one place the bundle's
      * prefix cannot be used: the entity manager looks a repository up by class
      * name, and finds it among the services carrying this tag.
@@ -261,6 +301,9 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
     $services->set(PositionRepository::class)
+        ->args([service('doctrine')])
+        ->tag('doctrine.repository_service');
+    $services->set(AccountLinkRepository::class)
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
     $services->set(OrganizationRepository::class)

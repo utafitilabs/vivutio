@@ -1,0 +1,12 @@
+{# No mail transport, as uhifadhi's auth/forgot first-run state: said, rather
+   than a request swallowed and a visitor left waiting. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Forgotten password{% endblock %}
+
+{% block card %}
+<div class="notice warn" role="status">{{ icons.icon('alert') }}<span>This installation cannot send email yet.</span></div>
+<p class="single-lead">No mail transport is configured, so there is nothing to send a link with.</p>
+<p class="hint">Ask an administrator to set a new password from your record or, if you are the administrator, set MAILER_DSN and try again.</p>
+{% endblock %}

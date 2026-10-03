@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Core\Authority;
 
+use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
@@ -41,6 +42,12 @@ final class CoreProbes
         return [
             new Probe(SecurityController::SIGN_IN, 'GET', '/login'),
             new Probe(SecurityController::SIGN_OUT, 'GET', '/logout'),
+            new Probe(PasswordController::FORGOT, 'GET', '/login/forgot'),
+            // The canary's address: a stranger may ask, and nothing tells them it exists.
+            new Probe(PasswordController::FORGOT, 'POST', '/login/forgot', ['email' => 'canary.c4f7e1@vivutio-camps.example'], formAt: '/login/forgot'),
+            new Probe(PasswordController::LINK, 'GET', '/login/reset/'.str_repeat('0', 24).'/'.str_repeat('A', 43)),
+            new Probe(PasswordController::RESET, 'GET', '/login/reset'),
+            new Probe(PasswordController::RESET, 'POST', '/login/reset', ['password' => 'a stranger\'s password', 'repeat' => 'a stranger\'s password'], formAt: '/login/reset'),
             new Probe(DashboardController::HOME, 'GET', '/'),
             new Probe(DashboardController::MINE, 'GET', '/me'),
             new Probe(TeamController::TEAM, 'GET', '/team'),

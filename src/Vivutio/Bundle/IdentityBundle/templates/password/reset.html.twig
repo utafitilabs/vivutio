@@ -1,0 +1,21 @@
+{# Setting a new password, as uhifadhi's auth/reset: who it is for is read
+   from the token and shown as text, never a field. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Set a new password{% endblock %}
+
+{% block card %}
+{%- set account = link.account -%}
+{%- set wrong = wrong|default({}) -%}
+<form method="post" action="{{ path('identity_reset') }}">
+    <p class="single-lead">Set a new password.</p>
+    <div class="action"><div><b>{{ account.fullName }}</b><span data-for>{{ account.email }}</span></div></div>
+    {% if expired|default(false) %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired. Set it again.</span></div>{% endif %}
+    <div class="field{{ wrong.password is defined ? ' wrong' }}"><label for="password">New password</label><input class="input" type="password" id="password" name="password" autocomplete="new-password" required autofocus><div class="hint"><span>{{ wrong.password ?? 'At least 12 characters, and not your name or your email address' }}</span></div></div>
+    <div class="field{{ wrong.repeat is defined ? ' wrong' }}"><label for="repeat">New password again</label><input class="input" type="password" id="repeat" name="repeat" autocomplete="new-password" required>{% if wrong.repeat is defined %}<div class="hint"><span>{{ wrong.repeat }}</span></div>{% endif %}</div>
+    <input type="hidden" name="_token" value="{{ csrf_token('identity_reset') }}">
+    <button type="submit" class="button main wide">Set the password and sign in</button>
+    <p class="hint">Using it signs every other session of this account out, on every device.</p>
+</form>
+{% endblock %}

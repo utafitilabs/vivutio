@@ -1,0 +1,12 @@
+{# An expired or used link, as uhifadhi's auth/reset: in the warning colour,
+   since it is not the visitor's mistake, with its one next step. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Link expired{% endblock %}
+
+{% block card %}
+<div class="notice warn" role="status">{{ icons.icon('alert') }}<span>That link has expired.</span></div>
+<p class="single-lead">Reset links last one hour and work once. Nothing is wrong with your account and nothing has changed.</p>
+<a class="button main wide" href="{{ path('identity_forgot') }}">Ask for a new link</a>
+{% endblock %}

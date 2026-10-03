@@ -23,6 +23,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 use Symfony\Component\Uid\Uuid;
@@ -426,6 +427,13 @@ abstract class AuthorityTestCase extends WebTestCase
     private function signIn(Person $person, array $checked): ?User
     {
         $this->browser->restart();
+
+        // An open page leaves the firewall's lazy check unrun in the token
+        // storage; emptied first, so signing the next person in does not run
+        // it outside any request.
+        $storage = static::getContainer()->get('security.untracked_token_storage');
+        self::assertInstanceOf(TokenStorageInterface::class, $storage);
+        $storage->setToken(null);
 
         $account = $this->person($person, $checked);
         if (null !== $account) {

@@ -1,0 +1,12 @@
+{# After asking, as uhifadhi's auth/forgot: the same words, whether or not the
+   address has an account, so the door tells a stranger nobody's name. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Check your email{% endblock %}
+
+{% block card %}
+<div class="notice" role="status">{{ icons.icon('check') }}<span>Check your email.</span></div>
+<p class="single-lead">If that address has an account, a reset link is on its way. It works for one hour.</p>
+<p class="hint">Nothing arrived? Check the spam folder, then ask an administrator: they can send the same link from your record.</p>
+{% endblock %}

@@ -32,6 +32,76 @@ Checks: nothing (an open route)
 | Admin | sent to sign-in |
 | Super Admin | sent to sign-in |
 
+## identity_forgot: GET /login/forgot
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | allowed: Forgotten password · vivutio |
+| deactivated while signed in | allowed: Forgotten password · vivutio |
+| Staff, no position | allowed: Forgotten password · vivutio |
+| Staff holding the pair | allowed: Forgotten password · vivutio |
+| Staff holding all but the pair | allowed: Forgotten password · vivutio |
+| Admin | allowed: Forgotten password · vivutio |
+| Super Admin | allowed: Forgotten password · vivutio |
+
+## identity_forgot: POST /login/forgot
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | allowed: Check your email · vivutio |
+| deactivated while signed in | allowed: Check your email · vivutio |
+| Staff, no position | allowed: Check your email · vivutio |
+| Staff holding the pair | allowed: Check your email · vivutio |
+| Staff holding all but the pair | allowed: Check your email · vivutio |
+| Admin | allowed: Check your email · vivutio |
+| Super Admin | allowed: Check your email · vivutio |
+
+## identity_reset_link: GET /login/reset/000000000000000000000000/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | redirected to /login/reset |
+| deactivated while signed in | redirected to /login/reset |
+| Staff, no position | redirected to /login/reset |
+| Staff holding the pair | redirected to /login/reset |
+| Staff holding all but the pair | redirected to /login/reset |
+| Admin | redirected to /login/reset |
+| Super Admin | redirected to /login/reset |
+
+## identity_reset: GET /login/reset
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | allowed: Link expired · vivutio |
+| deactivated while signed in | allowed: Link expired · vivutio |
+| Staff, no position | allowed: Link expired · vivutio |
+| Staff holding the pair | allowed: Link expired · vivutio |
+| Staff holding all but the pair | allowed: Link expired · vivutio |
+| Admin | allowed: Link expired · vivutio |
+| Super Admin | allowed: Link expired · vivutio |
+
+## identity_reset: POST /login/reset
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | allowed: Link expired · vivutio |
+| deactivated while signed in | allowed: Link expired · vivutio |
+| Staff, no position | allowed: Link expired · vivutio |
+| Staff holding the pair | allowed: Link expired · vivutio |
+| Staff holding all but the pair | allowed: Link expired · vivutio |
+| Admin | allowed: Link expired · vivutio |
+| Super Admin | allowed: Link expired · vivutio |
+
 ## shell_dashboard: GET /
 
 Checks: nothing (an open route)

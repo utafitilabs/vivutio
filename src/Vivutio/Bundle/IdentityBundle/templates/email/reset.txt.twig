@@ -1,0 +1,10 @@
+Hello {{ account.firstName }},
+
+{% if sent_by %}{{ sent_by.fullName }} sent you a link to set a new password.{% else %}Somebody, hopefully you, asked to set a new password for your account.{% endif %}
+
+
+Open this link to choose one. It works once, for one hour:
+
+{{ url }}
+
+Using it signs every other session of your account out. If you did not ask for it, ignore this email: nothing changes until the link is used.

@@ -230,6 +230,11 @@ label.option{position:relative}
 .single-card .notice{margin-bottom:16px;padding:10px 14px;font-size:13px;align-items:flex-start}
 .single-card .notice svg{margin-top:1px}
 .single-card .check{margin:2px 0 18px}
+.single-lead{margin:0 0 16px;text-align:center;color:var(--ink-2);line-height:1.5}
+.single-card .hint{margin:0 0 14px}
+.single-card .action{margin-bottom:14px}
+.single-foot{margin:16px 0 0;text-align:center;font-size:13px}
+.single-foot a{color:var(--accent);font-weight:600}
 
 /* 15. Lists: the tool row above a list, its filters, the person cell, the pager.
    A filter's state is the address: chips and options are links, so a filtered

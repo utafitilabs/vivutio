@@ -1,0 +1,12 @@
+{# After setting it, as uhifadhi's auth/reset: signed in, and every other
+   session ended, said rather than done quietly. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Password set{% endblock %}
+
+{% block card %}
+<div class="notice" role="status">{{ icons.icon('check') }}<span>Your password is set.</span></div>
+<p class="single-lead">Signed in, and every other session of this account signed out.</p>
+<a class="button main wide" href="{{ path('shell_dashboard') }}">Continue</a>
+{% endblock %}

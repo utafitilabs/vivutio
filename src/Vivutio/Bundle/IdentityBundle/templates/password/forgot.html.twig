@@ -1,0 +1,17 @@
+{# Asking for a link, as uhifadhi's auth/forgot: what the link is good for is
+   said before it is asked for. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Forgotten password{% endblock %}
+
+{% block card %}
+<form method="post" action="{{ path('identity_forgot') }}">
+    <p class="single-lead">Give the address you sign in with and we will send a link that lets you set a new password.</p>
+    {% if expired|default(false) %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired. Send it again.</span></div>{% endif %}
+    <div class="field"><label for="email">Email</label><input class="input" type="email" id="email" name="email" value="{{ email|default('') }}" autocomplete="email" required autofocus></div>
+    <p class="hint">The link is good for one hour and can be used once. Asking again replaces it.</p>
+    <input type="hidden" name="_token" value="{{ csrf_token('identity_forgot') }}">
+    <button type="submit" class="button main wide">Send the link</button>
+</form>
+{% endblock %}

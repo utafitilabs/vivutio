@@ -95,6 +95,9 @@ final class Kernel extends BaseKernel
             // CSRF tokens the sign-in form is protected by.
             'session' => ['storage_factory_id' => 'session.storage.factory.mock_file'],
             'csrf_protection' => true,
+            // A configured transport that delivers nowhere; every message
+            // goes from the address an installation sets in its headers.
+            'mailer' => ['dsn' => 'memory://default', 'headers' => ['From' => 'vivutio <no-reply@vivutio-camps.example>']],
         ]);
 
         // One database for the whole core: the bundles are released together,
@@ -175,6 +178,8 @@ final class Kernel extends BaseKernel
         //
         // @see vendor/symfony/security-bundle/Security.php — getAccessDecisionForUser()
         $services->alias(self::SECURITY, 'security.helper')->public();
+
+        $services->set(MemoryTransportFactory::class)->args([service('event_dispatcher')])->tag('mailer.transport_factory');
 
         // Recording the organization is reached by the Settings page; until
         // that page exists, a specification records it directly.

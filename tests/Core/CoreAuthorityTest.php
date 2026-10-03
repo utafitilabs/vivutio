@@ -15,6 +15,7 @@ namespace Vivutio\Core\Tests\Core;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
+use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Test\AuthorityTestCase;
@@ -66,6 +67,9 @@ final class CoreAuthorityTest extends AuthorityTestCase
             SecurityController::SIGN_OUT => 'Ending one\'s own session confers nothing, and the firewall answers it before any controller.',
             DashboardController::HOME => 'Everybody signed in lands here; dashboard.read decides whether it is the organization\'s dashboard or their own, never whether there is one.',
             DashboardController::MINE => 'One\'s own dashboard, showing nothing but what is one\'s own.',
+            PasswordController::FORGOT => 'Whoever forgot their password is signed out; it answers the same for every address and sends a link only to the account\'s own.',
+            PasswordController::LINK => 'It only moves the link\'s token into the visitor\'s session; what it allows is decided when the token is redeemed.',
+            PasswordController::RESET => 'Opened only with a working link; who it changes is read from the token, never from the request.',
         ];
     }
 }

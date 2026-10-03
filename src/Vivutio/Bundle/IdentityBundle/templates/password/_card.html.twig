@@ -1,0 +1,13 @@
+{# The single card the pages a stranger may see share with sign-in, as
+   designed in vivutio-designs/auth/sign-in.html. #}
+{% extends '@Shell/document.html.twig' %}
+
+{% block body %}
+<main class="single">
+    <section class="panel single-card">
+        <div class="single-brand">{% include '@Shell/_mark.html.twig' with {size: 38} only %}<span>vivutio</span></div>
+        {% block card %}{% endblock %}
+        <p class="single-foot"><a href="{{ path('identity_login') }}">Back to sign in</a></p>
+    </section>
+</main>
+{% endblock %}
