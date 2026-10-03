@@ -218,7 +218,7 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
      * cannot be cracked back into a password. A password changed since still
      * ends the session, because the checksum of the new hash differs.
      *
-     * @return array<string, mixed>
+     * @return array<array-key, mixed> the object's properties as PHP casts them
      *
      * @see https://symfony.com/doc/current/security.html#understanding-how-users-are-refreshed-from-the-session
      * @see vendor/symfony/security-core/User/PasswordAuthenticatedUserInterface.php — the crc32c checksum, "the only algorithm supported"
