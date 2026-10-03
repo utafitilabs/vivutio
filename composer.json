@@ -29,11 +29,16 @@
         "symfony/console": "^8.0",
         "symfony/dependency-injection": "^8.0",
         "symfony/doctrine-bridge": "^8.0",
+        "symfony/http-foundation": "^8.0",
         "symfony/http-kernel": "^8.0",
         "symfony/password-hasher": "^8.0",
+        "symfony/routing": "^8.0",
         "symfony/security-bundle": "^8.0",
         "symfony/security-core": "^8.0",
-        "symfony/uid": "^8.0"
+        "symfony/security-http": "^8.0",
+        "symfony/twig-bundle": "^8.0",
+        "symfony/uid": "^8.0",
+        "twig/twig": "^3.21"
     },
     "replace": {
         "vivutio/connect-bundle": "self.version",
@@ -49,6 +54,9 @@
         "maglnet/composer-require-checker": "^4.16",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^13.2",
+        "symfony/browser-kit": "^8.0",
+        "symfony/css-selector": "^8.0",
+        "symfony/dom-crawler": "^8.0",
         "symfony/framework-bundle": "^8.0"
     },
     "autoload": {

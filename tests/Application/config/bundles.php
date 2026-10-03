@@ -15,6 +15,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Vivutio\Bundle\ConnectBundle\ConnectBundle;
 use Vivutio\Bundle\IdentityBundle\IdentityBundle;
 use Vivutio\Bundle\PartnerBundle\PartnerBundle;
@@ -27,6 +28,7 @@ return [
     DoctrineBundle::class => ['all' => true],
     DoctrineMigrationsBundle::class => ['all' => true],
     SecurityBundle::class => ['all' => true],
+    TwigBundle::class => ['all' => true],
     RegistryBundle::class => ['all' => true],
     IdentityBundle::class => ['all' => true],
     ShellBundle::class => ['all' => true],

@@ -15,7 +15,7 @@ namespace Vivutio\Core\Tests\Core;
 
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Vivutio\Core\Tests\Application\Kernel;
@@ -24,7 +24,7 @@ use Vivutio\Core\Tests\Application\Kernel;
  * A specification that starts from a database with nothing in it and runs the
  * commands an installation runs. The database is handed back empty.
  */
-abstract class MigrationsTestCase extends KernelTestCase
+abstract class MigrationsTestCase extends WebTestCase
 {
     protected Connection $connection;
 
@@ -35,7 +35,7 @@ abstract class MigrationsTestCase extends KernelTestCase
 
     protected function setUp(): void
     {
-        self::bootKernel();
+        $this->start();
 
         $connection = static::getContainer()->get('doctrine.dbal.default_connection');
         self::assertInstanceOf(Connection::class, $connection);
@@ -61,6 +61,18 @@ abstract class MigrationsTestCase extends KernelTestCase
             }
             restore_exception_handler();
         }
+    }
+
+    /**
+     * Boots the kernel. A specification that drives the application over HTTP
+     * creates its browser here instead, because the framework refuses a
+     * browser for a kernel that was booted before it.
+     *
+     * @see vendor/symfony/framework-bundle/Test/WebTestCase.php — createClient()
+     */
+    protected function start(): void
+    {
+        self::bootKernel();
     }
 
     protected function emptyTheDatabase(): void

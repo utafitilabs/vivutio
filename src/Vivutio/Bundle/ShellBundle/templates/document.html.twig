@@ -1,0 +1,15 @@
+{# The bottom rung every page stands on: the document, and nothing a stranger
+   should not see. A page for somebody signed in adds the frame on top of it;
+   a page for a stranger, such as sign-in, uses this alone. #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %} · vivutio</title>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    {% block body %}{% endblock %}
+</body>
+</html>

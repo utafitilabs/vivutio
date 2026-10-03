@@ -1,0 +1,41 @@
+{# The document alone, with no menu and no top bar: there is nobody to act as
+   yet, and a menu drawn for a stranger tells them what the installation holds. #}
+{% extends '@Shell/document.html.twig' %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block body %}
+    <main>
+        <form method="post" action="{{ path('identity_login') }}">
+            {% if error %}
+                {# The framework's own message, never its exception text, which
+                   can carry what a stranger should not read. A wrong password
+                   and an unknown address read the same. #}
+                <div role="alert">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            {# The names are the firewall's form_login defaults: rename one
+               here and the form signs nobody in. #}
+            <label for="username">Email</label>
+            <input type="email" id="username" name="_username" value="{{ last_username }}"
+                   autocomplete="email" required autofocus>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="_password"
+                   autocomplete="current-password" required>
+
+            {# Required by the firewall's enable_csrf; "authenticate" is the
+               token id form_login checks. #}
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            {# Does nothing unless the installation's firewall has a
+               remember_me key: a box that is ignored, rather than a bundle
+               configuring a firewall it does not own. #}
+            <label>
+                <input type="checkbox" name="_remember_me"> Remember me for a week
+            </label>
+
+            <button type="submit">Sign in</button>
+        </form>
+    </main>
+{% endblock %}

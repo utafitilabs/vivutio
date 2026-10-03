@@ -26,10 +26,17 @@
         "doctrine/persistence": "^3.1 || ^4.0",
         "symfony/console": "^8.0",
         "symfony/dependency-injection": "^8.0",
+        "symfony/doctrine-bridge": "^8.0",
+        "symfony/http-foundation": "^8.0",
         "symfony/http-kernel": "^8.0",
         "symfony/password-hasher": "^8.0",
+        "symfony/routing": "^8.0",
+        "symfony/security-bundle": "^8.0",
         "symfony/security-core": "^8.0",
+        "symfony/security-http": "^8.0",
+        "symfony/twig-bundle": "^8.0",
         "symfony/uid": "^8.0",
+        "twig/twig": "^3.21",
         "vivutio/contracts": "^0.1"
     },
     "autoload": {

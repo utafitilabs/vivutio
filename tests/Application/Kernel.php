@@ -18,13 +18,18 @@ use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
+use Vivutio\Core\Tests\Application\Fixtures\LandingController;
 use Vivutio\Core\Tests\Application\Fixtures\NotesConcerns;
 use Vivutio\Core\Tests\Application\Fixtures\NotesScopes;
 use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 /**
  * The application the core's own specifications run inside: every core bundle
@@ -53,6 +58,16 @@ final class Kernel extends BaseKernel
         return __DIR__;
     }
 
+    /**
+     * The core's own routes, mounted as an installation's recipe mounts them,
+     * and this application's front page.
+     */
+    protected function configureRoutes(RoutingConfigurator $routes): void
+    {
+        $routes->import('@IdentityBundle/Controller/', 'attribute');
+        $routes->import(__DIR__.'/Fixtures/LandingController.php', 'attribute');
+    }
+
     protected function configureContainer(ContainerConfigurator $container): void
     {
         $container->extension('framework', [
@@ -61,6 +76,10 @@ final class Kernel extends BaseKernel
             'http_method_override' => false,
             'handle_all_throwables' => true,
             'php_errors' => ['log' => true],
+            // A session the browser in a specification can carry, and the
+            // CSRF tokens the sign-in form is protected by.
+            'session' => ['storage_factory_id' => 'session.storage.factory.mock_file'],
+            'csrf_protection' => true,
         ]);
 
         // One database for the whole core: the bundles are released together,
@@ -94,16 +113,38 @@ final class Kernel extends BaseKernel
                     'memory_cost' => 10,
                 ],
             ],
+            // No property: the provider asks the repository, which reads the
+            // address in lowercase.
             'providers' => [
                 'identity_user_provider' => [
-                    'entity' => ['class' => User::class, 'property' => 'email'],
+                    'entity' => ['class' => User::class],
                 ],
             ],
             'firewalls' => [
                 'main' => [
                     'lazy' => true,
                     'provider' => 'identity_user_provider',
+                    'user_checker' => 'identity.user_checker',
+                    'form_login' => [
+                        'login_path' => SecurityController::SIGN_IN,
+                        'check_path' => SecurityController::SIGN_IN,
+                        'enable_csrf' => true,
+                        'default_target_path' => '/',
+                    ],
+                    'logout' => [
+                        'path' => SecurityController::SIGN_OUT,
+                        'target' => SecurityController::SIGN_IN,
+                    ],
+                    'remember_me' => [
+                        'secret' => '%kernel.secret%',
+                        'lifetime' => 604800,
+                    ],
                 ],
+            ],
+            // Closed by default: a stranger reaches sign-in and nothing else.
+            'access_control' => [
+                ['path' => '^/login', 'roles' => 'PUBLIC_ACCESS'],
+                ['path' => '^/', 'roles' => 'ROLE_USER'],
             ],
         ]);
 
@@ -124,6 +165,10 @@ final class Kernel extends BaseKernel
         // application has none to write to, and without one Symfony's default
         // logger prints every console event to the test run.
         $services->set('logger', NullLogger::class);
+
+        $services->set(LandingController::class)
+            ->args([service('security.token_storage')])
+            ->public();
 
         // A package's declarations, tagged by hand as a reusable bundle tags
         // its own.

@@ -16,13 +16,14 @@ namespace Vivutio\Bundle\IdentityBundle\Repository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 
 /**
  * @extends ServiceEntityRepository<User>
  */
-class UserRepository extends ServiceEntityRepository
+class UserRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -32,6 +33,22 @@ class UserRepository extends ServiceEntityRepository
     public function findOneByEmail(string $email): ?User
     {
         return $this->findOneBy(['email' => strtolower($email)]);
+    }
+
+    /**
+     * The account somebody signs in as. An address is stored in lowercase, so
+     * it is looked up in lowercase: "Neema.Mollel@…" and "neema.mollel@…" are
+     * one person.
+     *
+     * The installation's user provider names the entity and no property, and
+     * the provider then asks this method.
+     *
+     * @see https://symfony.com/doc/current/security/user_providers.html#using-a-custom-query-to-load-the-user
+     * @see vendor/symfony/doctrine-bridge/Security/User/EntityUserProvider.php — loadUserByIdentifier()
+     */
+    public function loadUserByIdentifier(string $identifier): ?User
+    {
+        return $this->findOneByEmail(trim($identifier));
     }
 
     public function countActiveSuperAdmins(): int

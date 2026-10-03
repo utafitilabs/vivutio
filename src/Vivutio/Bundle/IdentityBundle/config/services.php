@@ -16,9 +16,11 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
+use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
+use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\PositionService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
@@ -130,6 +132,27 @@ return static function (ContainerConfigurator $container): void {
             ->args([service('identity.accounts')])
             ->tag('console.command');
     }
+
+    /*
+     * The installation's firewall names it as its user_checker: a deactivated
+     * account is refused at the door, with the reason.
+     */
+    $services->set('identity.user_checker', ActiveUserChecker::class);
+
+    /*
+     * Drawing the sign-in form. Public, with an alias from its class, because
+     * a route names the class and the resolver asks the container for it.
+     *
+     * @see vendor/symfony/framework-bundle/Resources/config/routing.php — TemplateController registered with its arguments and public
+     */
+    $services->set('identity.controller.security', SecurityController::class)
+        ->args([
+            service('twig'),
+            service('security.authentication_utils'),
+            service('security.token_storage'),
+        ])
+        ->public();
+    $services->alias(SecurityController::class, 'identity.controller.security')->public();
 
     /*
      * A repository keeps its class name as its id, the one place the bundle's
