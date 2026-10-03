@@ -1,0 +1,10 @@
+Hello,
+
+{% set organization = organization() %}{% if sent_by %}{{ sent_by.fullName }} added you to {{ organization ? organization.name : 'their organization' }} on vivutio.{% else %}You have been added to {{ organization ? organization.name : 'an organization' }} on vivutio.{% endif %}
+
+
+Open this link to give your name and choose a password. It works once, for a week:
+
+{{ url }}
+
+If you were not expecting this, ignore this email: nothing happens until the link is used.

@@ -74,6 +74,17 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Position $position = null;
 
+    /** False for somebody invited who has not yet named themselves and chosen a password. */
+    #[ORM\Column(options: ['default' => true])]
+    private bool $verified = true;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $invitedAt = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $invitedBy = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -128,9 +139,50 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
         return $this;
     }
 
+    public function isVerified(): bool
+    {
+        return $this->verified;
+    }
+
+    public function setVerified(bool $verified): static
+    {
+        $this->verified = $verified;
+
+        return $this;
+    }
+
+    public function getInvitedAt(): ?\DateTimeImmutable
+    {
+        return $this->invitedAt;
+    }
+
+    public function getInvitedBy(): ?self
+    {
+        return $this->invitedBy;
+    }
+
+    public function setInvitation(\DateTimeImmutable $at, ?self $by): static
+    {
+        $this->invitedAt = $at;
+        $this->invitedBy = $by;
+
+        return $this;
+    }
+
+    /** The two letters drawn for a person, or a question mark until they have named themselves. */
+    public function getInitials(): string
+    {
+        $initials = mb_strtoupper(mb_substr((string) $this->firstName, 0, 1).mb_substr((string) $this->lastName, 0, 1));
+
+        return '' === $initials ? '?' : $initials;
+    }
+
+    /** Somebody invited names themselves on accepting; until then the account says so. */
     public function getFullName(): string
     {
-        return trim($this->firstName.' '.$this->lastName);
+        $name = trim($this->firstName.' '.$this->lastName);
+
+        return '' === $name ? 'Not yet named' : $name;
     }
 
     public function getTier(): TierEnum

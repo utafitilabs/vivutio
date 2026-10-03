@@ -10,7 +10,7 @@
 {% block page %}
 {%- set person = app.user -%}
 <header class="page-head" data-dashboard="mine">
-    <span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span>
+    <span class="initials">{{ person.initials }}</span>
     <div><div class="title"><h1>My dashboard</h1><span class="about">{{ person.fullName }}{% if not person.tier.holdsEveryPermission %} · {{ person.position ? person.position.name : 'No position' }}{% endif %}</span></div></div>
 </header>
 <section class="panel">

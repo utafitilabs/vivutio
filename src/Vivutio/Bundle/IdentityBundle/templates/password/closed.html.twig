@@ -1,0 +1,12 @@
+{# An invitation used or withdrawn, as uhifadhi's auth/accept: nothing is
+   broken, and the next step is said. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Invitation closed{% endblock %}
+
+{% block card %}
+<div class="notice warn" role="status">{{ icons.icon('alert') }}<span>That invitation is no longer open.</span></div>
+<p class="single-lead">The link has been used, has expired, or was replaced by a newer one. If you already set a password, sign in with it; if not, ask whoever invited you to send a new one.</p>
+<a class="button main wide" href="{{ path('identity_login') }}">Go to sign in</a>
+{% endblock %}

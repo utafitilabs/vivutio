@@ -18,7 +18,7 @@
 {%- set tier_says = {super_admin: 'Every permission, and may sign in as another person', admin: 'Every permission; puts a wrong position right', staff: 'Exactly what their position grants'} -%}
 {%- set chosen_tier = values.tier -%}
 <header class="page-head">
-    <span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span>
+    <span class="initials">{{ person.initials }}</span>
     <div>
         <nav class="trail" aria-label="Where you are"><a href="{{ path('identity_team') }}">Team</a> / <a href="{{ path('identity_team_member', {uuid: person.uuid}) }}">{{ person.fullName }}</a> / Configure</nav>
         <div class="title">
@@ -31,8 +31,8 @@
     <div class="actions"><a class="button outline" href="{{ path('identity_team_member', {uuid: person.uuid}) }}">{{ icons.icon('record', 15) }} View record</a></div>
 </header>
 
-{% if saved %}<div class="notice" role="status" style="margin-bottom:16px">{{ icons.icon('check') }}<span>{{ saved }}</span></div>{% endif %}
-{% if expired %}<div class="notice danger" role="alert" style="margin-bottom:16px">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Save again.</span></div>{% endif %}
+{% if saved %}<div class="notice" role="status">{{ icons.icon('check') }}<span>{{ saved }}</span></div>{% endif %}
+{% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Save again.</span></div>{% endif %}
 
 <div class="columns">
     <div class="stack">
@@ -84,6 +84,8 @@
             {% if person.active %}
                 {% if not mail_available %}
                     <div class="action"><div><b>Password reset</b><span>This installation cannot send email yet</span></div></div>
+                {% elseif not person.verified %}
+                    <form class="action" method="post" action="{{ path('identity_person_send_invitation', {uuid: person.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('person_account') }}"><div><b>Invitation</b><span>{% if last_link %}Sent {{ last_link.createdAt|date('j M Y, H:i') }}{% if last_link.sentBy %} by {{ last_link.sentBy.fullName }}{% endif %}{% endif %}; not yet accepted</span></div><button type="submit" class="button small">{{ icons.icon('mail', 14) }} Send again</button></form>
                 {% else %}
                     <form class="action" method="post" action="{{ path('identity_person_send_reset', {uuid: person.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('person_account') }}"><div><b>Password reset</b><span>{% if last_link %}Last link sent {{ last_link.createdAt|date('j M Y, H:i') }}{% if last_link.sentBy %} by {{ last_link.sentBy.fullName }}{% endif %}{% else %}Mails them a link{% endif %}</span></div><button type="submit" class="button small">{{ icons.icon('mail', 14) }} {{ last_link ? 'Send again' : 'Send' }}</button></form>
                 {% endif %}

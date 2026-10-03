@@ -35,6 +35,9 @@ use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
  */
 final readonly class UserService
 {
+    /** Not a hash any password verifies against: an invited account has none until it is accepted. */
+    public const string NO_PASSWORD = '!invited';
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $hasher,
@@ -75,6 +78,40 @@ final readonly class UserService
         } catch (UniqueConstraintViolationException $clash) {
             throw new EmailAlreadyUsedException($email, $clash);
         }
+
+        return $user;
+    }
+
+    /**
+     * An account for somebody invited by email: the address and nothing else,
+     * since they name themselves on accepting. It cannot be signed in to until
+     * they choose a password, which no hash here would match.
+     *
+     * @throws InvalidPersonException    when it is not an address
+     * @throws EmailAlreadyUsedException when somebody already signs in with it
+     */
+    public function invite(string $email, ?Position $position, ?User $invitedBy): User
+    {
+        $email = mb_strtolower(trim($email));
+        if (false === filter_var($email, \FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 180) {
+            throw new InvalidPersonException('email', 'That is not an email address.');
+        }
+        if (null !== $this->users->findOneBy(['email' => $email])) {
+            throw new EmailAlreadyUsedException($email);
+        }
+
+        $user = (new User())
+            ->setEmail($email)
+            ->setFirstName('')
+            ->setLastName('')
+            ->setTier(TierEnum::Staff)
+            ->setPosition($position)
+            ->setVerified(false)
+            ->setInvitation(new \DateTimeImmutable(), $invitedBy)
+            ->setPassword(self::NO_PASSWORD);
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         return $user;
     }

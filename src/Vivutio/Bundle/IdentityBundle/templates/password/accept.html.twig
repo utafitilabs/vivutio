@@ -1,0 +1,23 @@
+{# Accepting an invitation, as uhifadhi's auth/accept: who invited them, their
+   address as text, and their name asked here rather than guessed. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Join{% endblock %}
+
+{% block card %}
+{%- set account = link.account -%}
+{%- set wrong = wrong|default({}) -%}
+{%- set typed = typed|default({}) -%}
+<form method="post" action="{{ path('identity_invitation') }}">
+    <p class="single-lead">You have been added. Give your name and choose a password, and it is yours.</p>
+    <div class="action"><div><b data-for>{{ account.email }}</b><span>{% if account.invitedBy %}invited by {{ account.invitedBy.fullName }}{% else %}invited{% endif %}{% if account.invitedAt %} on {{ account.invitedAt|date('j M Y') }}{% endif %}</span></div></div>
+    {% if expired|default(false) %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired. Send it again.</span></div>{% endif %}
+    <div class="field{{ wrong.first_name is defined ? ' wrong' }}"><label for="first">First name</label><input class="input" id="first" name="first_name" value="{{ typed.first_name ?? '' }}" autocomplete="given-name" required autofocus>{% if wrong.first_name is defined %}<div class="hint"><span>{{ wrong.first_name }}</span></div>{% endif %}</div>
+    <div class="field{{ wrong.last_name is defined ? ' wrong' }}"><label for="last">Last name</label><input class="input" id="last" name="last_name" value="{{ typed.last_name ?? '' }}" autocomplete="family-name" required>{% if wrong.last_name is defined %}<div class="hint"><span>{{ wrong.last_name }}</span></div>{% endif %}</div>
+    <div class="field{{ wrong.password is defined ? ' wrong' }}"><label for="password">Choose a password</label><input class="input" type="password" id="password" name="password" autocomplete="new-password" required><div class="hint"><span>{{ wrong.password ?? 'At least 12 characters, and not your name or your email address' }}</span></div></div>
+    <div class="field{{ wrong.repeat is defined ? ' wrong' }}"><label for="repeat">The password again</label><input class="input" type="password" id="repeat" name="repeat" autocomplete="new-password" required>{% if wrong.repeat is defined %}<div class="hint"><span>{{ wrong.repeat }}</span></div>{% endif %}</div>
+    <input type="hidden" name="_token" value="{{ csrf_token('identity_accept') }}">
+    <button type="submit" class="button main wide">Set it and sign in</button>
+</form>
+{% endblock %}

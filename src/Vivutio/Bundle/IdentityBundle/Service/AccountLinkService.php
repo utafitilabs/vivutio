@@ -23,6 +23,7 @@ use Vivutio\Bundle\IdentityBundle\Entity\AccountLink;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\LinkPurposeEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidPasswordException;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidPersonException;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 
@@ -57,7 +58,8 @@ final readonly class AccountLinkService
     public function requestReset(string $email): void
     {
         $account = $this->users->findOneBy(['email' => mb_strtolower(trim($email))]);
-        if (null === $account || !$account->isActive() || $this->askedJustNow($account)) {
+        // An invited account is reached through its invitation, not a reset.
+        if (null === $account || !$account->isActive() || !$account->isVerified() || $this->askedJustNow($account)) {
             return;
         }
 
@@ -76,6 +78,53 @@ final readonly class AccountLinkService
             ->context(['account' => $account, 'url' => $url, 'sent_by' => $sentBy]));
 
         return $link;
+    }
+
+    /** Mails the invitation an account was made for. */
+    public function sendInvitation(User $account, ?User $sentBy): AccountLink
+    {
+        [$link, $url] = $this->issue($account, LinkPurposeEnum::Invitation, $sentBy);
+
+        $this->mailer->send((new TemplatedEmail())
+            ->to(new Address((string) $account->getEmail()))
+            ->subject('You have been added to vivutio')
+            ->textTemplate('@Identity/email/invitation.txt.twig')
+            ->context(['url' => $url, 'sent_by' => $sentBy]));
+
+        return $link;
+    }
+
+    /**
+     * Accepts an invitation: the person names themselves and chooses their
+     * password, the account is verified and the link spent.
+     *
+     * @throws InvalidPersonException   when a name is refused
+     * @throws InvalidPasswordException when the password is refused
+     */
+    public function accept(AccountLink $link, string $firstName, string $lastName, string $password, string $repeat): User
+    {
+        $account = $link->getAccount();
+        $firstName = trim($firstName);
+        $lastName = trim($lastName);
+
+        foreach (['first_name' => [$firstName, 'first name'], 'last_name' => [$lastName, 'last name']] as $field => [$value, $words]) {
+            if ('' === $value) {
+                throw new InvalidPersonException($field, \sprintf('A %s cannot be empty.', $words));
+            }
+            if (mb_strlen($value) > User::NAME_MAX_LENGTH) {
+                throw new InvalidPersonException($field, \sprintf('A %s can be at most %d characters.', $words, User::NAME_MAX_LENGTH));
+            }
+        }
+
+        $named = (clone $account)->setFirstName($firstName)->setLastName($lastName);
+        $this->rules->refuseIfBroken($named, $password, $repeat);
+
+        $account->setFirstName($firstName)->setLastName($lastName)->setVerified(true);
+        $account->setPassword($this->hasher->hashPassword($account, $password));
+        $link->setUsedAt(new \DateTimeImmutable());
+        $this->entityManager->flush();
+
+        return $account;
     }
 
     /**

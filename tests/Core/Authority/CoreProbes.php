@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Core\Authority;
 
+use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
@@ -48,6 +49,9 @@ final class CoreProbes
             new Probe(PasswordController::LINK, 'GET', '/login/reset/'.str_repeat('0', 24).'/'.str_repeat('A', 43)),
             new Probe(PasswordController::RESET, 'GET', '/login/reset'),
             new Probe(PasswordController::RESET, 'POST', '/login/reset', ['password' => 'a stranger\'s password', 'repeat' => 'a stranger\'s password'], formAt: '/login/reset'),
+            new Probe(InvitationController::LINK, 'GET', '/login/join/'.str_repeat('0', 24).'/'.str_repeat('A', 43)),
+            new Probe(InvitationController::ACCEPT, 'GET', '/login/join'),
+            new Probe(InvitationController::ACCEPT, 'POST', '/login/join', ['first_name' => 'A', 'last_name' => 'Stranger', 'password' => 'a stranger\'s password', 'repeat' => 'a stranger\'s password'], formAt: '/login/join'),
             new Probe(DashboardController::HOME, 'GET', '/'),
             new Probe(DashboardController::MINE, 'GET', '/me'),
             new Probe(TeamController::TEAM, 'GET', '/team'),
@@ -60,6 +64,11 @@ final class CoreProbes
             new Probe(PersonController::DEACTIVATE, 'POST', self::CANARY.'/deactivate', formAt: self::CANARY.'/configure'),
             new Probe(PersonController::REACTIVATE, 'POST', self::CANARY.'/reactivate', formAt: self::CANARY.'/configure'),
             new Probe(PersonController::SEND_RESET, 'POST', self::CANARY.'/send-reset', formAt: self::CANARY.'/configure'),
+            new Probe(PersonController::SEND_INVITATION, 'POST', self::CANARY.'/send-invitation', formAt: self::CANARY.'/configure'),
+            new Probe(PersonController::ADD, 'GET', '/team/add'),
+            // Sent by each kind of person in turn, so the second allowed finds the address taken.
+            new Probe(PersonController::CREATE, 'POST', '/team/add/create', ['first_name' => 'Added', 'last_name' => 'By a probe', 'email' => 'added.by.a.probe@vivutio-camps.example', 'password' => 'a first passphrase', 'position' => ''], formAt: '/team/add'),
+            new Probe(PersonController::INVITE, 'POST', '/team/add/invite', ['email' => 'invited.by.a.probe@vivutio-camps.example', 'position' => ''], formAt: '/team/add'),
             new Probe(PositionController::REGISTER, 'GET', '/team/positions'),
             new Probe(PositionController::ADD, 'POST', '/team/positions', ['name' => 'Added by a probe'], formAt: '/team/positions'),
             new Probe(PositionController::SHOW, 'GET', self::POSITION),

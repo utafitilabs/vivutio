@@ -14,7 +14,7 @@
     <div class="actions"><a class="button outline" href="{{ path('identity_positions') }}">{{ icons.icon('left', 15) }} Back to positions</a>{% if door('positions.configure') %}<a class="button outline" href="{{ path('identity_position_configure', {uuid: position.uuid}) }}">Configure</a>{% endif %}</div>
 </header>
 
-{% if saved %}<div class="notice" role="status" style="margin-bottom:16px">{{ icons.icon('check') }}<span>The position is saved.</span></div>{% endif %}
+{% if saved %}<div class="notice" role="status">{{ icons.icon('check') }}<span>The position is saved.</span></div>{% endif %}
 
 <div class="band">
     <span class="f"><span class="k">Holders</span><span class="v">{{ summary.holders|length }}<em>{{ summary.holders|length == 1 ? 'person' : 'people' }}</em></span></span>

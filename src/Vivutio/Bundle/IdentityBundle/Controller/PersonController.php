@@ -27,10 +27,12 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
+use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\LinkPurposeEnum;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\EmailAlreadyUsedException;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidPasswordException;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidPersonException;
 use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Model\TierChange;
@@ -39,6 +41,7 @@ use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
 use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
+use Vivutio\Bundle\IdentityBundle\Service\PasswordRulesService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
 
 /**
@@ -59,6 +62,10 @@ final readonly class PersonController
     public const string DEACTIVATE = 'identity_person_deactivate';
     public const string REACTIVATE = 'identity_person_reactivate';
     public const string SEND_RESET = 'identity_person_send_reset';
+    public const string ADD = 'identity_person_add';
+    public const string CREATE = 'identity_person_create';
+    public const string INVITE = 'identity_person_invite';
+    public const string SEND_INVITATION = 'identity_person_send_invitation';
 
     public const string MANAGE = 'directory.manage';
     public const string MANAGE_PERSONAL_DETAILS = 'personal_details.manage';
@@ -75,7 +82,95 @@ final readonly class PersonController
         private AccountLinkService $links,
         private AccountLinkRepository $sentLinks,
         private MailAvailability $mail,
+        private PasswordRulesService $rules,
     ) {
+    }
+
+    /**
+     * Adding somebody, ported from uhifadhi's team/invite: two ways in, a
+     * first password handed over in the room, or an invitation by email.
+     */
+    #[Route('/team/add', name: self::ADD, methods: ['GET'])]
+    #[IsGranted(self::MANAGE)]
+    public function add(): Response
+    {
+        return $this->addPage();
+    }
+
+    #[Route('/team/add/create', name: self::CREATE, methods: ['POST'])]
+    #[IsGranted(self::MANAGE)]
+    public function create(Request $request): Response
+    {
+        $payload = $request->getPayload();
+        $typed = [];
+        foreach (['first_name', 'last_name', 'email', 'position'] as $field) {
+            $typed[$field] = $payload->getString($field);
+        }
+
+        if (!$this->tokenIsValid('person_add', $request)) {
+            return $this->addPage(created: $typed, expired: true);
+        }
+
+        $position = $this->positionNamed($typed['position']);
+        if (false === $position) {
+            return $this->addPage(created: $typed, wrong: ['position' => 'Choose one of the positions offered.']);
+        }
+
+        try {
+            $probe = (new User())->setFirstName(trim($typed['first_name']))->setLastName(trim($typed['last_name']))->setEmail(mb_strtolower(trim($typed['email'])));
+            $this->rules->refuseIfBroken($probe, $payload->getString('password'), $payload->getString('password'));
+            $person = $this->accounts->create($typed['email'], $typed['first_name'], $typed['last_name'], $payload->getString('password'));
+            $this->accounts->changeDetails($person, $typed['first_name'], $typed['last_name'], null);
+            $this->accounts->changePosition($person, $position);
+        } catch (InvalidPersonException $refusal) {
+            return $this->addPage(created: $typed, wrong: [$refusal->field => $refusal->getMessage()]);
+        } catch (InvalidPasswordException $refusal) {
+            return $this->addPage(created: $typed, wrong: ['password' => $refusal->getMessage()]);
+        } catch (EmailAlreadyUsedException) {
+            return $this->addPage(created: $typed, wrong: ['email' => 'Somebody already signs in with that address.']);
+        }
+
+        return new RedirectResponse($this->urls->generate(TeamController::MEMBER, ['uuid' => $person->getUuid()]));
+    }
+
+    #[Route('/team/add/invite', name: self::INVITE, methods: ['POST'])]
+    #[IsGranted(self::MANAGE)]
+    public function invite(
+        Request $request,
+        #[CurrentUser]
+        ?User $sender,
+    ): Response {
+        $payload = $request->getPayload();
+        $typed = ['email' => $payload->getString('email'), 'position' => $payload->getString('position')];
+
+        if (!$this->tokenIsValid('person_invite', $request)) {
+            return $this->addPage(invited: $typed, expired: true);
+        }
+        if (!$this->mail->isAvailable()) {
+            return $this->addPage(invited: $typed, wrong: ['invite_email' => 'This installation cannot send email yet.']);
+        }
+
+        $position = $this->positionNamed($typed['position']);
+        if (false === $position) {
+            return $this->addPage(invited: $typed, wrong: ['invite_position' => 'Choose one of the positions offered.']);
+        }
+
+        try {
+            $person = $this->accounts->invite($typed['email'], $position, $sender);
+        } catch (InvalidPersonException $refusal) {
+            return $this->addPage(invited: $typed, wrong: ['invite_email' => $refusal->getMessage()]);
+        } catch (EmailAlreadyUsedException) {
+            return $this->addPage(invited: $typed, wrong: ['invite_email' => 'Somebody already signs in with that address.']);
+        }
+
+        $this->links->sendInvitation($person, $sender);
+
+        $session = $request->getSession();
+        if ($session instanceof FlashBagAwareSessionInterface) {
+            $session->getFlashBag()->add(self::SAVED, \sprintf('An invitation was sent to %s. It works once, for a week.', $person->getEmail()));
+        }
+
+        return new RedirectResponse($this->urls->generate(TeamController::MEMBER, ['uuid' => $person->getUuid()]));
     }
 
     #[Route('/team/{uuid}/configure', name: self::CONFIGURE, requirements: ['uuid' => Requirement::UUID], methods: ['GET'])]
@@ -245,13 +340,37 @@ final readonly class PersonController
         if (!$this->tokenIsValid('person_account', $request)) {
             return $this->form($person, expired: true);
         }
-        if (!$this->mail->isAvailable() || !$person->isActive()) {
+        // Somebody invited sets their password by accepting, with their name.
+        if (!$this->mail->isAvailable() || !$person->isActive() || !$person->isVerified()) {
             return $this->form($person, wrong: ['account' => 'No link can be sent to this account now.']);
         }
 
         $this->links->sendReset($person, $sender);
 
         return $this->savedTo($request, $person, \sprintf('A link was sent to %s. It works once and expires in an hour.', $person->getEmail()));
+    }
+
+    /** The invitation again, replacing the one sent before. */
+    #[Route('/team/{uuid}/send-invitation', name: self::SEND_INVITATION, requirements: ['uuid' => Requirement::UUID], methods: ['POST'])]
+    #[IsGranted(self::MANAGE)]
+    #[IsGranted(AccountVoter::ACT_ON, subject: 'person')]
+    public function sendInvitation(
+        Request $request,
+        #[MapEntity(mapping: ['uuid' => 'uuid'])]
+        User $person,
+        #[CurrentUser]
+        ?User $sender,
+    ): Response {
+        if (!$this->tokenIsValid('person_account', $request)) {
+            return $this->form($person, expired: true);
+        }
+        if (!$this->mail->isAvailable() || $person->isVerified()) {
+            return $this->form($person, wrong: ['account' => 'No invitation can be sent to this account now.']);
+        }
+
+        $this->links->sendInvitation($person, $sender);
+
+        return $this->savedTo($request, $person, \sprintf('An invitation was sent to %s. It works once, for a week.', $person->getEmail()));
     }
 
     /**
@@ -285,8 +404,35 @@ final readonly class PersonController
             'last_super_admin' => $this->accounts->isLastActiveSuperAdmin($person),
             'may_deactivate' => $person->isActive() && $this->authorization->isGranted(AccountVoter::DEACTIVATE, $person),
             'mail_available' => $this->mail->isAvailable(),
-            'last_link' => $this->sentLinks->findOneBy(['account' => $person, 'purpose' => LinkPurposeEnum::Reset], ['createdAt' => 'DESC']),
+            'last_link' => $this->sentLinks->findOneBy(['account' => $person, 'purpose' => $person->isVerified() ? LinkPurposeEnum::Reset : LinkPurposeEnum::Invitation], ['createdAt' => 'DESC']),
         ]), [] === $wrong && !$expired ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * @param array<string, string> $created what was typed into creating somebody
+     * @param array<string, string> $invited what was typed into inviting somebody
+     * @param array<string, string> $wrong   a refusal, keyed by the field it is about
+     */
+    private function addPage(array $created = [], array $invited = [], array $wrong = [], bool $expired = false): Response
+    {
+        return new Response($this->twig->render('@Identity/team/add.html.twig', [
+            'created' => $created,
+            'invited' => $invited,
+            'wrong' => $wrong,
+            'expired' => $expired,
+            'positions' => $this->positions->findBy([], ['name' => 'ASC']),
+            'mail_available' => $this->mail->isAvailable(),
+        ]), [] === $wrong && !$expired ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /** The position a form names by its identifier, null for none, false for one that is not offered. */
+    private function positionNamed(string $chosen): Position|false|null
+    {
+        if ('' === $chosen) {
+            return null;
+        }
+
+        return (1 === preg_match('{^'.Requirement::UUID.'$}D', $chosen) ? $this->positions->findOneBy(['uuid' => $chosen]) : null) ?? false;
     }
 
     private function tokenIsValid(string $id, Request $request): bool

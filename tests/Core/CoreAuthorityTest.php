@@ -15,6 +15,7 @@ namespace Vivutio\Core\Tests\Core;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
+use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
@@ -70,6 +71,8 @@ final class CoreAuthorityTest extends AuthorityTestCase
             PasswordController::FORGOT => 'Whoever forgot their password is signed out; it answers the same for every address and sends a link only to the account\'s own.',
             PasswordController::LINK => 'It only moves the link\'s token into the visitor\'s session; what it allows is decided when the token is redeemed.',
             PasswordController::RESET => 'Opened only with a working link; who it changes is read from the token, never from the request.',
+            InvitationController::LINK => 'It only moves the invitation\'s token into the visitor\'s session; what it allows is decided when the token is redeemed.',
+            InvitationController::ACCEPT => 'Opened only with a working invitation; the account it completes is read from the token, never from the request.',
         ];
     }
 }

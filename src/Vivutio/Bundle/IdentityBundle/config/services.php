@@ -17,6 +17,7 @@ use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
+use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
@@ -238,6 +239,7 @@ return static function (ContainerConfigurator $container): void {
             service('identity.account_links'),
             service(AccountLinkRepository::class),
             service('identity.mail_availability'),
+            service('identity.password_rules'),
         ])
         ->public();
     $services->alias(PersonController::class, 'identity.controller.person')->public();
@@ -291,6 +293,17 @@ return static function (ContainerConfigurator $container): void {
         ])
         ->public();
     $services->alias(PasswordController::class, 'identity.controller.password')->public();
+
+    $services->set('identity.controller.invitation', InvitationController::class)
+        ->args([
+            service('twig'),
+            service('identity.account_links'),
+            service('security.csrf.token_manager'),
+            service('router'),
+            service('security.helper'),
+        ])
+        ->public();
+    $services->alias(InvitationController::class, 'identity.controller.invitation')->public();
 
     /*
      * A repository keeps its class name as its id, the one place the bundle's

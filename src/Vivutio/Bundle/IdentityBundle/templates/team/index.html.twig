@@ -14,7 +14,7 @@
 {% block page %}
 {%- set addresses = door('personal_details.read') -%}
 {%- set position_chosen = page.positions|filter(p => p.uuid == query.position)|first -%}
-<header class="page-head"><div><nav class="trail" aria-label="Where you are">Organization / Team</nav><div class="title"><h1>Team</h1></div></div></header>
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Organization / Team</nav><div class="title"><h1>Team</h1></div></div>{% if door('directory.manage') %}<div class="actions"><a class="button main" href="{{ path('identity_person_add') }}">Add somebody</a></div>{% endif %}</header>
 
 {% if not page.isFirstRun %}
 <form class="tools" method="get" action="{{ path('identity_team') }}" data-tools>
@@ -64,14 +64,14 @@
         <tbody>
         {% for person in page.people %}
             <tr data-person="{{ person.fullName }}"{{ person.active ? '' : ' class="off"' }}>
-                <td><div class="who"><span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span><div><b>{{ person.fullName }}</b>{% if person == app.user %}<span class="you">you</span>{% endif %}{% if addresses %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% endif %}</div></div></td>
+                <td><div class="who"><span class="initials">{{ person.initials }}</span><div><b>{{ person.fullName }}</b>{% if person == app.user %}<span class="you">you</span>{% endif %}{% if addresses %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% endif %}</div></div></td>
                 {% if with_tiers %}<td data-tier><span class="chip">{{ person.tier.label }}</span></td>{% endif %}
                 {% if person.position %}
                     <td>{{ person.position.name }}</td>
                 {% else %}
                     <td class="quiet">No position{% if with_tiers and person.tier.holdsEveryPermission %}<small>everything, by tier</small>{% endif %}</td>
                 {% endif %}
-                <td><span class="chip {{ person.active ? 'ok' : 'danger' }}">{{ person.active ? 'Active' : 'Deactivated' }}</span></td>
+                <td>{% if not person.verified %}<span class="chip warn" data-account-state="invited">Invited</span>{% else %}<span class="chip {{ person.active ? 'ok' : 'danger' }}">{{ person.active ? 'Active' : 'Deactivated' }}</span>{% endif %}</td>
                 <td><a class="button outline" href="{{ path('identity_team_member', {uuid: person.uuid}) }}">Open</a></td>
             </tr>
         {% else %}

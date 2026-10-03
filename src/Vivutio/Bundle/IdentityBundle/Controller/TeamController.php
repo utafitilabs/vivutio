@@ -16,6 +16,7 @@ namespace Vivutio\Bundle\IdentityBundle\Controller;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -80,6 +81,7 @@ final readonly class TeamController
     #[Route('/team/{uuid}', name: self::MEMBER, requirements: ['uuid' => Requirement::UUID], methods: ['GET'])]
     #[IsGranted('directory.read')]
     public function member(
+        Request $request,
         #[MapEntity(mapping: ['uuid' => 'uuid'])]
         User $person,
         #[CurrentUser]
@@ -94,7 +96,17 @@ final readonly class TeamController
             'sees_tier' => $seesTier,
             'show_grants' => $showGrants,
             'grants' => $showGrants && !$person->getTier()->holdsEveryPermission() ? $this->grants->of($person) : [],
+            'saved' => $this->saved($request),
         ]));
+    }
+
+    /** A notice left by the page that sent the person here: an invitation sent. */
+    private function saved(Request $request): ?string
+    {
+        $session = $request->hasSession() ? $request->getSession() : null;
+        $saved = $session instanceof FlashBagAwareSessionInterface ? $session->getFlashBag()->get('person.saved') : [];
+
+        return \is_string($saved[0] ?? null) ? $saved[0] : null;
     }
 
     private function withAddresses(): bool

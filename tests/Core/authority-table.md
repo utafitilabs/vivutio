@@ -102,6 +102,48 @@ Checks: nothing (an open route)
 | Admin | allowed: Link expired · vivutio |
 | Super Admin | allowed: Link expired · vivutio |
 
+## identity_invitation_link: GET /login/join/000000000000000000000000/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | redirected to /login/join |
+| deactivated while signed in | redirected to /login/join |
+| Staff, no position | redirected to /login/join |
+| Staff holding the pair | redirected to /login/join |
+| Staff holding all but the pair | redirected to /login/join |
+| Admin | redirected to /login/join |
+| Super Admin | redirected to /login/join |
+
+## identity_invitation: GET /login/join
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | allowed: Invitation closed · vivutio |
+| deactivated while signed in | allowed: Invitation closed · vivutio |
+| Staff, no position | allowed: Invitation closed · vivutio |
+| Staff holding the pair | allowed: Invitation closed · vivutio |
+| Staff holding all but the pair | allowed: Invitation closed · vivutio |
+| Admin | allowed: Invitation closed · vivutio |
+| Super Admin | allowed: Invitation closed · vivutio |
+
+## identity_invitation: POST /login/join
+
+Checks: nothing (an open route)
+
+| Person | Outcome |
+|---|---|
+| signed out | allowed: Invitation closed · vivutio |
+| deactivated while signed in | allowed: Invitation closed · vivutio |
+| Staff, no position | allowed: Invitation closed · vivutio |
+| Staff holding the pair | allowed: Invitation closed · vivutio |
+| Staff holding all but the pair | allowed: Invitation closed · vivutio |
+| Admin | allowed: Invitation closed · vivutio |
+| Super Admin | allowed: Invitation closed · vivutio |
+
 ## shell_dashboard: GET /
 
 Checks: nothing (an open route)
@@ -255,6 +297,62 @@ Checks: `directory.manage`, `identity.act_on_account`
 | Staff holding all but the pair | refused |
 | Admin | refused |
 | Super Admin | redirected to /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/configure |
+
+## identity_person_send_invitation: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/send-invitation
+
+Checks: `directory.manage`, `identity.act_on_account`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | answered 422 |
+
+## identity_person_add: GET /team/add
+
+Checks: `directory.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Add somebody · vivutio |
+| Super Admin | allowed: Add somebody · vivutio |
+
+## identity_person_create: POST /team/add/create
+
+Checks: `directory.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/{new} |
+| Super Admin | answered 422 |
+
+## identity_person_invite: POST /team/add/invite
+
+Checks: `directory.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/{new} |
+| Super Admin | answered 422 |
 
 ## identity_positions: GET /team/positions
 

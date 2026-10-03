@@ -14,18 +14,20 @@
 {% block page %}
 {%- set since = person.createdAt ? person.createdAt|date('j M Y') : null -%}
 <header class="page-head">
-    <span class="initials">{{ person.firstName|first|upper }}{{ person.lastName|first|upper }}</span>
+    <span class="initials">{{ person.initials }}</span>
     <div>
         <nav class="trail" aria-label="Where you are"><a href="{{ path('identity_team') }}">Team</a> / {{ person.fullName }}</nav>
         <div class="title">
             <h1>{{ person.fullName }}</h1>
-            <span class="chip {{ person.active ? 'ok' : 'danger' }}" data-account>{{ person.active ? 'Active' : 'Deactivated' }}</span>
+            {% if not person.verified %}<span class="chip warn" data-account data-account-state="invited">Invited</span>{% else %}<span class="chip {{ person.active ? 'ok' : 'danger' }}" data-account>{{ person.active ? 'Active' : 'Deactivated' }}</span>{% endif %}
             {% if sees_tier %}<span class="chip" data-tier>{{ person.tier.label }}</span>{% endif %}
             <span class="about">{{ person.position ? person.position.name : 'No position' }}{% if since %} &middot; on the team since {{ since }}{% endif %}</span>
         </div>
     </div>
     <div class="actions"><a class="button outline" href="{{ path('identity_team') }}">{{ icons.icon('left', 15) }} Back to the team</a>{% if door('directory.manage') and door('identity.act_on_account', person) %}<a class="button outline" href="{{ path('identity_person_configure', {uuid: person.uuid}) }}">Configure</a>{% endif %}</div>
 </header>
+
+{% if saved %}<div class="notice" role="status">{{ icons.icon('check') }}<span>{{ saved }}</span></div>{% endif %}
 
 {% if show_grants and not person.tier.holdsEveryPermission %}
 <div class="band" data-band>

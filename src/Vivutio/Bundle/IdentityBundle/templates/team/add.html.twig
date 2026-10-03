@@ -1,0 +1,57 @@
+{# Adding somebody, ported from uhifadhi's team/invite: two ways in. A first
+   password handed over in the room, always available; or an invitation by
+   email, for the address alone, where the installation can send mail and
+   refused, not hidden, where it cannot. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Add somebody{% endblock %}
+{% block here %}team{% endblock %}
+
+{% macro positions_select(id, name, positions, chosen) %}
+<select class="select" id="{{ id }}" name="{{ name }}">
+    <option value="">No position</option>
+    {% for position in positions %}<option value="{{ position.uuid }}"{{ (position.uuid ~ '') == chosen ? ' selected' }}>{{ position.name }}</option>{% endfor %}
+</select>
+{% endmacro %}
+
+{% block page %}
+{%- import _self as add -%}
+<header class="page-head">
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('identity_team') }}">Team</a> / Add somebody</nav><div class="title"><h1>Add somebody</h1><span class="about">A password you hand over, or a link they open</span></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_team') }}">{{ icons.icon('left', 15) }} Back to the team</a></div>
+</header>
+
+{% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Send it again.</span></div>{% endif %}
+
+<div class="stack">
+    <form class="panel" method="post" action="{{ path('identity_person_create') }}" novalidate>
+        <header class="panel-head"><h2>{{ icons.icon('key', 16) }} Create with a password</h2><p>Details and a first password, handed over; they may sign in at once</p></header>
+        <input type="hidden" name="_token" value="{{ csrf_token('person_add') }}">
+        <div class="grid-3">
+            <div class="field{{ wrong.first_name is defined ? ' wrong' }}"><label for="add-first">First name</label><input class="input" id="add-first" name="first_name" value="{{ created.first_name ?? '' }}" required maxlength="100">{% if wrong.first_name is defined %}<div class="hint"><span>{{ wrong.first_name }}</span></div>{% endif %}</div>
+            <div class="field{{ wrong.last_name is defined ? ' wrong' }}"><label for="add-last">Last name</label><input class="input" id="add-last" name="last_name" value="{{ created.last_name ?? '' }}" required maxlength="100">{% if wrong.last_name is defined %}<div class="hint"><span>{{ wrong.last_name }}</span></div>{% endif %}</div>
+            <div class="field{{ wrong.email is defined ? ' wrong' }}"><label for="add-email">Email</label><input class="input" id="add-email" name="email" type="email" value="{{ created.email ?? '' }}" required maxlength="180">{% if wrong.email is defined %}<div class="hint"><span>{{ wrong.email }}</span></div>{% endif %}</div>
+        </div>
+        <div class="grid-2">
+            <div class="field{{ wrong.password is defined ? ' wrong' }}"><label for="add-password">First password</label><input class="input" id="add-password" name="password" type="password" autocomplete="new-password" required><div class="hint"><span>{{ wrong.password ?? 'At least 12 characters, and not their name or address; it cannot be shown again' }}</span></div></div>
+            <div class="field{{ wrong.position is defined ? ' wrong' }}"><label for="add-position">Position <small>&middot; optional</small></label>{{ add.positions_select('add-position', 'position', positions, created.position ?? '') }}<div class="hint"><span>{{ wrong.position ?? 'No position grants nothing' }}</span></div></div>
+        </div>
+        <footer class="panel-foot"><span class="state">They join as Staff; a tier is given on their configure page</span><button type="submit" class="button main">Create</button></footer>
+    </form>
+
+    <form class="panel" method="post" action="{{ path('identity_person_invite') }}" novalidate data-invite>
+        <header class="panel-head"><h2>{{ icons.icon('mail', 16) }} Invite by email</h2><p>One address; they give their name and choose their own password from a link</p></header>
+        {% if mail_available %}
+            <input type="hidden" name="_token" value="{{ csrf_token('person_invite') }}">
+            <div class="grid-2">
+                <div class="field{{ wrong.invite_email is defined ? ' wrong' }}"><label for="invite-email">Email</label><input class="input" id="invite-email" name="email" type="email" value="{{ invited.email ?? '' }}" required maxlength="180">{% if wrong.invite_email is defined %}<div class="hint"><span>{{ wrong.invite_email }}</span></div>{% endif %}</div>
+                <div class="field{{ wrong.invite_position is defined ? ' wrong' }}"><label for="invite-position">Position <small>&middot; optional</small></label>{{ add.positions_select('invite-position', 'position', positions, invited.position ?? '') }}{% if wrong.invite_position is defined %}<div class="hint"><span>{{ wrong.invite_position }}</span></div>{% endif %}</div>
+            </div>
+            <footer class="panel-foot"><span class="state">The link works once, for a week</span><button type="submit" class="button main">Send the invitation</button></footer>
+        {% else %}
+            <div class="notice warn" role="status">{{ icons.icon('alert') }}<span>This installation cannot send email yet. Set MAILER_DSN, or create them with a password above.</span></div>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

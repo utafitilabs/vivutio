@@ -1,0 +1,11 @@
+{# After accepting: signed in, by name. #}
+{% extends '@Identity/password/_card.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block card %}
+<div class="notice" role="status">{{ icons.icon('check') }}<span>Welcome, {{ account.firstName }}.</span></div>
+<p class="single-lead">Your password is set and you are signed in.</p>
+<a class="button main wide" href="{{ path('shell_dashboard') }}">Continue</a>
+{% endblock %}
