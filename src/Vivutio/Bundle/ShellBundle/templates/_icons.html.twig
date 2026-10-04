@@ -26,3 +26,8 @@
 } -%}
 <svg width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ paths[name]|raw }}</svg>
 {%- endmacro %}
+
+{# A package's own icon, given as its paths, drawn at the same stroke. #}
+{% macro paths(inner, size = 18) %}
+<svg width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ inner|raw }}</svg>
+{%- endmacro %}

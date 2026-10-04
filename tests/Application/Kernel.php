@@ -25,9 +25,11 @@ use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
+use Vivutio\Contracts\Shell\MenuSourceInterface;
 use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
 use Vivutio\Core\Tests\Application\NotesModule\NotesConcerns;
 use Vivutio\Core\Tests\Application\NotesModule\NotesController;
+use Vivutio\Core\Tests\Application\NotesModule\NotesMenu;
 use Vivutio\Core\Tests\Application\NotesModule\NotesScopes;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -199,6 +201,7 @@ final class Kernel extends BaseKernel
         $services->set('test.notes.concerns', NotesConcerns::class)
             ->tag(ConcernSourceInterface::TAG);
         $services->set(NotesController::class)->public();
+        $services->set(NotesMenu::class)->tag(MenuSourceInterface::TAG);
         $services->set('test.notes.scopes', NotesScopes::class)
             ->tag(ScopeSourceInterface::TAG);
         $services->set('test.notices.concerns', NoticesConcerns::class)

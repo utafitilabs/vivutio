@@ -18,9 +18,11 @@ use Vivutio\Bundle\ShellBundle\Access\ShellConcerns;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
+use Vivutio\Bundle\ShellBundle\Twig\MenuExtension;
 use Vivutio\Bundle\ShellBundle\Twig\OrganizationExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
+use Vivutio\Contracts\Shell\MenuSourceInterface;
 
 /*
  * Every service is defined explicitly, with an id prefixed by the bundle's
@@ -69,6 +71,11 @@ return static function (ContainerConfigurator $container): void {
      */
     $services->set('shell.twig.door', DoorExtension::class)
         ->args([service('security.authorization_checker')])
+        ->tag('twig.extension');
+
+    // The pages packages put in the menu, collected by the tag the contract names.
+    $services->set('shell.twig.menu', MenuExtension::class)
+        ->args([tagged_iterator(MenuSourceInterface::TAG), service('security.authorization_checker')])
         ->tag('twig.extension');
 
     $services->set('shell.twig.organization', OrganizationExtension::class)

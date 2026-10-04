@@ -32,6 +32,9 @@
         {%- set here = block('here') is defined ? block('here')|trim : '' -%}
         {% if organization %}<h2>{{ organization.name }}</h2>{% endif %}
         <a href="{{ path('shell_dashboard') }}" title="Dashboard"{{ 'dashboard' == here ? ' class="here"' }}>{{ icons.icon('dashboard') }}<span>Dashboard</span></a>
+        {% for entry in menu_entries() %}
+            <a href="{{ path(entry.route) }}" title="{{ entry.label }}"{{ entry.here == here ? ' class="here"' }}>{{ icons.paths(entry.icon) }}<span>{{ entry.label }}</span></a>
+        {% endfor %}
         {% if door('directory.read') or door('positions.read') or door('departments.read') or door('offices.read') or door('settings.read') %}<h2>Organization</h2>{% endif %}
         {% if door('directory.read') %}
             <a href="{{ path('identity_team') }}" title="Team"{{ 'team' == here ? ' class="here"' }}>{{ icons.icon('users') }}<span>Team</span></a>

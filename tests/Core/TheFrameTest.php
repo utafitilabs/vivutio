@@ -138,6 +138,21 @@ final class TheFrameTest extends MigrationsTestCase
     }
 
     /**
+     * A module puts its pages in the menu through the shell's seam, never by
+     * the core naming it: under the organization's name, after the dashboard,
+     * and only for whoever may open them.
+     */
+    public function testAModulesPagesJoinTheMenuForWhoeverMayOpenThem(): void
+    {
+        $tier = $this->open('/', $this->person('Neema', TierEnum::SuperAdmin));
+        self::assertSame(['Dashboard', 'Notes', 'Team', 'Departments', 'Offices', 'Positions', 'Settings'], $this->menu($tier));
+        self::assertSame('/notes', $tier->filter('nav.menu')->selectLink('Notes')->attr('href'));
+
+        $staff = $this->open('/', $this->person('Amani', TierEnum::Staff, ['notes.read'], 'Housekeeper'));
+        self::assertSame(['Dashboard'], $this->menu($staff), 'a module\'s pair needs a department that allows it');
+    }
+
+    /**
      * @param list<string>|null $grants
      */
     private function person(string $name, TierEnum $tier, ?array $grants = null, string $seat = 'Seat'): User
