@@ -354,6 +354,76 @@ Checks: `directory.manage`
 | Admin | redirected to /team/{new} |
 | Super Admin | answered 422 |
 
+## identity_departments: GET /team/departments
+
+Checks: `departments.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Departments · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Departments · vivutio |
+| Super Admin | allowed: Departments · vivutio |
+
+## identity_department_add: POST /team/departments
+
+Checks: `departments.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/departments/{new}/configure |
+| Super Admin | answered 422 |
+
+## identity_department: GET /team/departments/0199a6f0-de97-7e10-8000-00000000de97
+
+Checks: `departments.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: The probes' department · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: The probes' department · vivutio |
+| Super Admin | allowed: The probes' department · vivutio |
+
+## identity_department_configure: GET /team/departments/0199a6f0-de97-7e10-8000-00000000de97/configure
+
+Checks: `departments.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Configure The probes' department · vivutio |
+| Super Admin | allowed: Configure The probes' department · vivutio |
+
+## identity_department_configure: POST /team/departments/0199a6f0-de97-7e10-8000-00000000de97/configure
+
+Checks: `departments.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/departments/0199a6f0-de97-7e10-8000-00000000de97 |
+| Super Admin | redirected to /team/departments/0199a6f0-de97-7e10-8000-00000000de97 |
+
 ## identity_positions: GET /team/positions
 
 Checks: `positions.read`

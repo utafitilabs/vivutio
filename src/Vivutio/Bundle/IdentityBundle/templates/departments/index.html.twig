@@ -1,0 +1,45 @@
+{# The departments, ported from uhifadhi's register (departments/index.html,
+   option G): a name over who heads it, one fact a column, an Open door.
+   Adding one is the tiers' alone. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/departments/_macros.html.twig' as departments %}
+{% import '@Identity/positions/_macros.html.twig' as positions %}
+
+{% block title %}Departments{% endblock %}
+{% block here %}departments{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Organization / Departments</nav><div class="title"><h1>Departments</h1><span class="about">Who belongs where, who heads it, and what it allows</span></div></div></header>
+
+<div class="stack">
+    {% if door('departments.configure') %}
+    <form class="panel" method="post" action="{{ path('identity_department_add') }}" novalidate>
+        <header class="panel-head"><h2>Add a department</h2><p>Named by what it does; it allows nothing until it is told what it allows</p></header>
+        <input type="hidden" name="_token" value="{{ csrf_token('department_add') }}">
+        {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Add it again.</span></div>{% endif %}
+        <div class="grid-2"><div class="field{{ wrong ? ' wrong' }}"><label for="department-name">Name</label><input class="input" id="department-name" name="name" value="{{ typed }}" required maxlength="120">{% if wrong %}<div class="hint"><span>{{ wrong }}</span></div>{% endif %}</div></div>
+        <footer class="panel-foot"><span class="state"></span><button type="submit" class="button main">Add the department</button></footer>
+    </form>
+    {% endif %}
+
+    <section class="panel list">
+        <table class="table">
+            <thead><tr><th>Department</th><th style="width:220px">People</th><th style="width:170px">Allows</th><th style="width:90px"></th></tr></thead>
+            <tbody>
+            {% for summary in summaries %}
+                {%- set department = summary.department -%}
+                <tr data-department="{{ department.name }}">
+                    <td><div class="who"><span class="initials">{{ positions.initials(department.name) }}</span><div><b>{{ department.name }}</b><small data-head>{{ departments.head_line(summary) }}</small></div></div></td>
+                    <td data-members>{{ departments.members_line(summary) }}</td>
+                    <td data-allows>{% if department.getAllows() is empty %}<span class="chip warn">Allows nothing yet</span>{% else %}Allows {{ department.getAllows()|length }}{% endif %}</td>
+                    <td><a class="button outline" href="{{ path('identity_department', {uuid: department.uuid}) }}">Open</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4"><div class="empty"><b>No departments yet</b><span>Everybody below the tiers belongs to one: add them, then file people in them.</span></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

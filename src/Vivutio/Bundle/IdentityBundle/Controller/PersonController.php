@@ -27,16 +27,19 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
+use Vivutio\Bundle\IdentityBundle\Entity\Department;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\LinkPurposeEnum;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\EmailAlreadyUsedException;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidDepartmentException;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidPasswordException;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidPersonException;
 use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Model\TierChange;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
+use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
@@ -83,6 +86,7 @@ final readonly class PersonController
         private AccountLinkRepository $sentLinks,
         private MailAvailability $mail,
         private PasswordRulesService $rules,
+        private DepartmentRepository $departments,
     ) {
     }
 
@@ -264,10 +268,27 @@ final readonly class PersonController
         #[MapEntity(mapping: ['uuid' => 'uuid'])]
         User $person,
     ): Response {
-        $chosen = $request->getPayload()->getString('position');
+        $payload = $request->getPayload();
+        $chosen = $payload->getString('position');
+        $typedDepartment = $payload->getString('department');
+        $typedSupports = array_values(array_filter($payload->all('supports'), \is_string(...)));
+        $typed = ['position' => $chosen, 'department' => $typedDepartment];
 
         if (!$this->tokenIsValid('person_position', $request)) {
-            return $this->form($person, typed: ['position' => $chosen], expired: true);
+            return $this->form($person, typed: $typed, expired: true);
+        }
+
+        $department = '' === $typedDepartment ? null : $this->departmentNamed($typedDepartment);
+        if (false === $department) {
+            return $this->form($person, typed: $typed, wrong: ['department' => 'Choose one of the departments offered.']);
+        }
+        $supports = [];
+        foreach ($typedSupports as $supported) {
+            $found = $this->departmentNamed($supported);
+            if (false === $found) {
+                return $this->form($person, typed: $typed, wrong: ['department' => 'Choose among the departments offered.']);
+            }
+            $supports[] = $found;
         }
 
         $position = null;
@@ -276,11 +297,17 @@ final readonly class PersonController
             // anything else with an error, not an empty answer.
             $position = 1 === preg_match('{^'.Requirement::UUID.'$}D', $chosen) ? $this->positions->findOneBy(['uuid' => $chosen]) : null;
             if (null === $position) {
-                return $this->form($person, typed: ['position' => $chosen], wrong: ['position' => 'Choose one of the positions offered.']);
+                return $this->form($person, typed: $typed, wrong: ['position' => 'Choose one of the positions offered.']);
             }
         }
 
-        $this->accounts->changePosition($person, $position);
+        // The department first: a seat that heads one goes only to somebody who belongs.
+        try {
+            $this->accounts->changeDepartments($person, $department, $supports);
+            $this->accounts->changePosition($person, $position);
+        } catch (InvalidDepartmentException $refusal) {
+            return $this->form($person, typed: $typed, wrong: [$refusal->field => $refusal->getMessage()]);
+        }
 
         return $this->savedTo($request, $person, 'The position is saved.');
     }
@@ -391,6 +418,7 @@ final readonly class PersonController
             'email' => (string) $person->getEmail(),
             'tier' => $person->getTier()->value,
             'position' => (string) $person->getPosition()?->getUuid(),
+            'department' => (string) $person->getDepartment()?->getUuid(),
         ];
 
         return new Response($this->twig->render('@Identity/team/configure.html.twig', [
@@ -401,6 +429,7 @@ final readonly class PersonController
             'saved' => $saved,
             'tiers' => $tiers,
             'positions' => $this->positions->findBy([], ['name' => 'ASC']),
+            'departments' => $this->departments->findBy([], ['name' => 'ASC']),
             'last_super_admin' => $this->accounts->isLastActiveSuperAdmin($person),
             'may_deactivate' => $person->isActive() && $this->authorization->isGranted(AccountVoter::DEACTIVATE, $person),
             'mail_available' => $this->mail->isAvailable(),
@@ -423,6 +452,12 @@ final readonly class PersonController
             'positions' => $this->positions->findBy([], ['name' => 'ASC']),
             'mail_available' => $this->mail->isAvailable(),
         ]), [] === $wrong && !$expired ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /** The department a form names by its identifier, false for one that is not offered. */
+    private function departmentNamed(string $chosen): Department|false
+    {
+        return (1 === preg_match('{^'.Requirement::UUID.'$}D', $chosen) ? $this->departments->findOneBy(['uuid' => $chosen]) : null) ?? false;
     }
 
     /** The position a form names by its identifier, null for none, false for one that is not offered. */

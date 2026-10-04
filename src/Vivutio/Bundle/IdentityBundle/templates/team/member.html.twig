@@ -44,6 +44,9 @@
         <section class="panel">
             <header class="panel-head"><h2>Position</h2><p>What their seat is</p></header>
             <div class="fact"><span>Assigned position</span><b data-position>{{ person.position ? person.position.name : 'No position' }}</b></div>
+            {%- set department = person.department -%}
+            <div class="fact" data-department><span>Department</span><b>{% if department %}Belongs to {{ department.name }}{% if department.head %} · reports to {{ department.head.name }}{% endif %}{% else %}None yet{% endif %}</b></div>
+            {% if person.supports is not empty %}<div class="fact"><span>Supports</span><b>{{ person.supports|map(d => d.name)|join(', ') }}</b></div>{% endif %}
         </section>
         {% if show_grants %}
         <section class="panel" data-grants>

@@ -17,6 +17,7 @@ use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
+use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
@@ -33,6 +34,7 @@ use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
+use Vivutio\Bundle\IdentityBundle\Service\DepartmentDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentService;
 use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
 use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
@@ -252,6 +254,7 @@ return static function (ContainerConfigurator $container): void {
             service(AccountLinkRepository::class),
             service('identity.mail_availability'),
             service('identity.password_rules'),
+            service(DepartmentRepository::class),
         ])
         ->public();
     $services->alias(PersonController::class, 'identity.controller.person')->public();
@@ -270,6 +273,22 @@ return static function (ContainerConfigurator $container): void {
         ])
         ->public();
     $services->alias(PositionController::class, 'identity.controller.positions')->public();
+
+    $services->set('identity.department_directory', DepartmentDirectoryService::class)
+        ->args([service(DepartmentRepository::class), service(UserRepository::class), service(PositionRepository::class)]);
+
+    $services->set('identity.controller.departments', DepartmentController::class)
+        ->args([
+            service('twig'),
+            service('identity.departments'),
+            service('identity.department_directory'),
+            service('identity.position_matrix'),
+            service(PositionRepository::class),
+            service('security.csrf.token_manager'),
+            service('router'),
+        ])
+        ->public();
+    $services->alias(DepartmentController::class, 'identity.controller.departments')->public();
 
     /*
      * Whether mail can be sent at all, read from the transport MAILER_DSN

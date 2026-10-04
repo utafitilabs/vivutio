@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Core\Authority;
 
+use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
@@ -34,6 +35,8 @@ final class CoreProbes
     private const string CANARY = '/team/'.AuthorityTestCase::CANARY_UUID;
 
     private const string POSITION = '/team/positions/'.self::POSITION_UUID;
+
+    private const string DEPARTMENT = '/team/departments/'.AuthorityTestCase::DEPARTMENT_UUID;
 
     /**
      * @return list<Probe>
@@ -69,6 +72,12 @@ final class CoreProbes
             // Sent by each kind of person in turn, so the second allowed finds the address taken.
             new Probe(PersonController::CREATE, 'POST', '/team/add/create', ['first_name' => 'Added', 'last_name' => 'By a probe', 'email' => 'added.by.a.probe@vivutio-camps.example', 'password' => 'a first passphrase', 'position' => ''], formAt: '/team/add'),
             new Probe(PersonController::INVITE, 'POST', '/team/add/invite', ['email' => 'invited.by.a.probe@vivutio-camps.example', 'position' => ''], formAt: '/team/add'),
+            new Probe(DepartmentController::REGISTER, 'GET', '/team/departments'),
+            new Probe(DepartmentController::ADD, 'POST', '/team/departments', ['name' => 'Added by a probe'], formAt: '/team/departments'),
+            new Probe(DepartmentController::SHOW, 'GET', self::DEPARTMENT),
+            new Probe(DepartmentController::CONFIGURE, 'GET', self::DEPARTMENT.'/configure'),
+            // Allowing a module's pair to the department every Staff probe belongs to: from anybody below the tiers, an escalation.
+            new Probe(DepartmentController::CONFIGURE, 'POST', self::DEPARTMENT.'/configure', ['name' => AuthorityTestCase::DEPARTMENT_NAME, 'head' => '', 'allows' => ['notes.read']], formAt: self::DEPARTMENT.'/configure'),
             new Probe(PositionController::REGISTER, 'GET', '/team/positions'),
             new Probe(PositionController::ADD, 'POST', '/team/positions', ['name' => 'Added by a probe'], formAt: '/team/positions'),
             new Probe(PositionController::SHOW, 'GET', self::POSITION),

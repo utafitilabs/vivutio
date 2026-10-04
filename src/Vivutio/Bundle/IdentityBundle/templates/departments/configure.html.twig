@@ -1,0 +1,41 @@
+{# Configuring a department, ported from uhifadhi's configure-department:
+   its name, the position that heads it, and what it allows, saved together.
+   Each position offered as head says why it cannot be, where it cannot. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/positions/_macros.html.twig' as positions %}
+
+{% block title %}Configure {{ department.name }}{% endblock %}
+{% block here %}departments{% endblock %}
+
+{% block page %}
+<header class="page-head">
+    <span class="initials">{{ positions.initials(department.name) }}</span>
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('identity_departments') }}">Departments</a> / <a href="{{ path('identity_department', {uuid: department.uuid}) }}">{{ department.name }}</a> / Configure</nav><div class="title"><h1>{{ department.name }}</h1></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_department', {uuid: department.uuid}) }}">{{ icons.icon('record', 15) }} View department</a></div>
+</header>
+
+<form class="panel" method="post" action="{{ path('identity_department_configure', {uuid: department.uuid}) }}" novalidate>
+    <header class="panel-head"><h2>Department</h2><p>Its name, who heads it, and what it allows</p></header>
+    <input type="hidden" name="_token" value="{{ csrf_token('department_configure') }}">
+    {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Save again.</span></div>{% endif %}
+    {% if wrong.allows is defined %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>{{ wrong.allows }}</span></div>{% endif %}
+    <div class="grid-2">
+        <div class="field{{ wrong.name is defined ? ' wrong' }}"><label for="department-name">Name</label><input class="input" id="department-name" name="name" value="{{ name }}" required maxlength="120"><div class="hint"><span>{{ wrong.name ?? 'Named by what it does, never by a place' }}</span></div></div>
+        <div class="field{{ wrong.head is defined ? ' wrong' }}"><label for="department-head">Headed by</label>
+            <select class="select" id="department-head" name="head">
+                <option value="">No head yet</option>
+                {% for option in heads %}<option value="{{ option.position.uuid }}"{{ (option.position.uuid ~ '') == head ? ' selected' }}{{ option.possible ? '' : ' disabled' }}>{{ option.says }}</option>{% endfor %}
+            </select>
+            <div class="hint"><span>{{ wrong.head ?? 'A position one person holds, who belongs here' }}</span></div>
+        </div>
+    </div>
+    <span class="label">What it allows</span>
+    {% if matrix is empty %}
+        <p class="hint">No module is installed, so there is nothing for a department to allow yet.</p>
+    {% else %}
+        {{ positions.matrix(matrix, allows, true, 'allows') }}
+    {% endif %}
+    <footer class="panel-foot"><span class="state">Nothing is saved until Save</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save department</button></footer>
+</form>
+{% endblock %}

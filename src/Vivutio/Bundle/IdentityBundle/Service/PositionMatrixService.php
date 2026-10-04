@@ -39,15 +39,21 @@ final readonly class PositionMatrixService
     }
 
     /**
+     * @param bool $modulesOnly only the modules' concerns, what a department allows
+     *
      * @return list<MatrixGroup>
      */
-    public function matrix(): array
+    public function matrix(bool $modulesOnly = false): array
     {
         $groups = [];
 
         foreach ($this->catalogue->grouped() as $declaredBy => $concerns) {
             $rows = [];
             foreach ($concerns as $concern) {
+                if ($modulesOnly && null === $concern->moduleSlug()) {
+                    continue;
+                }
+
                 $cells = [];
                 foreach (Verb::cases() as $verb) {
                     $pair = (string) Grant::of($concern->key(), $verb);

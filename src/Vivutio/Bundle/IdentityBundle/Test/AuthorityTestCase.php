@@ -30,6 +30,7 @@ use Symfony\Component\Uid\Uuid;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\DependencyInjection\TaggedServices;
 use Vivutio\Bundle\IdentityBundle\DependencyInjection\TestServicesPass;
+use Vivutio\Bundle\IdentityBundle\Entity\Department;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
@@ -75,6 +76,17 @@ abstract class AuthorityTestCase extends WebTestCase
      * record and the canaries are checked on it.
      */
     public const string CANARY_UUID = '0199a6f0-c4f7-7e10-8000-00000000ca7a';
+
+    /**
+     * The department every Staff person a probe is sent as belongs to, under
+     * a fixed identifier: a write that raises what it allows raises what they
+     * hold, which the escalation proof then sees.
+     */
+    public const string DEPARTMENT_UUID = '0199a6f0-de97-7e10-8000-00000000de97';
+
+    public const string DEPARTMENT_NAME = 'The probes\' department';
+
+    private ?Department $department = null;
 
     /** An address nobody else has, so seeing it anywhere is seeing a person's details. */
     private const string CANARY = 'canary.c4f7e1@vivutio-camps.example';
@@ -146,6 +158,8 @@ abstract class AuthorityTestCase extends WebTestCase
             ->setFirstName('Aaron')
             ->setLastName('Canary')
             ->setUuid(Uuid::fromString(self::CANARY_UUID));
+        $this->department = (new Department())->setName(self::DEPARTMENT_NAME)->setUuid(Uuid::fromString(self::DEPARTMENT_UUID));
+        $this->entityManager()->persist($this->department);
         $this->seedSubjects($this->entityManager());
         $this->entityManager()->flush();
     }
@@ -515,6 +529,9 @@ abstract class AuthorityTestCase extends WebTestCase
             ->setTier($tier)
             ->setPosition($position)
             ->setPassword('a hash, never a password');
+        if (TierEnum::Staff === $tier && null !== $this->department) {
+            $user->setDepartment($this->entityManager()->getReference(Department::class, (int) $this->department->getId()));
+        }
 
         $em = $this->entityManager();
         $em->persist($user);
@@ -523,25 +540,29 @@ abstract class AuthorityTestCase extends WebTestCase
         return $user;
     }
 
-    /** What every account holds now, read from the database rather than from any object a page may have changed. */
+    /**
+     * What every account holds now, as the permission checks answer it, read
+     * afresh from the database rather than from any object a page changed: a
+     * write that raises a department's allowances shows here as surely as
+     * one that raises a position's grants.
+     */
     private function holdings(): Holdings
     {
+        $em = $this->entityManager();
+        $em->clear();
         $every = $this->catalogue()->pairs();
-        $people = [];
+        $security = static::getContainer()->get('security.helper');
+        self::assertInstanceOf(Security::class, $security);
 
-        foreach ($this->connection()->fetchAllAssociative('SELECT u.id, u.tier, u.active, p.grants FROM identity_user u LEFT JOIN identity_position p ON p.id = u.position_id') as $row) {
-            ['id' => $id, 'tier' => $tierName, 'active' => $active, 'grants' => $stored] = $row;
+        $people = [];
+        foreach ($em->getRepository(User::class)->findAll() as $user) {
+            $id = $user->getId();
             self::assertIsInt($id);
-            self::assertIsString($tierName);
-            self::assertIsBool($active);
-            $grants = \is_string($stored) ? json_decode($stored, true, flags: \JSON_THROW_ON_ERROR) : [];
-            self::assertIsArray($grants);
-            $tier = TierEnum::from($tierName);
 
             $people[$id] = [
-                'tier' => $tier->value,
-                'active' => $active,
-                'pairs' => $tier->holdsEveryPermission() ? $every : array_values(array_intersect(array_filter($grants, \is_string(...)), $every)),
+                'tier' => $user->getTier()->value,
+                'active' => $user->isActive(),
+                'pairs' => $user->isActive() ? array_values(array_filter($every, static fn (string $pair): bool => $security->isGrantedForUser($user, $pair))) : [],
             ];
         }
 

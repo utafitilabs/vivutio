@@ -52,7 +52,7 @@ final class CoreAuthorityTest extends AuthorityTestCase
         return __DIR__.'/authority-table.md';
     }
 
-    /** The position the core's probes open and configure. */
+    /** The position the core's probes open and configure; the department is the base's own. */
     protected function seedSubjects(EntityManagerInterface $entityManager): void
     {
         $entityManager->persist((new Position())

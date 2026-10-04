@@ -10,7 +10,7 @@
 
 {# The matrix, one table a package: a cell only where a position may carry the
    pair. Read-only marks it held or not; on the configure page it is a box. #}
-{% macro matrix(groups, held, editable) %}
+{% macro matrix(groups, held, editable, name = 'grants') %}
 {%- set verbs = {read: 'Read', record: 'Record', manage: 'Manage', configure: 'Configure', delete: 'Delete', export: 'Export'} -%}
 <div class="stack" data-matrix>
 {% for group in groups %}
@@ -23,7 +23,7 @@
                 {%- set pair = row.cells[verb] -%}
                 <td class="mid">
                 {%- if pair is null -%}
-                {%- elseif editable -%}<input type="checkbox" name="grants[]" value="{{ pair }}" aria-label="{{ row.label }}: {{ label }}"{{ pair in held ? ' checked' }}>
+                {%- elseif editable -%}<input type="checkbox" name="{{ name }}[]" value="{{ pair }}" aria-label="{{ row.label }}: {{ label }}"{{ pair in held ? ' checked' }}>
                 {%- elseif pair in held -%}<span class="chip ok" data-pair="{{ pair }}" data-on>{{ label }}</span>
                 {%- else -%}<span class="quiet" data-pair="{{ pair }}">&mdash;</span>
                 {%- endif -%}

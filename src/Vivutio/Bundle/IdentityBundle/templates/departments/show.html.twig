@@ -1,0 +1,53 @@
+{# A department's record, ported from uhifadhi's (People & access, D): the
+   band, who belongs and who supports it, and what it allows. Its Overview
+   and Settings tabs, the chart and the history wait for their features. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/departments/_macros.html.twig' as departments %}
+{% import '@Identity/positions/_macros.html.twig' as positions %}
+
+{% block title %}{{ summary.department.name }}{% endblock %}
+{% block here %}departments{% endblock %}
+
+{% block page %}
+{%- set department = summary.department -%}
+<header class="page-head">
+    <span class="initials">{{ positions.initials(department.name) }}</span>
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('identity_departments') }}">Departments</a> / {{ department.name }}</nav><div class="title"><h1>{{ department.name }}</h1><span class="about">{{ departments.head_line(summary) }}</span></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('identity_departments') }}">{{ icons.icon('left', 15) }} Back to departments</a>{% if door('departments.configure') %}<a class="button outline" href="{{ path('identity_department_configure', {uuid: department.uuid}) }}">Configure</a>{% endif %}</div>
+</header>
+
+{% if saved %}<div class="notice" role="status">{{ icons.icon('check') }}<span>The department is saved.</span></div>{% endif %}
+{% if department.getAllows() is empty %}<div class="notice warn" role="status">{{ icons.icon('alert') }}<span>{{ department.name }} allows nothing yet{% if summary.members is not empty %}: the {{ summary.members|length }} {{ summary.members|length == 1 ? 'person who belongs' : 'people who belong' }} to it {{ summary.members|length == 1 ? 'reaches' : 'reach' }} no module through it{% endif %}.</span></div>{% endif %}
+
+<div class="band">
+    <span class="f"><span class="k">Belong</span><span class="v">{{ summary.members|length }}<em>{{ summary.members|length == 1 ? 'person' : 'people' }}</em></span></span>
+    <span class="f"><span class="k">Support</span><span class="v">{{ summary.supporters|length }}<em>from other departments</em></span></span>
+    <span class="f"><span class="k">Allows</span><span class="v">{{ department.getAllows()|length }}<em>of the modules' permissions</em></span></span>
+</div>
+
+<div class="columns">
+    <div class="stack">
+        <section class="panel">
+            <header class="panel-head"><h2>What it allows</h2><p>The modules its people may reach, where their position grants it too</p></header>
+            {% if matrix is empty %}
+                <p class="hint">No module is installed, so there is nothing for a department to allow yet.</p>
+            {% else %}
+                {{ positions.matrix(matrix, department.getAllows(), false) }}
+            {% endif %}
+        </section>
+    </div>
+    <aside class="aside stack">
+        <section class="panel small" data-members>
+            <header class="panel-head"><h2>Members</h2></header>
+            {% for person in summary.members %}
+                <div class="action" data-member="{{ person.fullName }}"><div><a href="{{ path('identity_team_member', {uuid: person.uuid}) }}"><b>{{ person.fullName }}</b></a><span>{{ person == summary.headHolder ? 'heads it' : (person.position ? person.position.name : 'No position') }}</span></div></div>
+            {% endfor %}
+            {% for person in summary.supporters %}
+                <div class="action" data-member="{{ person.fullName }}"><div><a href="{{ path('identity_team_member', {uuid: person.uuid}) }}"><b>{{ person.fullName }}</b></a><span>supports, from {{ person.department ? person.department.name : 'no department' }}</span></div></div>
+            {% endfor %}
+            {% if summary.members is empty and summary.supporters is empty %}<p class="hint">Nobody belongs to it yet.</p>{% endif %}
+        </section>
+    </aside>
+</div>
+{% endblock %}

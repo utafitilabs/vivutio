@@ -37,6 +37,7 @@ final readonly class IdentityConcerns implements ConcernSourceInterface
     public const string DIRECTORY = 'directory';
     public const string PERSONAL_DETAILS = 'personal_details';
     public const string POSITIONS = 'positions';
+    public const string DEPARTMENTS = 'departments';
 
     public function declaredBy(): string
     {
@@ -77,6 +78,16 @@ final readonly class IdentityConcerns implements ConcernSourceInterface
             scopes: [Scope::ORGANIZATION],
             // Configuring them is composing what they grant, so a position
             // holding it could raise itself: the tiers' alone (uhifadhi #67).
+            tierOnly: [Verb::Configure],
+        );
+
+        yield new Concern(
+            key: self::DEPARTMENTS,
+            label: 'Departments',
+            description: 'Who belongs to each department, who heads it, and what it allows.',
+            verbs: [Verb::Read, Verb::Configure],
+            scopes: [Scope::ORGANIZATION],
+            // What a department allows lifts what Staff may do: the tiers' alone.
             tierOnly: [Verb::Configure],
         );
     }

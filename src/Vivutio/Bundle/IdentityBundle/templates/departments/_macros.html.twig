@@ -1,0 +1,10 @@
+{# Who heads a department, said in a line: "Head housekeeper · Amani Lyimo". #}
+{% macro head_line(summary) %}
+{%- set head = summary.department.head -%}
+{%- if head is null -%}No head yet{%- else -%}{{ head.name }} · {{ summary.headHolder ? summary.headHolder.fullName : 'vacant' }}{%- endif -%}
+{% endmacro %}
+
+{% macro members_line(summary) %}
+{%- set belong = summary.members|length -%}{%- set support = summary.supporters|length -%}
+{%- if belong == 0 and support == 0 -%}Nobody yet{%- else -%}{{ belong }} {{ belong == 1 ? 'belongs' : 'belong' }}{% if support > 0 %} · {{ support }} {{ support == 1 ? 'supports' : 'support' }}{% endif %}{%- endif -%}
+{% endmacro %}
