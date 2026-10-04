@@ -17,6 +17,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Vivutio\Bundle\IdentityBundle\Entity\Department;
+use Vivutio\Bundle\IdentityBundle\Entity\Office;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
@@ -221,8 +222,78 @@ final readonly class UserService
             throw new InvalidDepartmentException('department', \sprintf('%s holds %s, which heads %s, so they belong to %s.', $account->getFullName(), $seat->getName(), $heads->getName(), $heads->getName()));
         }
 
-        $account->setDepartment($department)
-            ->setSupports(array_values(array_filter($supports, static fn (Department $supported): bool => $supported !== $department)));
+        $supports = array_values(array_filter($supports, static fn (Department $supported): bool => $supported !== $department));
+        foreach ([...(null === $department ? [] : [$department]), ...$supports] as $chosen) {
+            $sitsAt = $chosen->getOffice();
+            if (null !== $sitsAt && $sitsAt !== $account->getPostedAt()) {
+                throw new InvalidDepartmentException('department', \sprintf('%s sits at %s, and %s is not posted there: the organization\'s departments, or those of the office one is posted at.', $chosen->getName(), $sitsAt->getName(), $account->getFullName()));
+            }
+        }
+
+        $account->setDepartment($department)->setSupports($supports);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Where somebody sits, in one change as their Position card saves it: the
+     * office they are posted at, the department they belong to and those they
+     * support (the organization's, or the new office's), and their seat (one
+     * that heads a department taking one person, who belongs to it).
+     *
+     * @param list<Department> $supports
+     *
+     * @throws InvalidDepartmentException
+     */
+    public function changeSeat(User $account, ?Office $office, ?Department $department, array $supports, ?Position $position): void
+    {
+        $supports = array_values(array_filter($supports, static fn (Department $supported): bool => $supported !== $department));
+        foreach ([...(null === $department ? [] : [$department]), ...$supports] as $chosen) {
+            $sitsAt = $chosen->getOffice();
+            if (null !== $sitsAt && $sitsAt !== $office) {
+                throw new InvalidDepartmentException('department', \sprintf('%s sits at %s, and %s would not be posted there: the organization\'s departments, or those of the office one is posted at.', $chosen->getName(), $sitsAt->getName(), $account->getFullName()));
+            }
+        }
+
+        $heads = null === $position ? null : $this->departments->findOneBy(['head' => $position]);
+        if (null !== $position && null !== $heads) {
+            foreach ($this->users->findBy(['position' => $position]) as $holder) {
+                if ($holder->getId() !== $account->getId()) {
+                    throw new InvalidDepartmentException('position', \sprintf('%s heads %s and is held by %s; a head is held by one person.', $position->getName(), $heads->getName(), $holder->getFullName()));
+                }
+            }
+            if ($department !== $heads) {
+                throw new InvalidDepartmentException('position', \sprintf('%s heads %s; whoever holds it must belong to %s.', $position->getName(), $heads->getName(), $heads->getName()));
+            }
+        }
+
+        if ($office !== $account->getPostedAt()) {
+            $account->setPosting($office, null === $office ? null : new \DateTimeImmutable());
+        }
+        $account->setDepartment($department)->setSupports($supports)->setPosition($position);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * The one office somebody is posted at, from today, or none. Moving them
+     * is refused while they belong to, or support, a department of the office
+     * they leave: those are chosen anew with the posting.
+     *
+     * @throws InvalidDepartmentException
+     */
+    public function changePosting(User $account, ?Office $office): void
+    {
+        if ($office === $account->getPostedAt()) {
+            return;
+        }
+
+        foreach ([...(null === $account->getDepartment() ? [] : [$account->getDepartment()]), ...$account->getSupports()] as $held) {
+            $sitsAt = $held->getOffice();
+            if (null !== $sitsAt && $sitsAt !== $office) {
+                throw new InvalidDepartmentException('department', \sprintf('%s belongs to or supports %s, which sits at %s: choose their departments with the new posting.', $account->getFullName(), $held->getName(), $sitsAt->getName()));
+            }
+        }
+
+        $account->setPosting($office, null === $office ? null : new \DateTimeImmutable());
         $this->entityManager->flush();
     }
 

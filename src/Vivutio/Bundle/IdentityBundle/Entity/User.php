@@ -76,6 +76,14 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Position $position = null;
 
+    /** The one place they are posted at, an office; a module's place, a property, is the module's to record. */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Office $postedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $postedSince = null;
+
     /** The one department they report to; the tiers need none. */
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -161,6 +169,24 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     public function __construct()
     {
         $this->supports = new ArrayCollection();
+    }
+
+    public function getPostedAt(): ?Office
+    {
+        return $this->postedAt;
+    }
+
+    public function getPostedSince(): ?\DateTimeImmutable
+    {
+        return $this->postedSince;
+    }
+
+    public function setPosting(?Office $office, ?\DateTimeImmutable $since): static
+    {
+        $this->postedAt = $office;
+        $this->postedSince = $since;
+
+        return $this;
     }
 
     public function getDepartment(): ?Department

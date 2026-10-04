@@ -15,6 +15,7 @@ namespace Vivutio\Core\Tests\Core\Authority;
 
 use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
+use Vivutio\Bundle\IdentityBundle\Controller\OfficeController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
@@ -32,11 +33,15 @@ final class CoreProbes
 {
     public const string POSITION_UUID = '0199a6f0-5ea7-7e10-8000-0000000005ea';
 
+    public const string OFFICE_UUID = '0199a6f0-0ff1-7e10-8000-000000000ff1';
+
     private const string CANARY = '/team/'.AuthorityTestCase::CANARY_UUID;
 
     private const string POSITION = '/team/positions/'.self::POSITION_UUID;
 
     private const string DEPARTMENT = '/team/departments/'.AuthorityTestCase::DEPARTMENT_UUID;
+
+    private const string OFFICE = '/team/offices/'.self::OFFICE_UUID;
 
     /**
      * @return list<Probe>
@@ -72,6 +77,11 @@ final class CoreProbes
             // Sent by each kind of person in turn, so the second allowed finds the address taken.
             new Probe(PersonController::CREATE, 'POST', '/team/add/create', ['first_name' => 'Added', 'last_name' => 'By a probe', 'email' => 'added.by.a.probe@vivutio-camps.example', 'password' => 'a first passphrase', 'position' => ''], formAt: '/team/add'),
             new Probe(PersonController::INVITE, 'POST', '/team/add/invite', ['email' => 'invited.by.a.probe@vivutio-camps.example', 'position' => ''], formAt: '/team/add'),
+            new Probe(OfficeController::REGISTER, 'GET', '/team/offices'),
+            new Probe(OfficeController::ADD, 'POST', '/team/offices', ['name' => 'Added by a probe', 'city' => 'Nairobi', 'country' => 'Kenya'], formAt: '/team/offices'),
+            new Probe(OfficeController::SHOW, 'GET', self::OFFICE),
+            new Probe(OfficeController::CONFIGURE, 'GET', self::OFFICE.'/configure'),
+            new Probe(OfficeController::CONFIGURE, 'POST', self::OFFICE.'/configure', ['name' => 'Probed office', 'city' => 'Arusha', 'country' => 'Tanzania'], formAt: self::OFFICE.'/configure'),
             new Probe(DepartmentController::REGISTER, 'GET', '/team/departments'),
             new Probe(DepartmentController::ADD, 'POST', '/team/departments', ['name' => 'Added by a probe'], formAt: '/team/departments'),
             new Probe(DepartmentController::SHOW, 'GET', self::DEPARTMENT),

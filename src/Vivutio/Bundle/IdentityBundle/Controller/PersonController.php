@@ -40,6 +40,7 @@ use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Model\TierChange;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
+use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
@@ -87,6 +88,7 @@ final readonly class PersonController
         private MailAvailability $mail,
         private PasswordRulesService $rules,
         private DepartmentRepository $departments,
+        private OfficeRepository $offices,
     ) {
     }
 
@@ -272,10 +274,19 @@ final readonly class PersonController
         $chosen = $payload->getString('position');
         $typedDepartment = $payload->getString('department');
         $typedSupports = array_values(array_filter($payload->all('supports'), \is_string(...)));
-        $typed = ['position' => $chosen, 'department' => $typedDepartment];
+        $typedOffice = $payload->getString('posted_at');
+        $typed = ['position' => $chosen, 'department' => $typedDepartment, 'posted_at' => $typedOffice];
 
         if (!$this->tokenIsValid('person_position', $request)) {
             return $this->form($person, typed: $typed, expired: true);
+        }
+
+        $office = null;
+        if ('' !== $typedOffice) {
+            $office = 1 === preg_match('{^'.Requirement::UUID.'$}D', $typedOffice) ? $this->offices->findOneBy(['uuid' => $typedOffice]) : null;
+            if (null === $office) {
+                return $this->form($person, typed: $typed, wrong: ['posted_at' => 'Choose one of the offices offered.']);
+            }
         }
 
         $department = '' === $typedDepartment ? null : $this->departmentNamed($typedDepartment);
@@ -301,10 +312,8 @@ final readonly class PersonController
             }
         }
 
-        // The department first: a seat that heads one goes only to somebody who belongs.
         try {
-            $this->accounts->changeDepartments($person, $department, $supports);
-            $this->accounts->changePosition($person, $position);
+            $this->accounts->changeSeat($person, $office, $department, $supports, $position);
         } catch (InvalidDepartmentException $refusal) {
             return $this->form($person, typed: $typed, wrong: [$refusal->field => $refusal->getMessage()]);
         }
@@ -419,6 +428,7 @@ final readonly class PersonController
             'tier' => $person->getTier()->value,
             'position' => (string) $person->getPosition()?->getUuid(),
             'department' => (string) $person->getDepartment()?->getUuid(),
+            'posted_at' => (string) $person->getPostedAt()?->getUuid(),
         ];
 
         return new Response($this->twig->render('@Identity/team/configure.html.twig', [
@@ -430,6 +440,7 @@ final readonly class PersonController
             'tiers' => $tiers,
             'positions' => $this->positions->findBy([], ['name' => 'ASC']),
             'departments' => $this->departments->findBy([], ['name' => 'ASC']),
+            'offices' => $this->offices->findBy([], ['name' => 'ASC']),
             'last_super_admin' => $this->accounts->isLastActiveSuperAdmin($person),
             'may_deactivate' => $person->isActive() && $this->authorization->isGranted(AccountVoter::DEACTIVATE, $person),
             'mail_available' => $this->mail->isAvailable(),

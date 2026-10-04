@@ -19,6 +19,7 @@ use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
 use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
+use Vivutio\Bundle\IdentityBundle\Controller\OfficeController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\PersonController;
 use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
@@ -27,6 +28,7 @@ use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
+use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\OrganizationRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
@@ -38,6 +40,8 @@ use Vivutio\Bundle\IdentityBundle\Service\DepartmentDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentService;
 use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
 use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
+use Vivutio\Bundle\IdentityBundle\Service\OfficeDirectoryService;
+use Vivutio\Bundle\IdentityBundle\Service\OfficeService;
 use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
 use Vivutio\Bundle\IdentityBundle\Service\PasswordRulesService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionMatrixService;
@@ -116,6 +120,10 @@ return static function (ContainerConfigurator $container): void {
             service('identity.access.catalogue'),
         ]);
     $services->alias(DepartmentService::class, 'identity.departments');
+
+    $services->set('identity.offices', OfficeService::class)
+        ->args([service('doctrine.orm.entity_manager'), service(OfficeRepository::class)]);
+    $services->alias(OfficeService::class, 'identity.offices');
 
     /*
      * Every way a position comes into being or changes what it grants,
@@ -255,6 +263,7 @@ return static function (ContainerConfigurator $container): void {
             service('identity.mail_availability'),
             service('identity.password_rules'),
             service(DepartmentRepository::class),
+            service(OfficeRepository::class),
         ])
         ->public();
     $services->alias(PersonController::class, 'identity.controller.person')->public();
@@ -284,11 +293,26 @@ return static function (ContainerConfigurator $container): void {
             service('identity.department_directory'),
             service('identity.position_matrix'),
             service(PositionRepository::class),
+            service(OfficeRepository::class),
             service('security.csrf.token_manager'),
             service('router'),
         ])
         ->public();
     $services->alias(DepartmentController::class, 'identity.controller.departments')->public();
+
+    $services->set('identity.office_directory', OfficeDirectoryService::class)
+        ->args([service(OfficeRepository::class), service(UserRepository::class), service(DepartmentRepository::class)]);
+
+    $services->set('identity.controller.offices', OfficeController::class)
+        ->args([
+            service('twig'),
+            service('identity.offices'),
+            service('identity.office_directory'),
+            service('security.csrf.token_manager'),
+            service('router'),
+        ])
+        ->public();
+    $services->alias(OfficeController::class, 'identity.controller.offices')->public();
 
     /*
      * Whether mail can be sent at all, read from the transport MAILER_DSN
@@ -354,6 +378,9 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
     $services->set(DepartmentRepository::class)
+        ->args([service('doctrine')])
+        ->tag('doctrine.repository_service');
+    $services->set(OfficeRepository::class)
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
     $services->set(OrganizationRepository::class)

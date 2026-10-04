@@ -32,12 +32,15 @@
         {%- set here = block('here') is defined ? block('here')|trim : '' -%}
         {% if organization %}<h2>{{ organization.name }}</h2>{% endif %}
         <a href="{{ path('shell_dashboard') }}" title="Dashboard"{{ 'dashboard' == here ? ' class="here"' }}>{{ icons.icon('dashboard') }}<span>Dashboard</span></a>
-        {% if door('directory.read') or door('positions.read') or door('departments.read') or door('settings.read') %}<h2>Organization</h2>{% endif %}
+        {% if door('directory.read') or door('positions.read') or door('departments.read') or door('offices.read') or door('settings.read') %}<h2>Organization</h2>{% endif %}
         {% if door('directory.read') %}
             <a href="{{ path('identity_team') }}" title="Team"{{ 'team' == here ? ' class="here"' }}>{{ icons.icon('users') }}<span>Team</span></a>
         {% endif %}
         {% if door('departments.read') %}
             <a href="{{ path('identity_departments') }}" title="Departments"{{ 'departments' == here ? ' class="here"' }}>{{ icons.icon('departments') }}<span>Departments</span></a>
+        {% endif %}
+        {% if door('offices.read') %}
+            <a href="{{ path('identity_offices') }}" title="Offices"{{ 'offices' == here ? ' class="here"' }}>{{ icons.icon('offices') }}<span>Offices</span></a>
         {% endif %}
         {% if door('positions.read') %}
             <a href="{{ path('identity_positions') }}" title="Positions"{{ 'positions' == here ? ' class="here"' }}>{{ icons.icon('seat') }}<span>Positions</span></a>

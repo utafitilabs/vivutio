@@ -13,6 +13,19 @@
 
 {% macro hint(name, wrong, otherwise) %}<div class="hint"><span>{{ wrong[name] ?? otherwise }}</span></div>{% endmacro %}
 
+{% macro departments_table(title, list, values, person, office) -%}
+    <table class="table"{% if office %} data-office="{{ office.uuid }}"{% if (office.uuid ~ '') != values.posted_at %} hidden{% endif %}{% endif %}>
+        <thead><tr><th>{{ title }}</th><th class="mid">Belongs to</th><th class="mid">Supports</th></tr></thead>
+        <tbody>
+        {% for department in list %}
+            <tr><td>{{ department.name }}</td>
+                <td class="mid"><input type="radio" name="department" value="{{ department.uuid }}" aria-label="Belongs to {{ department.name }}"{{ (department.uuid ~ '') == values.department ? ' checked' }}></td>
+                <td class="mid"><input type="checkbox" name="supports[]" value="{{ department.uuid }}" aria-label="Supports {{ department.name }}"{{ department in person.supports ? ' checked' }}></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
 {% block page %}
 {%- import _self as form -%}
 {%- set tier_says = {super_admin: 'Every permission, and may sign in as another person', admin: 'Every permission; puts a wrong position right', staff: 'Exactly what their position grants'} -%}
@@ -74,18 +87,21 @@
                     {{ form.hint('position', wrong, person.tier.holdsEveryPermission ? 'A ' ~ person.tier.label ~ ' holds every permission without one' : 'What it grants is what they may do') }}
                 </div>
             </div>
+            {% if offices is not empty %}
+            <div class="grid-2"><div class="field{{ wrong.posted_at is defined ? ' wrong' }}"><label for="posted-at">Posted at</label>
+                <select class="select" id="posted-at" name="posted_at" data-posted>
+                    <option value="">Not posted</option>
+                    <optgroup label="Offices">{% for office in offices %}<option value="{{ office.uuid }}"{{ (office.uuid ~ '') == values.posted_at ? ' selected' }}>{{ office.name }} &middot; {{ office.city }}</option>{% endfor %}</optgroup>
+                </select>
+                <div class="hint"><span>{{ wrong.posted_at ?? 'One place; its departments are offered beside the organization\'s' }}</span></div>
+            </div></div>
+            {% endif %}
             {% if departments is not empty %}
             <div class="field{{ wrong.department is defined ? ' wrong' }}"><span class="label">Departments <small>&middot; belongs to one, supports any number</small></span>
-                <div class="tables"><table class="table">
-                    <thead><tr><th>Organization</th><th class="mid">Belongs to</th><th class="mid">Supports</th></tr></thead>
-                    <tbody>
-                    {% for department in departments %}
-                        <tr><td>{{ department.name }}</td>
-                            <td class="mid"><input type="radio" name="department" value="{{ department.uuid }}" aria-label="Belongs to {{ department.name }}"{{ (department.uuid ~ '') == values.department ? ' checked' }}></td>
-                            <td class="mid"><input type="checkbox" name="supports[]" value="{{ department.uuid }}" aria-label="Supports {{ department.name }}"{{ department in person.supports ? ' checked' }}></td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table></div>
+                <div class="tables">
+                    {{ form.departments_table('Organization', departments|filter(d => d.office is null), values, person, null) }}
+                    {% for office in offices %}{% set here = departments|filter(d => d.office == office) %}{% if here is not empty %}{{ form.departments_table(office.name, here, values, person, office) }}{% endif %}{% endfor %}
+                </div>
                 {% if wrong.department is defined %}<div class="hint"><span>{{ wrong.department }}</span></div>{% elseif not person.tier.holdsEveryPermission and values.department == '' %}<div class="hint"><span>Without a department they reach no module</span></div>{% endif %}
             </div>
             {% endif %}
@@ -118,6 +134,14 @@
 </div>
 <script>
 document.addEventListener("change", function (e) {
+    var posted = e.target.closest("select[data-posted]");
+    if (posted) {
+        document.querySelectorAll("table[data-office]").forEach(function (t) {
+            var shown = t.getAttribute("data-office") === posted.value;
+            t.hidden = !shown;
+            if (!shown) { t.querySelectorAll("input").forEach(function (i) { i.checked = false; }); }
+        });
+    }
     var option = e.target.closest("[data-tiers] .option");
     if (option) { document.querySelector("[data-tier-says]").textContent = option.getAttribute("data-says"); }
 });

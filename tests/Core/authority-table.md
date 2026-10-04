@@ -354,6 +354,76 @@ Checks: `directory.manage`
 | Admin | redirected to /team/{new} |
 | Super Admin | answered 422 |
 
+## identity_offices: GET /team/offices
+
+Checks: `offices.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Offices · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Offices · vivutio |
+| Super Admin | allowed: Offices · vivutio |
+
+## identity_office_add: POST /team/offices
+
+Checks: `offices.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/offices/{new} |
+| Super Admin | answered 422 |
+
+## identity_office: GET /team/offices/0199a6f0-0ff1-7e10-8000-000000000ff1
+
+Checks: `offices.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Probed office · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Probed office · vivutio |
+| Super Admin | allowed: Probed office · vivutio |
+
+## identity_office_configure: GET /team/offices/0199a6f0-0ff1-7e10-8000-000000000ff1/configure
+
+Checks: `offices.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Configure Probed office · vivutio |
+| Super Admin | allowed: Configure Probed office · vivutio |
+
+## identity_office_configure: POST /team/offices/0199a6f0-0ff1-7e10-8000-000000000ff1/configure
+
+Checks: `offices.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /team/offices/0199a6f0-0ff1-7e10-8000-000000000ff1 |
+| Super Admin | redirected to /team/offices/0199a6f0-0ff1-7e10-8000-000000000ff1 |
+
 ## identity_departments: GET /team/departments
 
 Checks: `departments.read`

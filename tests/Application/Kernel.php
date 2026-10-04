@@ -186,6 +186,7 @@ final class Kernel extends BaseKernel
         $services->alias(self::ORGANIZATIONS, 'identity.organizations')->public();
         $services->alias('test_public.departments', 'identity.departments')->public();
         $services->alias('test_public.accounts', 'identity.accounts')->public();
+        $services->alias('test_public.offices', 'identity.offices')->public();
         $services->alias('test_public.organization_identity', OrganizationIdentitySourceInterface::SERVICE)->public();
 
         // An installation provides a logger that writes to its own files. This

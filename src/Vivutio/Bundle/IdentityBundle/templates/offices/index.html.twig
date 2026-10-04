@@ -1,0 +1,47 @@
+{# The offices, after uhifadhi's stations register: a name over where it is,
+   one fact a column, an Open door. Adding one is the tiers' alone. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/positions/_macros.html.twig' as positions %}
+
+{% block title %}Offices{% endblock %}
+{% block here %}offices{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Organization / Offices</nav><div class="title"><h1>Offices</h1><span class="about">Where people are posted, and which departments sit where</span></div></div></header>
+
+<div class="stack">
+    {% if door('offices.configure') %}
+    <form class="panel" method="post" action="{{ path('identity_office_add') }}" novalidate>
+        <header class="panel-head"><h2>Add an office</h2><p>A place of the organization's own, in a real city</p></header>
+        <input type="hidden" name="_token" value="{{ csrf_token('office_add') }}">
+        {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Add it again.</span></div>{% endif %}
+        <div class="grid-3">
+            {% for field, label in {name: 'Name', city: 'City', country: 'Country'} %}
+                <div class="field{{ wrong[field] is defined ? ' wrong' }}"><label for="office-{{ field }}">{{ label }}</label><input class="input" id="office-{{ field }}" name="{{ field }}" value="{{ typed[field] ?? '' }}" required>{% if wrong[field] is defined %}<div class="hint"><span>{{ wrong[field] }}</span></div>{% endif %}</div>
+            {% endfor %}
+        </div>
+        <footer class="panel-foot"><span class="state"></span><button type="submit" class="button main">Add the office</button></footer>
+    </form>
+    {% endif %}
+
+    <section class="panel list">
+        <table class="table">
+            <thead><tr><th>Office</th><th style="width:170px">Posted</th><th style="width:170px">Departments</th><th style="width:90px"></th></tr></thead>
+            <tbody>
+            {% for summary in summaries %}
+                {%- set office = summary.office -%}
+                <tr data-office="{{ office.name }}">
+                    <td><div class="who"><span class="initials">{{ positions.initials(office.name) }}</span><div><b>{{ office.name }}</b><small data-where>{{ office.city }}, {{ office.country }}</small></div></div></td>
+                    <td data-posted>{{ summary.posted|length }} posted</td>
+                    <td data-departments>{{ summary.departments|length }} {{ summary.departments|length == 1 ? 'department' : 'departments' }}</td>
+                    <td><a class="button outline" href="{{ path('identity_office', {uuid: office.uuid}) }}">Open</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4"><div class="empty"><b>No offices yet</b><span>An office is where people are posted: add the first.</span></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

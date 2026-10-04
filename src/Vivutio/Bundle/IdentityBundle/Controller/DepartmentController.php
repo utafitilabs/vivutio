@@ -28,6 +28,7 @@ use Twig\Environment;
 use Vivutio\Bundle\IdentityBundle\Entity\Department;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidDepartmentException;
 use Vivutio\Bundle\IdentityBundle\Exception\UngrantablePairsException;
+use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentService;
@@ -56,6 +57,7 @@ final readonly class DepartmentController
         private DepartmentDirectoryService $directory,
         private PositionMatrixService $matrix,
         private PositionRepository $positions,
+        private OfficeRepository $offices,
         private CsrfTokenManagerInterface $tokens,
         private UrlGeneratorInterface $urls,
     ) {
@@ -113,34 +115,44 @@ final readonly class DepartmentController
         Department $department,
     ): Response {
         if (!$request->isMethod('POST')) {
-            return $this->configurePage($department, $department->getName(), (string) $department->getHead()?->getUuid(), $department->getAllows());
+            return $this->configurePage($department, $department->getName(), (string) $department->getHead()?->getUuid(), $department->getAllows(), (string) $department->getOffice()?->getUuid());
         }
 
         $payload = $request->getPayload();
         $name = $payload->getString('name');
         $head = $payload->getString('head');
         $allows = array_values(array_filter($payload->all('allows'), \is_string(...)));
+        $sitsAt = $payload->getString('office');
 
         if (!$this->tokens->isTokenValid(new CsrfToken('department_configure', $payload->getString('_token')))) {
-            return $this->configurePage($department, $name, $head, $allows, expired: true);
+            return $this->configurePage($department, $name, $head, $allows, $sitsAt, expired: true);
+        }
+
+        $office = null;
+        if ('' !== $sitsAt) {
+            $office = 1 === preg_match('{^'.Requirement::UUID.'$}D', $sitsAt) ? $this->offices->findOneBy(['uuid' => $sitsAt]) : null;
+            if (null === $office) {
+                return $this->configurePage($department, $name, $head, $allows, $sitsAt, wrong: ['office' => 'Choose the organization or one of the offices offered.']);
+            }
         }
 
         $position = null;
         if ('' !== $head) {
             $position = 1 === preg_match('{^'.Requirement::UUID.'$}D', $head) ? $this->positions->findOneBy(['uuid' => $head]) : null;
             if (null === $position) {
-                return $this->configurePage($department, $name, $head, $allows, wrong: ['head' => 'Choose one of the positions offered.']);
+                return $this->configurePage($department, $name, $head, $allows, $sitsAt, wrong: ['head' => 'Choose one of the positions offered.']);
             }
         }
 
         try {
+            $this->service->moveTo($department, $office);
             $this->service->rename($department, $name);
             $this->service->changeHead($department, $position);
             $this->service->changeAllows($department, $allows);
         } catch (InvalidDepartmentException $refusal) {
-            return $this->configurePage($department, $name, $head, $allows, wrong: [$refusal->field => $refusal->getMessage()]);
+            return $this->configurePage($department, $name, $head, $allows, $sitsAt, wrong: [$refusal->field => $refusal->getMessage()]);
         } catch (UngrantablePairsException $refusal) {
-            return $this->configurePage($department, $name, $head, $allows, wrong: ['allows' => $refusal->getMessage()]);
+            return $this->configurePage($department, $name, $head, $allows, $sitsAt, wrong: ['allows' => $refusal->getMessage()]);
         }
 
         $session = $request->getSession();
@@ -165,13 +177,15 @@ final readonly class DepartmentController
      * @param list<string>          $allows
      * @param array<string, string> $wrong
      */
-    private function configurePage(Department $department, string $name, string $head, array $allows, array $wrong = [], bool $expired = false): Response
+    private function configurePage(Department $department, string $name, string $head, array $allows, string $office, array $wrong = [], bool $expired = false): Response
     {
         return new Response($this->twig->render('@Identity/departments/configure.html.twig', [
             'department' => $department,
             'name' => $name,
             'head' => $head,
             'allows' => $allows,
+            'office' => $office,
+            'offices' => $this->offices->findBy([], ['name' => 'ASC']),
             'heads' => $this->directory->headOptions($department),
             'matrix' => $this->matrix->matrix(modulesOnly: true),
             'wrong' => $wrong,

@@ -45,6 +45,11 @@ class Department
     #[ORM\Column(length: self::NAME_MAX_LENGTH)]
     private string $name = '';
 
+    /** The office it sits at, or null for the organization's own. */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Office $office = null;
+
     /** The position whose one holder heads it; a position heads one department at most. */
     #[ORM\OneToOne]
     #[ORM\JoinColumn(nullable: true, unique: true, onDelete: 'SET NULL')]
@@ -67,6 +72,18 @@ class Department
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getOffice(): ?Office
+    {
+        return $this->office;
+    }
+
+    public function setOffice(?Office $office): static
+    {
+        $this->office = $office;
 
         return $this;
     }

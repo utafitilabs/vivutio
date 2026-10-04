@@ -35,11 +35,15 @@ final readonly class DepartmentDirectoryService
     }
 
     /**
-     * @return list<DepartmentSummary> by name
+     * @return list<DepartmentSummary> the organization's, then each office's, by name
      */
     public function summaries(): array
     {
-        return array_map(fn (Department $department): DepartmentSummary => $this->summary($department), $this->departments->findBy([], ['name' => 'ASC']));
+        $departments = $this->departments->findBy([], ['name' => 'ASC']);
+        // The organization's first, then each office's, by the office's name.
+        usort($departments, static fn (Department $a, Department $b): int => [null !== $a->getOffice(), $a->getOffice()?->getName(), $a->getName()] <=> [null !== $b->getOffice(), $b->getOffice()?->getName(), $b->getName()]);
+
+        return array_map(fn (Department $department): DepartmentSummary => $this->summary($department), $departments);
     }
 
     public function summary(Department $department): DepartmentSummary

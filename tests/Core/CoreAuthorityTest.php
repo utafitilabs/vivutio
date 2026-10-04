@@ -18,6 +18,7 @@ use Symfony\Component\Uid\Uuid;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\PasswordController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
+use Vivutio\Bundle\IdentityBundle\Entity\Office;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Test\AuthorityTestCase;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
@@ -52,13 +53,18 @@ final class CoreAuthorityTest extends AuthorityTestCase
         return __DIR__.'/authority-table.md';
     }
 
-    /** The position the core's probes open and configure; the department is the base's own. */
+    /** The position and the office the core's probes open and configure; the department is the base's own. */
     protected function seedSubjects(EntityManagerInterface $entityManager): void
     {
         $entityManager->persist((new Position())
             ->setName('Probed seat')
             ->setGrants(['directory.read'])
             ->setUuid(Uuid::fromString(CoreProbes::POSITION_UUID)));
+        $entityManager->persist((new Office())
+            ->setName('Probed office')
+            ->setCity('Arusha')
+            ->setCountry('Tanzania')
+            ->setUuid(Uuid::fromString(CoreProbes::OFFICE_UUID)));
     }
 
     protected static function openRoutes(): array

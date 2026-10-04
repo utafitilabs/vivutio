@@ -30,6 +30,15 @@
             <div class="hint"><span>{{ wrong.head ?? 'A position one person holds, who belongs here' }}</span></div>
         </div>
     </div>
+    {% if offices is not empty %}
+    <div class="grid-2"><div class="field{{ wrong.office is defined ? ' wrong' }}"><label for="department-office">Sits at</label>
+        <select class="select" id="department-office" name="office">
+            <option value="">The organization</option>
+            {% for place in offices %}<option value="{{ place.uuid }}"{{ (place.uuid ~ '') == office ? ' selected' }}>{{ place.name }} &middot; {{ place.city }}</option>{% endfor %}
+        </select>
+        <div class="hint"><span>{{ wrong.office ?? 'Everybody in it is posted where it sits' }}</span></div>
+    </div></div>
+    {% endif %}
     <span class="label">What it allows</span>
     {% if matrix is empty %}
         <p class="hint">No module is installed, so there is nothing for a department to allow yet.</p>
