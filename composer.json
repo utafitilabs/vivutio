@@ -21,6 +21,7 @@
         "php": ">=8.4",
         "ext-filter": "*",
         "ext-mbstring": "*",
+        "doctrine/collections": "^3.0",
         "doctrine/dbal": "^4.0",
         "doctrine/doctrine-bundle": "^3.0",
         "doctrine/doctrine-migrations-bundle": "^4.0",

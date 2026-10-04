@@ -16,13 +16,16 @@ namespace Vivutio\Bundle\IdentityBundle\Service;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Vivutio\Bundle\IdentityBundle\Entity\Department;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\EmailAlreadyUsedException;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidDepartmentException;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidPersonException;
 use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Exception\PasswordTooShortException;
+use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 
 /**
@@ -42,6 +45,7 @@ final readonly class UserService
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $hasher,
         private UserRepository $users,
+        private DepartmentRepository $departments,
     ) {
     }
 
@@ -176,10 +180,49 @@ final readonly class UserService
         }
     }
 
-    /** The seat, or none: a tier holds every permission without one. */
+    /**
+     * The seat, or none: a tier holds every permission without one. A seat
+     * that heads a department takes one person, who belongs to it.
+     *
+     * @throws InvalidDepartmentException
+     */
     public function changePosition(User $account, ?Position $position): void
     {
+        $heads = null === $position ? null : $this->departments->findOneBy(['head' => $position]);
+        if (null !== $position && null !== $heads) {
+            foreach ($this->users->findBy(['position' => $position]) as $holder) {
+                if ($holder->getId() !== $account->getId()) {
+                    throw new InvalidDepartmentException('position', \sprintf('%s heads %s and is held by %s; a head is held by one person.', $position->getName(), $heads->getName(), $holder->getFullName()));
+                }
+            }
+            if ($account->getDepartment() !== $heads) {
+                throw new InvalidDepartmentException('position', \sprintf('%s heads %s; whoever holds it must belong to %s.', $position->getName(), $heads->getName(), $heads->getName()));
+            }
+        }
+
         $account->setPosition($position);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * The one department somebody belongs to, and those they support; their
+     * own is never also one they support. Whoever holds a department's head
+     * seat stays in that department.
+     *
+     * @param list<Department> $supports
+     *
+     * @throws InvalidDepartmentException
+     */
+    public function changeDepartments(User $account, ?Department $department, array $supports): void
+    {
+        $seat = $account->getPosition();
+        $heads = null === $seat ? null : $this->departments->findOneBy(['head' => $seat]);
+        if (null !== $seat && null !== $heads && $heads !== $department) {
+            throw new InvalidDepartmentException('department', \sprintf('%s holds %s, which heads %s, so they belong to %s.', $account->getFullName(), $seat->getName(), $heads->getName(), $heads->getName()));
+        }
+
+        $account->setDepartment($department)
+            ->setSupports(array_values(array_filter($supports, static fn (Department $supported): bool => $supported !== $department)));
         $this->entityManager->flush();
     }
 

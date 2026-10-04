@@ -39,8 +39,8 @@ use Vivutio\Contracts\Access\Grant;
  *   4. Staff hold what their position grants and nothing more.
  *   5. A module's pair also needs a department: everybody but the tiers
  *      belongs to exactly one, and a person without one reaches no module.
- *      Departments are not stored yet, so for now nobody below the tiers has
- *      one, and a module's pair is refused to all Staff.
+ *      It holds when their department, or one they support, allows it; a
+ *      new department allows nothing.
  *
  * Where a grant reaches, a place or a department's records, is asked of the
  * subject once postings and departments are stored. Until then a position's
@@ -118,12 +118,25 @@ final class GrantVoter extends Voter
 
         $grant = Grant::parse($attribute);
         $module = $this->catalogue->moduleOf($grant->concern);
-        if (null !== $module) {
+        if (null === $module) {
+            return true;
+        }
+
+        $department = $user->getDepartment();
+        if (null === $department) {
             $vote?->addReason(\sprintf('"%s" belongs to the %s module, and %s belongs to no department, so they reach no module.', $attribute, $module, $user->getFullName()));
 
             return false;
         }
 
-        return true;
+        foreach ([$department, ...$user->getSupports()] as $reaching) {
+            if ($reaching->allows($attribute)) {
+                return true;
+            }
+        }
+
+        $vote?->addReason(\sprintf('"%s" belongs to the %s module, and neither %s nor a department %s supports allows it.', $attribute, $module, $department->getName(), $user->getFullName()));
+
+        return false;
     }
 }

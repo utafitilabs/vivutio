@@ -22,8 +22,9 @@ final class UngrantablePairsException extends \DomainException
 {
     /**
      * @param array<string, string> $reasons each refused pair with the reason it was refused
+     * @param string                $lead    what refused them
      */
-    public function __construct(array $reasons)
+    public function __construct(array $reasons, string $lead = 'A position cannot carry these')
     {
         $this->pairs = array_keys($reasons);
 
@@ -32,7 +33,7 @@ final class UngrantablePairsException extends \DomainException
             $lines[] = \sprintf('"%s": %s', $pair, $reason);
         }
 
-        parent::__construct('A position cannot carry these: '.implode('; ', $lines).'.');
+        parent::__construct($lead.': '.implode('; ', $lines).'.');
     }
 
     /** @var list<string> */

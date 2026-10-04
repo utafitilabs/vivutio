@@ -25,6 +25,7 @@ use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
+use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\OrganizationRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
@@ -32,6 +33,7 @@ use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
+use Vivutio\Bundle\IdentityBundle\Service\DepartmentService;
 use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
 use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
 use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
@@ -100,8 +102,18 @@ return static function (ContainerConfigurator $container): void {
             service('doctrine.orm.entity_manager'),
             service('security.user_password_hasher'),
             service(UserRepository::class),
+            service(DepartmentRepository::class),
         ]);
     $services->alias(UserService::class, 'identity.accounts');
+
+    $services->set('identity.departments', DepartmentService::class)
+        ->args([
+            service('doctrine.orm.entity_manager'),
+            service(DepartmentRepository::class),
+            service(UserRepository::class),
+            service('identity.access.catalogue'),
+        ]);
+    $services->alias(DepartmentService::class, 'identity.departments');
 
     /*
      * Every way a position comes into being or changes what it grants,
@@ -320,6 +332,9 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
     $services->set(AccountLinkRepository::class)
+        ->args([service('doctrine')])
+        ->tag('doctrine.repository_service');
+    $services->set(DepartmentRepository::class)
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
     $services->set(OrganizationRepository::class)

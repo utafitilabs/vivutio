@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Vivutio\Bundle\IdentityBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -73,6 +75,23 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Position $position = null;
+
+    /** The one department they report to; the tiers need none. */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Department $department = null;
+
+    /**
+     * Departments they work for without belonging to them; supporting one
+     * reaches its modules.
+     *
+     * @var Collection<int, Department>
+     */
+    #[ORM\ManyToMany(targetEntity: Department::class)]
+    #[ORM\JoinTable(name: 'identity_user_supports')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
+    private Collection $supports;
 
     /** False for somebody invited who has not yet named themselves and chosen a password. */
     #[ORM\Column(options: ['default' => true])]
@@ -135,6 +154,44 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     public function setPhone(?string $phone): static
     {
         $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function __construct()
+    {
+        $this->supports = new ArrayCollection();
+    }
+
+    public function getDepartment(): ?Department
+    {
+        return $this->department;
+    }
+
+    public function setDepartment(?Department $department): static
+    {
+        $this->department = $department;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Department>
+     */
+    public function getSupports(): Collection
+    {
+        return $this->supports;
+    }
+
+    /**
+     * @param list<Department> $departments
+     */
+    public function setSupports(array $departments): static
+    {
+        $this->supports->clear();
+        foreach ($departments as $department) {
+            $this->supports->add($department);
+        }
 
         return $this;
     }
