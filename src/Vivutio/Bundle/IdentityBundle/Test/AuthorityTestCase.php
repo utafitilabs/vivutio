@@ -103,7 +103,11 @@ abstract class AuthorityTestCase extends WebTestCase
      */
     abstract protected static function probes(): array;
 
-    /** The directory the package's code is in. Its routes are those whose controller is in it. */
+    /**
+     * The directory the package's code is in: the core's src, or a module's
+     * repository. Its routes are those whose controller is in it, and its
+     * controls those its templates draw; anything under vendor/ is not its.
+     */
     abstract protected static function packageDirectory(): string;
 
     /** The committed markdown file holding the reviewed table. */
@@ -611,8 +615,11 @@ abstract class AuthorityTestCase extends WebTestCase
         }
 
         $file = (string) new \ReflectionClass($class)->getFileName();
+        $directory = rtrim(static::packageDirectory(), '/').'/';
 
-        return str_starts_with($file, rtrim(static::packageDirectory(), '/').'/');
+        // A module's directory is its repository, whose vendor/ holds the
+        // core and everything else it requires: none of that is the module's.
+        return str_starts_with($file, $directory) && !str_contains(substr($file, \strlen($directory)), 'vendor/');
     }
 
     /**
@@ -626,7 +633,8 @@ abstract class AuthorityTestCase extends WebTestCase
         $doors = [];
         $templates = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(static::packageDirectory(), \FilesystemIterator::SKIP_DOTS));
         foreach ($templates as $template) {
-            if (!$template instanceof \SplFileInfo || !str_ends_with($template->getFilename(), '.html.twig')) {
+            if (!$template instanceof \SplFileInfo || !str_ends_with($template->getFilename(), '.html.twig')
+                || str_contains(substr($template->getPathname(), \strlen(static::packageDirectory())), '/vendor/')) {
                 continue;
             }
             preg_match_all("/door\\(\\s*'([^']+)'/", (string) file_get_contents($template->getPathname()), $matches);
