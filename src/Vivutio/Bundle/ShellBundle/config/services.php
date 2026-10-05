@@ -75,7 +75,7 @@ return static function (ContainerConfigurator $container): void {
 
     // The pages packages put in the menu, collected by the tag the contract names.
     $services->set('shell.twig.menu', MenuExtension::class)
-        ->args([tagged_iterator(MenuSourceInterface::TAG), service('security.authorization_checker')])
+        ->args([tagged_iterator(MenuSourceInterface::TAG), service('security.authorization_checker'), service('router')])
         ->tag('twig.extension');
 
     $services->set('shell.twig.organization', OrganizationExtension::class)
