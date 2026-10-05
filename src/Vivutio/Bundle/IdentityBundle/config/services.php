@@ -26,8 +26,13 @@ use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
+use Vivutio\Bundle\IdentityBundle\Deletion\DepartmentDeletion;
+use Vivutio\Bundle\IdentityBundle\Deletion\OfficeDeletion;
+use Vivutio\Bundle\IdentityBundle\Deletion\PersonDeletion;
+use Vivutio\Bundle\IdentityBundle\Deletion\PositionDeletion;
 use Vivutio\Bundle\IdentityBundle\Place\OfficePlaces;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
+use Vivutio\Bundle\IdentityBundle\Repository\DeletionRecordRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\OrganizationRepository;
@@ -37,6 +42,7 @@ use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
+use Vivutio\Bundle\IdentityBundle\Service\DeletionService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentService;
 use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
@@ -53,6 +59,7 @@ use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Bundle\IdentityBundle\Twig\PlaceExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
+use Vivutio\Contracts\Deletion\DeletionContributorInterface;
 use Vivutio\Contracts\Identity\PositionCardFieldInterface;
 use Vivutio\Contracts\Place\PlaceSourceInterface;
 use Vivutio\Contracts\Place\ReachSourceInterface;
@@ -413,4 +420,18 @@ return static function (ContainerConfigurator $container): void {
     $services->set(OrganizationRepository::class)
         ->args([service('doctrine')])
         ->tag('doctrine.repository_service');
+
+    // A Super Admin's delete: the record and what goes with it, counted, with
+    // one line kept; each package answers for its own rows.
+    $services->set(DeletionRecordRepository::class)
+        ->args([service('doctrine')])
+        ->tag('doctrine.repository_service');
+    foreach (['person' => PersonDeletion::class, 'position' => PositionDeletion::class, 'department' => DepartmentDeletion::class, 'office' => OfficeDeletion::class] as $kind => $class) {
+        $services->set('identity.deletion.'.$kind, $class)
+            ->args([service('doctrine.orm.entity_manager')])
+            ->tag(DeletionContributorInterface::TAG);
+    }
+    $services->set('identity.deletions', DeletionService::class)
+        ->args([tagged_iterator(DeletionContributorInterface::TAG), service('doctrine.orm.entity_manager'), service('security.token_storage'), service('clock')]);
+    $services->alias(DeletionService::class, 'identity.deletions')->public();
 };
