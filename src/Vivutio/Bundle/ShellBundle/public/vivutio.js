@@ -24,4 +24,25 @@
         [].slice.call(b.parentNode.children).forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
         b.dispatchEvent(new CustomEvent("chosen", {bubbles: true}));
     });
+    /* A switch that is a form's field: its pressed button's data-value is kept
+       in the hidden field the switch names, and what is marked
+       data-shown-for="name=value" shows only while that value is chosen. */
+    function keep(sw) {
+        var name = sw.getAttribute("data-name"), on = sw.querySelector("button[aria-pressed=true]");
+        var value = on ? on.getAttribute("data-value") : "";
+        var form = sw.closest("form") || document;
+        var field = form.querySelector("input[type=hidden][name=\"" + name + "\"]");
+        if (field) { field.value = value; }
+        [].slice.call(form.querySelectorAll("[data-shown-for]")).forEach(function (el) {
+            var want = el.getAttribute("data-shown-for").split("=");
+            if (want[0] === name) { el.hidden = want[1] !== value; }
+        });
+    }
+    document.addEventListener("chosen", function (e) {
+        var sw = e.target.closest(".switch[data-name]");
+        if (sw) { keep(sw); }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        [].slice.call(document.querySelectorAll(".switch[data-name]")).forEach(keep);
+    });
 }());

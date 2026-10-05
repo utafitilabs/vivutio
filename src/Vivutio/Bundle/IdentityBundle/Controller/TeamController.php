@@ -29,6 +29,7 @@ use Vivutio\Bundle\IdentityBundle\Model\TeamQuery;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Service\GrantsNowService;
 use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
+use Vivutio\Contracts\Identity\PositionCardFieldInterface;
 
 /**
  * The team list.
@@ -48,11 +49,15 @@ final readonly class TeamController
 
     public const string MEMBER = 'identity_team_member';
 
+    /**
+     * @param iterable<PositionCardFieldInterface> $cardFields what packages add to the Position card, said on the record
+     */
     public function __construct(
         private Environment $twig,
         private TeamDirectoryService $directory,
         private AuthorizationCheckerInterface $authorization,
         private GrantsNowService $grants,
+        private iterable $cardFields = [],
     ) {
     }
 
@@ -97,6 +102,7 @@ final readonly class TeamController
             'show_grants' => $showGrants,
             'grants' => $showGrants && !$person->getTier()->holdsEveryPermission() ? $this->grants->of($person) : [],
             'saved' => $this->saved($request),
+            'card_summaries' => array_values(array_filter(array_map(static fn (PositionCardFieldInterface $field): ?array => $field->summary((string) $person->getUuid()), [...$this->cardFields]))),
         ]));
     }
 

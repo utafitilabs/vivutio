@@ -97,6 +97,7 @@
                 <div class="hint"><span>{{ wrong.posted_at ?? 'One place; its departments are offered beside the organization\'s' }}</span></div>
             </div></div>
             {% endif %}
+            {% for field in card_fields %}{% include field.template with field.context|merge({wrong: wrong}) only %}{% endfor %}
             {% if departments is not empty %}
             <div class="field{{ wrong.department is defined ? ' wrong' }}"><span class="label">Departments <small>&middot; belongs to one, supports any number</small></span>
                 <div class="tables">

@@ -53,7 +53,9 @@ use Vivutio\Bundle\IdentityBundle\Service\UserService;
 use Vivutio\Bundle\IdentityBundle\Twig\PlaceExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
+use Vivutio\Contracts\Identity\PositionCardFieldInterface;
 use Vivutio\Contracts\Place\PlaceSourceInterface;
+use Vivutio\Contracts\Place\ReachSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
 
 /*
@@ -200,7 +202,7 @@ return static function (ContainerConfigurator $container): void {
      * #[IsGranted] and a control name.
      */
     $services->set('identity.voter.grant', GrantVoter::class)
-        ->args([service('identity.access.catalogue')])
+        ->args([service('identity.access.catalogue'), tagged_iterator(ReachSourceInterface::TAG)])
         ->tag('security.voter');
 
     /*
@@ -269,6 +271,7 @@ return static function (ContainerConfigurator $container): void {
             service('identity.team_directory'),
             service('security.authorization_checker'),
             service('identity.grants_now'),
+            tagged_iterator(PositionCardFieldInterface::TAG),
         ])
         ->public();
     $services->alias(TeamController::class, 'identity.controller.team')->public();
@@ -287,6 +290,7 @@ return static function (ContainerConfigurator $container): void {
             service('identity.password_rules'),
             service(DepartmentRepository::class),
             service('identity.places'),
+            tagged_iterator(PositionCardFieldInterface::TAG),
         ])
         ->public();
     $services->alias(PersonController::class, 'identity.controller.person')->public();

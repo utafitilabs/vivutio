@@ -19,6 +19,9 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Contracts\Access\Grant;
+use Vivutio\Contracts\Place\PlacedInterface;
+use Vivutio\Contracts\Place\PlaceInterface;
+use Vivutio\Contracts\Place\ReachSourceInterface;
 
 /**
  * Whether somebody holds a pair, `<concern>.<verb>`, and why not when they
@@ -42,10 +45,9 @@ use Vivutio\Contracts\Access\Grant;
  *      It holds when their department, or one they support, allows it; a
  *      new department allows nothing.
  *
- * Where a grant reaches, a place or a department's records, is asked of the
- * subject once postings and departments are stored. Until then a position's
- * grant on the core's own concerns reaches the organization, the one scope
- * the core can answer without them.
+ *   6. Where the subject is a place, or belongs to one, the person's reach
+ *      must cover it: every reach source is asked, and one "no" refuses.
+ *      Reach narrows what is otherwise held and never grants.
  *
  * @see https://symfony.com/doc/current/security/voters.html
  * @see vendor/symfony/security-core/Authorization/Voter/Voter.php — supports() and voteOnAttribute(), and the Vote a reason is added to
@@ -54,8 +56,12 @@ use Vivutio\Contracts\Access\Grant;
  */
 final class GrantVoter extends Voter
 {
+    /**
+     * @param iterable<ReachSourceInterface> $reach
+     */
     public function __construct(
         private readonly ConcernCatalogue $catalogue,
+        private readonly iterable $reach = [],
     ) {
     }
 
@@ -118,10 +124,15 @@ final class GrantVoter extends Voter
 
         $grant = Grant::parse($attribute);
         $module = $this->catalogue->moduleOf($grant->concern);
-        if (null === $module) {
-            return true;
+        if (null !== $module && !$this->departmentAllows($user, $attribute, $module, $vote)) {
+            return false;
         }
 
+        return $this->reaches($user, $subject, $vote);
+    }
+
+    private function departmentAllows(User $user, string $attribute, string $module, ?Vote $vote): bool
+    {
         $department = $user->getDepartment();
         if (null === $department) {
             $vote?->addReason(\sprintf('"%s" belongs to the %s module, and %s belongs to no department, so they reach no module.', $attribute, $module, $user->getFullName()));
@@ -138,5 +149,32 @@ final class GrantVoter extends Voter
         $vote?->addReason(\sprintf('"%s" belongs to the %s module, and neither %s nor a department %s supports allows it.', $attribute, $module, $department->getName(), $user->getFullName()));
 
         return false;
+    }
+
+    /**
+     * Where the subject is a place, or belongs to one, every reach source is
+     * asked whether the person's reach covers it; one "no" refuses, and a
+     * place no source has a say over is not narrowed.
+     */
+    private function reaches(User $user, mixed $subject, ?Vote $vote): bool
+    {
+        $place = match (true) {
+            $subject instanceof PlaceInterface => $subject,
+            $subject instanceof PlacedInterface => $subject->placedAt(),
+            default => null,
+        };
+        if (null === $place) {
+            return true;
+        }
+
+        foreach ($this->reach as $source) {
+            if (false === $source->covers((string) $user->getUuid(), $place)) {
+                $vote?->addReason(\sprintf('%s\'s reach does not cover %s.', $user->getFullName(), $place->getName()));
+
+                return false;
+            }
+        }
+
+        return true;
     }
 }

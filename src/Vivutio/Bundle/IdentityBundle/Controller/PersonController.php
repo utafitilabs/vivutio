@@ -48,6 +48,8 @@ use Vivutio\Bundle\IdentityBundle\Service\MailAvailability;
 use Vivutio\Bundle\IdentityBundle\Service\PasswordRulesService;
 use Vivutio\Bundle\IdentityBundle\Service\PlaceDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
+use Vivutio\Contracts\Identity\PositionCardFieldInterface;
+use Vivutio\Contracts\Place\PlaceInterface;
 
 /**
  * Configuring a person, as designed in vivutio-designs/team/member-configure.html:
@@ -77,6 +79,9 @@ final readonly class PersonController
 
     private const string SAVED = 'person.saved';
 
+    /**
+     * @param iterable<PositionCardFieldInterface> $cardFields what packages add to the Position card
+     */
     public function __construct(
         private Environment $twig,
         private UserService $accounts,
@@ -90,6 +95,7 @@ final readonly class PersonController
         private PasswordRulesService $rules,
         private DepartmentRepository $departments,
         private PlaceDirectoryService $places,
+        private iterable $cardFields = [],
     ) {
     }
 
@@ -277,9 +283,10 @@ final readonly class PersonController
         $typedSupports = array_values(array_filter($payload->all('supports'), \is_string(...)));
         $typedPlace = $payload->getString('posted_at');
         $typed = ['position' => $chosen, 'department' => $typedDepartment, 'posted_at' => $typedPlace];
+        $sent = $payload->all();
 
         if (!$this->tokenIsValid('person_position', $request)) {
-            return $this->form($person, typed: $typed, expired: true);
+            return $this->form($person, typed: $typed, sent: $sent, expired: true);
         }
 
         // Where they are posted now may be kept even once it is no longer offered.
@@ -287,18 +294,18 @@ final readonly class PersonController
         try {
             $place = $typedPlace === $current ? $this->places->postingOf($person) : $this->places->typed($typedPlace, 'posted_at');
         } catch (InvalidPlaceException $refusal) {
-            return $this->form($person, typed: $typed, wrong: [$refusal->field => $refusal->getMessage()]);
+            return $this->form($person, typed: $typed, sent: $sent, wrong: [$refusal->field => $refusal->getMessage()]);
         }
 
         $department = '' === $typedDepartment ? null : $this->departmentNamed($typedDepartment);
         if (false === $department) {
-            return $this->form($person, typed: $typed, wrong: ['department' => 'Choose one of the departments offered.']);
+            return $this->form($person, typed: $typed, sent: $sent, wrong: ['department' => 'Choose one of the departments offered.']);
         }
         $supports = [];
         foreach ($typedSupports as $supported) {
             $found = $this->departmentNamed($supported);
             if (false === $found) {
-                return $this->form($person, typed: $typed, wrong: ['department' => 'Choose among the departments offered.']);
+                return $this->form($person, typed: $typed, sent: $sent, wrong: ['department' => 'Choose among the departments offered.']);
             }
             $supports[] = $found;
         }
@@ -309,14 +316,27 @@ final readonly class PersonController
             // anything else with an error, not an empty answer.
             $position = 1 === preg_match('{^'.Requirement::UUID.'$}D', $chosen) ? $this->positions->findOneBy(['uuid' => $chosen]) : null;
             if (null === $position) {
-                return $this->form($person, typed: $typed, wrong: ['position' => 'Choose one of the positions offered.']);
+                return $this->form($person, typed: $typed, sent: $sent, wrong: ['position' => 'Choose one of the positions offered.']);
             }
+        }
+
+        // A package's fields are checked before anything is saved, the
+        // card's own fields included, and saved after them.
+        $refused = [];
+        foreach ($this->cardFields as $field) {
+            $refused = [...$refused, ...$field->check((string) $person->getUuid(), $sent, $place)];
+        }
+        if ([] !== $refused) {
+            return $this->form($person, typed: $typed, sent: $sent, wrong: $refused, postedAt: $place);
         }
 
         try {
             $this->accounts->changeSeat($person, $place, $department, $supports, $position);
         } catch (InvalidDepartmentException|InvalidPlaceException $refusal) {
-            return $this->form($person, typed: $typed, wrong: [$refusal->field => $refusal->getMessage()]);
+            return $this->form($person, typed: $typed, sent: $sent, wrong: [$refusal->field => $refusal->getMessage()], postedAt: $place);
+        }
+        foreach ($this->cardFields as $field) {
+            $field->save((string) $person->getUuid(), $sent, $place);
         }
 
         return $this->savedTo($request, $person, 'The position is saved.');
@@ -411,11 +431,18 @@ final readonly class PersonController
     }
 
     /**
-     * @param array<string, string> $typed what was sent, shown back in place of what is stored
-     * @param array<string, string> $wrong a refusal, keyed by the field it is about
+     * @param array<string, string>     $typed what was sent, shown back in place of what is stored
+     * @param array<string, string>     $wrong a refusal, keyed by the field it is about
+     * @param array<string, mixed>|null $sent  the Position card as sent, for a package's fields
      */
-    private function form(User $person, array $typed = [], array $wrong = [], bool $expired = false, ?string $saved = null): Response
+    private function form(User $person, array $typed = [], array $wrong = [], bool $expired = false, ?string $saved = null, ?array $sent = null, ?PlaceInterface $postedAt = null): Response
     {
+        $postedAt ??= $this->places->postingOf($person);
+        $cardFields = [];
+        foreach ($this->cardFields as $field) {
+            $cardFields[] = ['template' => $field->template(), 'context' => $field->context((string) $person->getUuid(), $sent, $postedAt)];
+        }
+
         $tiers = array_values(array_filter(
             TierEnum::cases(),
             fn (TierEnum $tier): bool => $tier === $person->getTier() || $this->authorization->isGranted(AccountVoter::CHANGE_TIER, new TierChange($person, $tier)),
@@ -442,6 +469,7 @@ final readonly class PersonController
             'positions' => $this->positions->findBy([], ['name' => 'ASC']),
             'departments' => $this->departments->findBy([], ['name' => 'ASC']),
             'places' => $this->places->groups(),
+            'card_fields' => $cardFields,
             'last_super_admin' => $this->accounts->isLastActiveSuperAdmin($person),
             'may_deactivate' => $person->isActive() && $this->authorization->isGranted(AccountVoter::DEACTIVATE, $person),
             'mail_available' => $this->mail->isAvailable(),

@@ -1,0 +1,1 @@
+<div class="field{{ wrong.notes_desk is defined ? ' wrong' }}" data-notes-desk><label for="notes-desk">Desk</label><input class="input" id="notes-desk" name="notes_desk" value="{{ desk }}"><div class="hint"><span>{{ wrong.notes_desk ?? ('At ' ~ (posted_at ?? 'no place')) }}</span></div></div>
