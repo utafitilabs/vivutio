@@ -66,7 +66,7 @@ return static function (ContainerConfigurator $container): void {
 
     // Dates in the organization's time zone on every page.
     $services->set('shell.listener.time_zone', OrganizationTimeZoneListener::class)
-        ->args([service('twig'), service(OrganizationIdentitySourceInterface::SERVICE)])
+        ->args([service('twig'), service(OrganizationIdentitySourceInterface::SERVICE), service('security.token_storage')])
         ->tag('kernel.event_listener', ['event' => 'kernel.request', 'method' => 'onRequest', 'priority' => 0]);
 
     /*

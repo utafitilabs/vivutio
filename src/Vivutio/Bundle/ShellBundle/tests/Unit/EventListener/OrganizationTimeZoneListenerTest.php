@@ -18,6 +18,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 use Twig\Environment;
 use Twig\Extension\CoreExtension;
 use Twig\Loader\ArrayLoader;
@@ -36,7 +39,7 @@ final class OrganizationTimeZoneListenerTest extends TestCase
     public function testTimesAreShownInTheOrganizationsTimeZone(): void
     {
         $twig = $this->twig();
-        (new OrganizationTimeZoneListener($twig, self::source(new OrganizationIdentity('Vivutio Camps', timeZone: 'Africa/Dar_es_Salaam'))))->onRequest(self::event());
+        (new OrganizationTimeZoneListener($twig, self::source(new OrganizationIdentity('Vivutio Camps', timeZone: 'Africa/Dar_es_Salaam')), self::signedIn()))->onRequest(self::event());
 
         self::assertSame('6 Oct 2026, 01:31', $twig->render('time'));
     }
@@ -44,9 +47,32 @@ final class OrganizationTimeZoneListenerTest extends TestCase
     public function testWithoutAnOrganizationTimesStayAsTheInstallationRuns(): void
     {
         $twig = $this->twig();
-        (new OrganizationTimeZoneListener($twig, self::source(null)))->onRequest(self::event());
+        (new OrganizationTimeZoneListener($twig, self::source(null), self::signedIn()))->onRequest(self::event());
 
         self::assertSame('5 Oct 2026, 22:31', $twig->render('time'));
+    }
+
+    /** A page nobody is signed in to shows no dates, and must open even before the database does: the sign-in form. */
+    public function testNothingIsAskedOfAPageNobodyIsSignedInTo(): void
+    {
+        $twig = $this->twig();
+        $unreachable = new class implements OrganizationIdentitySourceInterface {
+            public function identity(): ?OrganizationIdentity
+            {
+                throw new \LogicException('The organization was asked for.');
+            }
+        };
+        (new OrganizationTimeZoneListener($twig, $unreachable, new TokenStorage()))->onRequest(self::event());
+
+        self::assertSame('5 Oct 2026, 22:31', $twig->render('time'));
+    }
+
+    private static function signedIn(): TokenStorage
+    {
+        $tokens = new TokenStorage();
+        $tokens->setToken(new UsernamePasswordToken(new InMemoryUser('amani', null), 'main'));
+
+        return $tokens;
     }
 
     private function twig(): Environment
