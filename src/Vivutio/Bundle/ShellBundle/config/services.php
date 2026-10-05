@@ -16,6 +16,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use Vivutio\Bundle\ShellBundle\Access\SettingsConcerns;
 use Vivutio\Bundle\ShellBundle\Access\ShellConcerns;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
+use Vivutio\Bundle\ShellBundle\EventListener\OrganizationTimeZoneListener;
 use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
 use Vivutio\Bundle\ShellBundle\Twig\MenuExtension;
@@ -62,6 +63,11 @@ return static function (ContainerConfigurator $container): void {
     $services->set('shell.refusal_page', RefusalPage::class)
         ->args([service('twig')])
         ->tag('kernel.event_listener', ['event' => 'kernel.exception', 'method' => 'onException', 'priority' => 0]);
+
+    // Dates in the organization's time zone on every page.
+    $services->set('shell.listener.time_zone', OrganizationTimeZoneListener::class)
+        ->args([service('twig'), service(OrganizationIdentitySourceInterface::SERVICE)])
+        ->tag('kernel.event_listener', ['event' => 'kernel.request', 'method' => 'onRequest', 'priority' => 0]);
 
     /*
      * door(), the one helper a template draws a control by. Tagged by hand:
