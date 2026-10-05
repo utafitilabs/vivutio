@@ -123,12 +123,13 @@ html.folded .menu a{width:44px;padding:0;justify-content:center}
 .label small{font-weight:400;font-size:12px;color:var(--ink-3)}
 .input,.select{height:40px;width:100%;padding:0 16px;border:1px solid transparent;border-radius:999px;background:var(--well);outline:0;transition:border-color .12s,background .12s,box-shadow .12s}
 .select{padding:0 10px 0 13px}
-.input:focus,.select:focus{border-color:var(--accent);background:var(--panel);box-shadow:0 0 0 3px var(--accent-soft)}
+.textarea{width:100%;min-height:120px;padding:12px 16px;border:1px solid transparent;border-radius:16px;background:var(--well);outline:0;font:inherit;color:inherit;line-height:1.5;resize:vertical;transition:border-color .12s,background .12s,box-shadow .12s}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--accent);background:var(--panel);box-shadow:0 0 0 3px var(--accent-soft)}
 .input:disabled,.select:disabled{opacity:.55;cursor:not-allowed}
 .hint{display:flex;flex-wrap:wrap;gap:1px 10px;font-size:12px;color:var(--ink-3)}
 .hint span{white-space:nowrap}
 .hint b{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
-.field.wrong .input,.field.wrong .select{border-color:var(--danger)}
+.field.wrong .input,.field.wrong .select,.field.wrong .textarea{border-color:var(--danger)}
 .field.wrong .hint{color:var(--danger)}
 
 /* 7. Buttons: every button is a pill. One solid main action in a panel. */
