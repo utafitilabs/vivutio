@@ -10,7 +10,8 @@
  * Contents: 0 the typeface · 1 colour and measures · 2 base · 3 the frame ·
  * 4 the page · 5 panels · 6 fields · 7 buttons · 8 choices · 9 chips ·
  * 10 tables and rows · 11 timeline · 12 notices and empty states ·
- * 14 a page for a stranger · 15 lists · 16 a record */
+ * 14 a page for a stranger · 15 lists · 16 a record · 17 a calendar of
+ * months */
 
 /* 0. The typeface */
 @font-face{font-family:'Figtree';font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/Figtree-normal.woff2) format('woff2');
@@ -337,3 +338,24 @@ a.chip[aria-current=true] em{color:var(--accent)}
 .intro{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin:0 0 16px;padding:0 4px}
 .intro p{margin:0;color:var(--ink-2)}
 .intro .actions{display:flex;gap:8px}
+
+/* 17. A calendar of months, a year on one page: each month a grid of weeks
+   from Monday, each night a cell. A night's tone is how much it holds, in
+   the one accent from faint to full (tone 1 to 4), and its legend says what
+   each tone is; a night with none is the bare well. The calendar draws no
+   hue of its own, so every calendar of the product reads alike. */
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px 22px}
+.month h3{margin:0 0 6px;font-size:13px;font-weight:600}
+.days{width:100%;border-collapse:separate;border-spacing:2px;table-layout:fixed}
+.days th{padding:0 0 2px;font-size:10.5px;font-weight:600;color:var(--ink-3);text-align:center}
+.days td{height:24px;padding:0;border-radius:6px;background:var(--well);font-size:11.5px;color:var(--ink-2);text-align:center;font-variant-numeric:tabular-nums}
+.days td:empty{background:none}
+[data-tone="1"]{--tone:color-mix(in srgb,var(--accent) 18%,var(--well))}
+[data-tone="2"]{--tone:color-mix(in srgb,var(--accent) 38%,var(--well))}
+[data-tone="3"]{--tone:color-mix(in srgb,var(--accent) 62%,var(--well))}
+[data-tone="4"]{--tone:var(--accent)}
+.days td[data-tone]{background:var(--tone);color:var(--ink)}
+.days td[data-tone="3"],.days td[data-tone="4"]{color:var(--on-accent);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:12px;height:12px;border-radius:4px;background:var(--tone,var(--well))}
