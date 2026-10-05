@@ -354,6 +354,132 @@ Checks: `directory.manage`
 | Admin | redirected to /team/{new} |
 | Super Admin | answered 422 |
 
+## identity_person_delete: GET /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | allowed: Delete Taken Over · vivutio |
+
+## identity_person_delete: POST /team/0199a6f0-c4f7-7e10-8000-00000000ca7a/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | answered 422 |
+
+## identity_position_delete: GET /team/positions/0199a6f0-5ea7-7e10-8000-0000000005ea/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | allowed: Delete Probed seat · vivutio |
+
+## identity_position_delete: POST /team/positions/0199a6f0-5ea7-7e10-8000-0000000005ea/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | answered 422 |
+
+## identity_department_delete: GET /team/departments/0199a6f0-de97-7e10-8000-00000000de97/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | allowed: Delete The probes' department · vivutio |
+
+## identity_department_delete: POST /team/departments/0199a6f0-de97-7e10-8000-00000000de97/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | answered 422 |
+
+## identity_office_delete: GET /team/offices/0199a6f0-0ff1-7e10-8000-000000000ff1/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | allowed: Delete Probed office · vivutio |
+
+## identity_office_delete: POST /team/offices/0199a6f0-0ff1-7e10-8000-000000000ff1/delete
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | answered 422 |
+
+## identity_settings_deletions: GET /settings/deletions
+
+Checks: `identity.delete`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | allowed: Deletions · vivutio |
+
 ## partner_partners: GET /partners
 
 Checks: `partners.read`

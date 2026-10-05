@@ -24,4 +24,11 @@
     </div>
     <footer class="panel-foot"><span class="state">Nothing is saved until Save</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save office</button></footer>
 </form>
+
+{% if is_granted('identity.delete', office) %}
+<section class="panel" data-danger>
+    <header class="panel-head"><h2>Danger</h2><p>Super Admins alone</p></header>
+    <div class="action"><div><b>Delete</b><span>The office; the people posted there are posted nowhere. Counted before anything goes</span></div><a class="button small danger" href="{{ path('identity_office_delete', {uuid: office.uuid}) }}">Delete…</a></div>
+</section>
+{% endif %}
 {% endblock %}

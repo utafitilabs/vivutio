@@ -60,6 +60,7 @@
     </nav>
     <main>
         <div class="page">
+            {% for said in app.flashes('vivutio.deleted') %}<div class="notice" role="status" data-deleted>{{ said }}</div>{% endfor %}
             {% block page %}{% endblock %}
         </div>
     </main>

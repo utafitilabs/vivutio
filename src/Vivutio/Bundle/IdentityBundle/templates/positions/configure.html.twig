@@ -25,4 +25,11 @@
     {{ positions.matrix(matrix, grants, true) }}
     <footer class="panel-foot"><span class="state">Nothing is saved until Save</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save position</button></footer>
 </form>
+
+{% if is_granted('identity.delete', position) %}
+<section class="panel" data-danger>
+    <header class="panel-head"><h2>Danger</h2><p>Super Admins alone</p></header>
+    <div class="action"><div><b>Delete</b><span>The position and what it grants; the people holding it keep their account. Counted before anything goes</span></div><a class="button small danger" href="{{ path('identity_position_delete', {uuid: position.uuid}) }}">Delete…</a></div>
+</section>
+{% endif %}
 {% endblock %}

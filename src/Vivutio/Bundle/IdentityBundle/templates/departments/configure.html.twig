@@ -47,4 +47,11 @@
     {% endif %}
     <footer class="panel-foot"><span class="state">Nothing is saved until Save</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save department</button></footer>
 </form>
+
+{% if is_granted('identity.delete', department) %}
+<section class="panel" data-danger>
+    <header class="panel-head"><h2>Danger</h2><p>Super Admins alone</p></header>
+    <div class="action"><div><b>Delete</b><span>The department; its members keep their account and belong to no department. Counted before anything goes</span></div><a class="button small danger" href="{{ path('identity_department_delete', {uuid: department.uuid}) }}">Delete…</a></div>
+</section>
+{% endif %}
 {% endblock %}

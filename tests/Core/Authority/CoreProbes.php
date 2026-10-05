@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Core\Authority;
 
+use Vivutio\Bundle\IdentityBundle\Controller\DeletionController;
 use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\OfficeController;
@@ -82,6 +83,16 @@ final class CoreProbes
             // Sent by each kind of person in turn, so the second allowed finds the address taken.
             new Probe(PersonController::CREATE, 'POST', '/team/add/create', ['first_name' => 'Added', 'last_name' => 'By a probe', 'email' => 'added.by.a.probe@vivutio-camps.example', 'password' => 'a first passphrase', 'position' => ''], formAt: '/team/add'),
             new Probe(PersonController::INVITE, 'POST', '/team/add/invite', ['email' => 'invited.by.a.probe@vivutio-camps.example', 'position' => ''], formAt: '/team/add'),
+            // A wrong reference typed, so the record each probe asks about is still there for the next.
+            new Probe(DeletionController::PERSON, 'GET', self::CANARY.'/delete'),
+            new Probe(DeletionController::PERSON, 'POST', self::CANARY.'/delete', ['reference' => 'not it'], formAt: self::CANARY.'/delete'),
+            new Probe(DeletionController::POSITION, 'GET', self::POSITION.'/delete'),
+            new Probe(DeletionController::POSITION, 'POST', self::POSITION.'/delete', ['reference' => 'not it'], formAt: self::POSITION.'/delete'),
+            new Probe(DeletionController::DEPARTMENT, 'GET', self::DEPARTMENT.'/delete'),
+            new Probe(DeletionController::DEPARTMENT, 'POST', self::DEPARTMENT.'/delete', ['reference' => 'not it'], formAt: self::DEPARTMENT.'/delete'),
+            new Probe(DeletionController::OFFICE, 'GET', self::OFFICE.'/delete'),
+            new Probe(DeletionController::OFFICE, 'POST', self::OFFICE.'/delete', ['reference' => 'not it'], formAt: self::OFFICE.'/delete'),
+            new Probe(DeletionController::DELETIONS, 'GET', '/settings/deletions'),
             new Probe(PartnerController::REGISTER, 'GET', '/partners'),
             new Probe(PartnerController::SHOW, 'GET', self::PARTNER),
             new Probe(PartnerController::CONFIGURE, 'GET', self::PARTNER.'/configure'),

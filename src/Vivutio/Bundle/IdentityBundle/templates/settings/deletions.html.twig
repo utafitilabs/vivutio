@@ -1,0 +1,25 @@
+{# Settings › Deletions, as drawn (vivutio-designs settings/deletions): every
+   delete a Super Admin made, newest first, under its day. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Identity/settings/_tabs.html.twig' as settings_ %}
+
+{% block title %}Deletions{% endblock %}
+{% block here %}settings{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Settings</nav><div class="title"><h1>Deletions</h1><span class="about">Every delete a Super Admin made, newest first</span></div></div></header>
+{{ settings_.tabs('deletions') }}
+
+<div class="stack">
+    {% for day, lines in days %}
+        <section class="panel" data-day="{{ day }}">
+            <header class="panel-head"><h2>{{ lines|first.deletedAt|date('l j F Y') }}</h2><p>{{ lines|length }} {{ lines|length == 1 ? 'delete' : 'deletes' }}</p></header>
+            {% for line in lines %}
+                <div class="fact" data-deletion><span>{{ line.deletedAt|date('H:i') }} · {{ line.kind|capitalize }} {{ line.title }}</span><b>{{ line.byName }} · {{ line.whatWent|join(', ') }}</b></div>
+            {% endfor %}
+        </section>
+    {% else %}
+        <section class="panel"><div class="empty"><b>Nothing deleted</b><span>A Super Admin's delete leaves a line here.</span></div></section>
+    {% endfor %}
+</div>
+{% endblock %}

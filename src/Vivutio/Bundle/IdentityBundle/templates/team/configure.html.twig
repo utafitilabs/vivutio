@@ -148,4 +148,11 @@ document.addEventListener("change", function (e) {
     if (option) { document.querySelector("[data-tier-says]").textContent = option.getAttribute("data-says"); }
 });
 </script>
+
+{% if is_granted('identity.delete', person) %}
+<section class="panel" data-danger>
+    <header class="panel-head"><h2>Danger</h2><p>Super Admins alone</p></header>
+    <div class="action"><div><b>Delete</b><span>The person and their account, for one made by mistake or in tests; deactivating is how somebody leaves. Counted before anything goes</span></div><a class="button small danger" href="{{ path('identity_person_delete', {uuid: person.uuid}) }}">Delete…</a></div>
+</section>
+{% endif %}
 {% endblock %}

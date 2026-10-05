@@ -3,6 +3,7 @@
    it is for, and a Configure door to change it. #}
 {% extends '@Shell/page.html.twig' %}
 {% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/settings/_tabs.html.twig' as settings_ %}
 
 {% block title %}Organization{% endblock %}
 {% block here %}settings{% endblock %}
@@ -14,6 +15,7 @@
     <div><nav class="trail" aria-label="Where you are">Settings</nav><div class="title"><h1>Organization</h1></div></div>
     {% if door('settings.configure') %}<div class="actions"><a class="button outline" href="{{ path('identity_settings_configure_organization') }}">Configure</a></div>{% endif %}
 </header>
+{{ settings_.tabs('organization') }}
 <div class="stack">
     {% if saved %}<div class="notice" role="status">{{ icons.icon('check') }}<span>The organization is saved.</span></div>{% endif %}
     <section class="panel">

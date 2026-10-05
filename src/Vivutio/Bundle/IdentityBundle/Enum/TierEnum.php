@@ -63,6 +63,12 @@ enum TierEnum: string
         return self::SuperAdmin === $this;
     }
 
+    /** Whether the tier deletes records outright, as ruled in uhifadhi: Super Admins alone. */
+    public function mayDelete(): bool
+    {
+        return self::SuperAdmin === $this;
+    }
+
     /**
      * Whether somebody of this tier may act on an account of that tier:
      * change its name or address, send it a reset link, deactivate it or

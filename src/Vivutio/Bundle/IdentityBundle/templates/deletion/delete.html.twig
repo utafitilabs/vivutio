@@ -1,0 +1,42 @@
+{# A record's delete page, as drawn (vivutio-designs positions/delete): what
+   goes and what stays, counted; the reference typed to confirm; the line
+   kept. The same for the core's records and every package's. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Delete {{ plan.subject.title }}{% endblock %}
+{% block here %}{{ context.here }}{% endblock %}
+
+{% block page %}
+<header class="page-head">
+    <div><nav class="trail" aria-label="Where you are">{% for step in context.trail %}<a href="{{ step.url }}">{{ step.label }}</a> / {% endfor %}<a href="{{ context.back }}">Configure</a> / Delete</nav><div class="title"><h1>Delete {{ plan.subject.title }}</h1><span class="about">{{ plan.subject.kind|capitalize }}. Super Admins alone</span></div></div>
+    <div class="actions"><a class="button outline" href="{{ context.back }}">Back to Configure</a></div>
+</header>
+
+{% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was deleted. Try again.</span></div>{% endif %}
+
+<div class="columns">
+    <div class="stack">
+        <section class="panel" data-goes>
+            <header class="panel-head"><h2>What goes</h2><p>Deleted with it, and nothing brings it back</p></header>
+            {% for line in plan.goes %}<div class="fact"><span>{{ line.text }}</span></div>{% endfor %}
+        </section>
+        <section class="panel" data-stays>
+            <header class="panel-head"><h2>What stays</h2><p>Linked to it, and kept</p></header>
+            {% for line in plan.stays %}<div class="fact"><span>{{ line.text }}</span></div>{% else %}<div class="empty"><span>Nothing else is linked to it.</span></div>{% endfor %}
+        </section>
+    </div>
+    <aside class="aside stack">
+        <form class="panel small" method="post" action="" novalidate>
+            <header class="panel-head"><h2>Confirm</h2><p>Typed, not clicked: for a record made by mistake or in tests</p></header>
+            <input type="hidden" name="_token" value="{{ csrf_token('identity_delete') }}">
+            <div class="field{{ wrong ? ' wrong' }}"><label for="delete-reference">Type <b>{{ plan.subject.reference }}</b> to delete this {{ plan.subject.kind }}</label><input class="input" id="delete-reference" name="reference" value="" autocomplete="off">{% if wrong %}<div class="hint"><span>{{ wrong }}</span></div>{% endif %}</div>
+            <footer class="panel-foot"><span class="state">Cannot be undone; one line is kept</span><button type="submit" class="button danger">Delete the {{ plan.subject.kind }}</button></footer>
+        </form>
+        <section class="panel small">
+            <header class="panel-head"><h2>The line kept</h2><p>In Settings › Deletions, for Super Admins</p></header>
+            <div class="fact"><span>{{ plan.subject.kind|capitalize }} {{ plan.subject.title }}</span><b>{{ plan.whatGoes|join(', ') }}</b></div>
+        </section>
+    </aside>
+</div>
+{% endblock %}

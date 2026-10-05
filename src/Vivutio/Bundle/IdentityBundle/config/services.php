@@ -17,6 +17,7 @@ use Symfony\Component\Console\Application;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
+use Vivutio\Bundle\IdentityBundle\Controller\DeletionController;
 use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
 use Vivutio\Bundle\IdentityBundle\Controller\OfficeController;
@@ -40,8 +41,10 @@ use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
+use Vivutio\Bundle\IdentityBundle\Security\DeletionVoter;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
+use Vivutio\Bundle\IdentityBundle\Service\DeletionPageService;
 use Vivutio\Bundle\IdentityBundle\Service\DeletionService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentService;
@@ -434,4 +437,14 @@ return static function (ContainerConfigurator $container): void {
     $services->set('identity.deletions', DeletionService::class)
         ->args([tagged_iterator(DeletionContributorInterface::TAG), service('doctrine.orm.entity_manager'), service('security.token_storage'), service('clock')]);
     $services->alias(DeletionService::class, 'identity.deletions')->public();
+    $services->set('identity.voter.deletion', DeletionVoter::class)
+        ->tag('security.voter');
+    // A package's delete page is this one: its controller gates the route and hands the request here.
+    $services->set('identity.deletion_pages', DeletionPageService::class)
+        ->args([service('twig'), service('identity.deletions'), service('security.csrf.token_manager')]);
+    $services->alias(DeletionPageService::class, 'identity.deletion_pages')->public();
+    $services->set('identity.controller.deletions', DeletionController::class)
+        ->args([service('twig'), service('identity.deletion_pages'), service(DeletionRecordRepository::class), service('router')])
+        ->public();
+    $services->alias(DeletionController::class, 'identity.controller.deletions')->public();
 };
