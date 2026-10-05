@@ -23,14 +23,16 @@ use Vivutio\Bundle\IdentityBundle\Entity\User;
 final readonly class DepartmentSummary
 {
     /**
-     * @param list<User> $members    who belong to it, the head first
-     * @param list<User> $supporters who support it from another department
+     * @param list<User>  $members    who belong to it, the head first
+     * @param list<User>  $supporters who support it from another department
+     * @param string|null $sitsAt     the name of the place it sits at, null for the organization's own
      */
     public function __construct(
         public Department $department,
         public array $members,
         public array $supporters,
         public ?User $headHolder,
+        public ?string $sitsAt = null,
     ) {
     }
 }

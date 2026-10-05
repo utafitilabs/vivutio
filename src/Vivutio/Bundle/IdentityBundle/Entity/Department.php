@@ -18,6 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Vivutio\Bundle\IdentityBundle\Entity\Trait\TimestampableTrait;
 use Vivutio\Bundle\IdentityBundle\Entity\Trait\UuidTrait;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
+use Vivutio\Contracts\Place\PlaceInterface;
 
 /**
  * A department: the one place somebody reports to. It is named by what it
@@ -45,10 +46,13 @@ class Department
     #[ORM\Column(length: self::NAME_MAX_LENGTH)]
     private string $name = '';
 
-    /** The office it sits at, or null for the organization's own. */
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Office $office = null;
+    /** The kind of place it sits at, an office or a package's place, or null for the organization's own. */
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $placeKind = null;
+
+    /** That place's id within its kind. */
+    #[ORM\Column(type: Types::GUID, nullable: true)]
+    private ?string $placeId = null;
 
     /** The position whose one holder heads it; a position heads one department at most. */
     #[ORM\OneToOne]
@@ -76,16 +80,36 @@ class Department
         return $this;
     }
 
-    public function getOffice(): ?Office
+    public function getPlaceKind(): ?string
     {
-        return $this->office;
+        return $this->placeKind;
     }
 
-    public function setOffice(?Office $office): static
+    public function getPlaceId(): ?string
     {
-        $this->office = $office;
+        return $this->placeId;
+    }
+
+    public function setPlace(?PlaceInterface $place): static
+    {
+        $this->placeKind = $place?->getPlaceKind();
+        $this->placeId = $place?->getPlaceId();
 
         return $this;
+    }
+
+    /** Whether it sits at this place; null asks whether it is the organization's own. */
+    public function sitsAt(?PlaceInterface $place): bool
+    {
+        return null === $place
+            ? null === $this->placeKind
+            : $this->placeKind === $place->getPlaceKind() && $this->placeId === $place->getPlaceId();
+    }
+
+    /** Whether somebody may belong to it or support it from where they are posted: it is the organization's, or sits there. */
+    public function isReachableFrom(User $user): bool
+    {
+        return null === $this->placeKind || ($this->placeKind === $user->getPostedKind() && $this->placeId === $user->getPostedId());
     }
 
     public function getHead(): ?Position

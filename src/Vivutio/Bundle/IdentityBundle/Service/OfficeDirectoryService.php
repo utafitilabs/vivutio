@@ -43,8 +43,8 @@ final readonly class OfficeDirectoryService
     {
         return new OfficeSummary(
             $office,
-            $this->users->findBy(['postedAt' => $office], ['firstName' => 'ASC', 'lastName' => 'ASC']),
-            $this->departments->findBy(['office' => $office], ['name' => 'ASC']),
+            $this->users->findBy(['postedKind' => $office->getPlaceKind(), 'postedId' => $office->getPlaceId()], ['firstName' => 'ASC', 'lastName' => 'ASC']),
+            $this->departments->findBy(['placeKind' => $office->getPlaceKind(), 'placeId' => $office->getPlaceId()], ['name' => 'ASC']),
         );
     }
 }

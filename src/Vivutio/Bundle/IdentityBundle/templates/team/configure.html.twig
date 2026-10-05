@@ -13,8 +13,9 @@
 
 {% macro hint(name, wrong, otherwise) %}<div class="hint"><span>{{ wrong[name] ?? otherwise }}</span></div>{% endmacro %}
 
-{% macro departments_table(title, list, values, person, office) -%}
-    <table class="table"{% if office %} data-office="{{ office.uuid }}"{% if (office.uuid ~ '') != values.posted_at %} hidden{% endif %}{% endif %}>
+{% macro departments_table(title, list, values, person, place) -%}
+    {%- set key = place ? place.placeKind ~ ':' ~ place.placeId : '' -%}
+    <table class="table"{% if place %} data-place="{{ key }}"{% if key != values.posted_at %} hidden{% endif %}{% endif %}>
         <thead><tr><th>{{ title }}</th><th class="mid">Belongs to</th><th class="mid">Supports</th></tr></thead>
         <tbody>
         {% for department in list %}
@@ -87,11 +88,11 @@
                     {{ form.hint('position', wrong, person.tier.holdsEveryPermission ? 'A ' ~ person.tier.label ~ ' holds every permission without one' : 'What it grants is what they may do') }}
                 </div>
             </div>
-            {% if offices is not empty %}
+            {% if places is not empty %}
             <div class="grid-2"><div class="field{{ wrong.posted_at is defined ? ' wrong' }}"><label for="posted-at">Posted at</label>
                 <select class="select" id="posted-at" name="posted_at" data-posted>
                     <option value="">Not posted</option>
-                    <optgroup label="Offices">{% for office in offices %}<option value="{{ office.uuid }}"{{ (office.uuid ~ '') == values.posted_at ? ' selected' }}>{{ office.name }} &middot; {{ office.city }}</option>{% endfor %}</optgroup>
+                    {% for group in places %}<optgroup label="{{ group.label }}">{% for place in group.places %}{% set key = place.placeKind ~ ':' ~ place.placeId %}<option value="{{ key }}"{{ key == values.posted_at ? ' selected' }}>{{ place.name }}</option>{% endfor %}</optgroup>{% endfor %}
                 </select>
                 <div class="hint"><span>{{ wrong.posted_at ?? 'One place; its departments are offered beside the organization\'s' }}</span></div>
             </div></div>
@@ -99,8 +100,8 @@
             {% if departments is not empty %}
             <div class="field{{ wrong.department is defined ? ' wrong' }}"><span class="label">Departments <small>&middot; belongs to one, supports any number</small></span>
                 <div class="tables">
-                    {{ form.departments_table('Organization', departments|filter(d => d.office is null), values, person, null) }}
-                    {% for office in offices %}{% set here = departments|filter(d => d.office == office) %}{% if here is not empty %}{{ form.departments_table(office.name, here, values, person, office) }}{% endif %}{% endfor %}
+                    {{ form.departments_table('Organization', departments|filter(d => d.placeKind is null), values, person, null) }}
+                    {% for group in places %}{% for place in group.places %}{% set here = departments|filter(d => d.placeKind == place.placeKind and d.placeId == place.placeId) %}{% if here is not empty %}{{ form.departments_table(place.name, here, values, person, place) }}{% endif %}{% endfor %}{% endfor %}
                 </div>
                 {% if wrong.department is defined %}<div class="hint"><span>{{ wrong.department }}</span></div>{% elseif not person.tier.holdsEveryPermission and values.department == '' %}<div class="hint"><span>Without a department they reach no module</span></div>{% endif %}
             </div>
@@ -136,8 +137,8 @@
 document.addEventListener("change", function (e) {
     var posted = e.target.closest("select[data-posted]");
     if (posted) {
-        document.querySelectorAll("table[data-office]").forEach(function (t) {
-            var shown = t.getAttribute("data-office") === posted.value;
+        document.querySelectorAll("table[data-place]").forEach(function (t) {
+            var shown = t.getAttribute("data-place") === posted.value;
             t.hidden = !shown;
             if (!shown) { t.querySelectorAll("input").forEach(function (i) { i.checked = false; }); }
         });

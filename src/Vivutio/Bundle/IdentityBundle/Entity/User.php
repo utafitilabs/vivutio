@@ -15,6 +15,7 @@ namespace Vivutio\Bundle\IdentityBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -23,6 +24,7 @@ use Vivutio\Bundle\IdentityBundle\Entity\Trait\TimestampableTrait;
 use Vivutio\Bundle\IdentityBundle\Entity\Trait\UuidTrait;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
+use Vivutio\Contracts\Place\PlaceInterface;
 
 /**
  * The account somebody signs in with.
@@ -76,10 +78,13 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Position $position = null;
 
-    /** The one place they are posted at, an office; a module's place, a property, is the module's to record. */
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?Office $postedAt = null;
+    /** The kind of the one place they are posted at, an office or a package's place such as a property. */
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $postedKind = null;
+
+    /** That place's id within its kind; the place itself is its source's record, never a copy here. */
+    #[ORM\Column(type: Types::GUID, nullable: true)]
+    private ?string $postedId = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $postedSince = null;
@@ -171,9 +176,22 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
         $this->supports = new ArrayCollection();
     }
 
-    public function getPostedAt(): ?Office
+    public function getPostedKind(): ?string
     {
-        return $this->postedAt;
+        return $this->postedKind;
+    }
+
+    public function getPostedId(): ?string
+    {
+        return $this->postedId;
+    }
+
+    /** Whether they are posted at this place; null asks whether they are posted nowhere. */
+    public function isPostedAt(?PlaceInterface $place): bool
+    {
+        return null === $place
+            ? null === $this->postedKind
+            : $this->postedKind === $place->getPlaceKind() && $this->postedId === $place->getPlaceId();
     }
 
     public function getPostedSince(): ?\DateTimeImmutable
@@ -181,9 +199,10 @@ class User implements EquatableInterface, PasswordAuthenticatedUserInterface, Us
         return $this->postedSince;
     }
 
-    public function setPosting(?Office $office, ?\DateTimeImmutable $since): static
+    public function setPosting(?PlaceInterface $place, ?\DateTimeImmutable $since): static
     {
-        $this->postedAt = $office;
+        $this->postedKind = $place?->getPlaceKind();
+        $this->postedId = $place?->getPlaceId();
         $this->postedSince = $since;
 
         return $this;

@@ -24,12 +24,14 @@ use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
+use Vivutio\Contracts\Place\PlaceSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
 use Vivutio\Contracts\Shell\MenuSourceInterface;
 use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
 use Vivutio\Core\Tests\Application\NotesModule\NotesConcerns;
 use Vivutio\Core\Tests\Application\NotesModule\NotesController;
 use Vivutio\Core\Tests\Application\NotesModule\NotesMenu;
+use Vivutio\Core\Tests\Application\NotesModule\NotesPlaces;
 use Vivutio\Core\Tests\Application\NotesModule\NotesScopes;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -189,6 +191,7 @@ final class Kernel extends BaseKernel
         $services->alias('test_public.departments', 'identity.departments')->public();
         $services->alias('test_public.accounts', 'identity.accounts')->public();
         $services->alias('test_public.offices', 'identity.offices')->public();
+        $services->alias('test_public.places', 'identity.places')->public();
         $services->alias('test_public.organization_identity', OrganizationIdentitySourceInterface::SERVICE)->public();
 
         // An installation provides a logger that writes to its own files. This
@@ -204,6 +207,8 @@ final class Kernel extends BaseKernel
         $services->set(NotesMenu::class)->tag(MenuSourceInterface::TAG);
         $services->set('test.notes.scopes', NotesScopes::class)
             ->tag(ScopeSourceInterface::TAG);
+        $services->set('test.notes.places', NotesPlaces::class)
+            ->tag(PlaceSourceInterface::TAG);
         $services->set('test.notices.concerns', NoticesConcerns::class)
             ->tag(ConcernSourceInterface::TAG);
 

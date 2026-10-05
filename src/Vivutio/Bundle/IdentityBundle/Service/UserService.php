@@ -17,17 +17,18 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Vivutio\Bundle\IdentityBundle\Entity\Department;
-use Vivutio\Bundle\IdentityBundle\Entity\Office;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Enum\TierEnum;
 use Vivutio\Bundle\IdentityBundle\Exception\EmailAlreadyUsedException;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidDepartmentException;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidPersonException;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidPlaceException;
 use Vivutio\Bundle\IdentityBundle\Exception\LastSuperAdminException;
 use Vivutio\Bundle\IdentityBundle\Exception\PasswordTooShortException;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
+use Vivutio\Contracts\Place\PlaceInterface;
 
 /**
  * Every way an account comes into being or changes.
@@ -47,6 +48,7 @@ final readonly class UserService
         private UserPasswordHasherInterface $hasher,
         private UserRepository $users,
         private DepartmentRepository $departments,
+        private PlaceDirectoryService $places,
     ) {
     }
 
@@ -224,9 +226,8 @@ final readonly class UserService
 
         $supports = array_values(array_filter($supports, static fn (Department $supported): bool => $supported !== $department));
         foreach ([...(null === $department ? [] : [$department]), ...$supports] as $chosen) {
-            $sitsAt = $chosen->getOffice();
-            if (null !== $sitsAt && $sitsAt !== $account->getPostedAt()) {
-                throw new InvalidDepartmentException('department', \sprintf('%s sits at %s, and %s is not posted there: the organization\'s departments, or those of the office one is posted at.', $chosen->getName(), $sitsAt->getName(), $account->getFullName()));
+            if (!$chosen->isReachableFrom($account)) {
+                throw new InvalidDepartmentException('department', \sprintf('%s sits at %s, and %s is not posted there: the organization\'s departments, or those of the place one is posted at.', $chosen->getName(), $this->places->nameOf($chosen->getPlaceKind(), $chosen->getPlaceId()), $account->getFullName()));
             }
         }
 
@@ -236,21 +237,25 @@ final readonly class UserService
 
     /**
      * Where somebody sits, in one change as their Position card saves it: the
-     * office they are posted at, the department they belong to and those they
-     * support (the organization's, or the new office's), and their seat (one
+     * place they are posted at, the department they belong to and those they
+     * support (the organization's, or the new place's), and their seat (one
      * that heads a department taking one person, who belongs to it).
      *
      * @param list<Department> $supports
      *
      * @throws InvalidDepartmentException
+     * @throws InvalidPlaceException
      */
-    public function changeSeat(User $account, ?Office $office, ?Department $department, array $supports, ?Position $position): void
+    public function changeSeat(User $account, ?PlaceInterface $place, ?Department $department, array $supports, ?Position $position): void
     {
+        if (!$account->isPostedAt($place)) {
+            $this->places->assertOffered($place, 'posted_at');
+        }
+
         $supports = array_values(array_filter($supports, static fn (Department $supported): bool => $supported !== $department));
         foreach ([...(null === $department ? [] : [$department]), ...$supports] as $chosen) {
-            $sitsAt = $chosen->getOffice();
-            if (null !== $sitsAt && $sitsAt !== $office) {
-                throw new InvalidDepartmentException('department', \sprintf('%s sits at %s, and %s would not be posted there: the organization\'s departments, or those of the office one is posted at.', $chosen->getName(), $sitsAt->getName(), $account->getFullName()));
+            if (!$chosen->sitsAt(null) && !$chosen->sitsAt($place)) {
+                throw new InvalidDepartmentException('department', \sprintf('%s sits at %s, and %s would not be posted there: the organization\'s departments, or those of the place one is posted at.', $chosen->getName(), $this->places->nameOf($chosen->getPlaceKind(), $chosen->getPlaceId()), $account->getFullName()));
             }
         }
 
@@ -266,34 +271,36 @@ final readonly class UserService
             }
         }
 
-        if ($office !== $account->getPostedAt()) {
-            $account->setPosting($office, null === $office ? null : new \DateTimeImmutable());
+        if (!$account->isPostedAt($place)) {
+            $account->setPosting($place, null === $place ? null : new \DateTimeImmutable());
         }
         $account->setDepartment($department)->setSupports($supports)->setPosition($position);
         $this->entityManager->flush();
     }
 
     /**
-     * The one office somebody is posted at, from today, or none. Moving them
-     * is refused while they belong to, or support, a department of the office
-     * they leave: those are chosen anew with the posting.
+     * The one place somebody is posted at, an office or a package's, from
+     * today, or none. Moving them is refused while they belong to, or
+     * support, a department of the place they leave: those are chosen anew
+     * with the posting.
      *
      * @throws InvalidDepartmentException
+     * @throws InvalidPlaceException
      */
-    public function changePosting(User $account, ?Office $office): void
+    public function changePosting(User $account, ?PlaceInterface $place): void
     {
-        if ($office === $account->getPostedAt()) {
+        if ($account->isPostedAt($place)) {
             return;
         }
+        $this->places->assertOffered($place, 'posted_at');
 
         foreach ([...(null === $account->getDepartment() ? [] : [$account->getDepartment()]), ...$account->getSupports()] as $held) {
-            $sitsAt = $held->getOffice();
-            if (null !== $sitsAt && $sitsAt !== $office) {
-                throw new InvalidDepartmentException('department', \sprintf('%s belongs to or supports %s, which sits at %s: choose their departments with the new posting.', $account->getFullName(), $held->getName(), $sitsAt->getName()));
+            if (!$held->sitsAt(null) && !$held->sitsAt($place)) {
+                throw new InvalidDepartmentException('department', \sprintf('%s belongs to or supports %s, which sits at %s: choose their departments with the new posting.', $account->getFullName(), $held->getName(), $this->places->nameOf($held->getPlaceKind(), $held->getPlaceId())));
             }
         }
 
-        $account->setPosting($office, null === $office ? null : new \DateTimeImmutable());
+        $account->setPosting($place, null === $place ? null : new \DateTimeImmutable());
         $this->entityManager->flush();
     }
 

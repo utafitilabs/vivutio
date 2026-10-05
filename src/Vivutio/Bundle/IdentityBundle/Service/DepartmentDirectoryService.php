@@ -31,19 +31,19 @@ final readonly class DepartmentDirectoryService
         private DepartmentRepository $departments,
         private UserRepository $users,
         private PositionRepository $positions,
+        private PlaceDirectoryService $places,
     ) {
     }
 
     /**
-     * @return list<DepartmentSummary> the organization's, then each office's, by name
+     * @return list<DepartmentSummary> the organization's, then each place's, by the place's name
      */
     public function summaries(): array
     {
-        $departments = $this->departments->findBy([], ['name' => 'ASC']);
-        // The organization's first, then each office's, by the office's name.
-        usort($departments, static fn (Department $a, Department $b): int => [null !== $a->getOffice(), $a->getOffice()?->getName(), $a->getName()] <=> [null !== $b->getOffice(), $b->getOffice()?->getName(), $b->getName()]);
+        $summaries = array_map(fn (Department $department): DepartmentSummary => $this->summary($department), $this->departments->findBy([], ['name' => 'ASC']));
+        usort($summaries, static fn (DepartmentSummary $a, DepartmentSummary $b): int => [null !== $a->sitsAt, $a->sitsAt, $a->department->getName()] <=> [null !== $b->sitsAt, $b->sitsAt, $b->department->getName()]);
 
-        return array_map(fn (Department $department): DepartmentSummary => $this->summary($department), $departments);
+        return $summaries;
     }
 
     public function summary(Department $department): DepartmentSummary
@@ -62,7 +62,7 @@ final readonly class DepartmentDirectoryService
 
         $supporters = array_values(array_filter($everyone, static fn (User $user): bool => $user->getSupports()->contains($department)));
 
-        return new DepartmentSummary($department, $members, $supporters, $holder);
+        return new DepartmentSummary($department, $members, $supporters, $holder, $this->places->nameOf($department->getPlaceKind(), $department->getPlaceId()));
     }
 
     /**

@@ -62,7 +62,7 @@ final class WhereSomebodyIsPostedTest extends MigrationsTestCase
         $amani = $this->staff('Amani');
 
         $this->accounts()->changePosting($amani, $arusha);
-        self::assertSame('Head office', $amani->getPostedAt()?->getName());
+        self::assertTrue($amani->isPostedAt($arusha));
         $since = $amani->getPostedSince();
         self::assertNotNull($since);
 
@@ -70,10 +70,10 @@ final class WhereSomebodyIsPostedTest extends MigrationsTestCase
         self::assertSame($since, $amani->getPostedSince(), 'posting again where they are changes nothing');
 
         $this->accounts()->changePosting($amani, $nairobi);
-        self::assertSame('Sales office', $amani->getPostedAt()?->getName());
+        self::assertTrue($amani->isPostedAt($nairobi));
 
         $this->accounts()->changePosting($amani, null);
-        self::assertNull($amani->getPostedAt());
+        self::assertTrue($amani->isPostedAt(null));
         self::assertNull($amani->getPostedSince());
     }
 
@@ -84,8 +84,8 @@ final class WhereSomebodyIsPostedTest extends MigrationsTestCase
         $finance = $this->departments()->create('Finance');
         $sales = $this->departments()->create('Sales', $arusha);
 
-        self::assertNull($finance->getOffice());
-        self::assertSame('Head office', $sales->getOffice()?->getName());
+        self::assertTrue($finance->sitsAt(null));
+        self::assertTrue($sales->sitsAt($arusha));
     }
 
     /** Two offices may each have a Sales; one office may not have two, nor may the organization. */

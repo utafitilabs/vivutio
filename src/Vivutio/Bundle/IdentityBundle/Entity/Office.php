@@ -17,6 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Vivutio\Bundle\IdentityBundle\Entity\Trait\TimestampableTrait;
 use Vivutio\Bundle\IdentityBundle\Entity\Trait\UuidTrait;
 use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
+use Vivutio\Contracts\Place\PlaceInterface;
 
 /**
  * An office: a place of the organization's own, in a real city, where people
@@ -28,10 +29,11 @@ use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
 #[ORM\Entity(repositoryClass: OfficeRepository::class)]
 #[ORM\Table(name: 'identity_office')]
 #[ORM\HasLifecycleCallbacks]
-class Office
+class Office implements PlaceInterface
 {
     use TimestampableTrait;
     use UuidTrait;
+    public const string PLACE_KIND = 'office';
 
     public const int NAME_MAX_LENGTH = 120;
 
@@ -97,5 +99,15 @@ class Office
     public function __toString(): string
     {
         return $this->name;
+    }
+
+    public function getPlaceKind(): string
+    {
+        return self::PLACE_KIND;
+    }
+
+    public function getPlaceId(): string
+    {
+        return (string) $this->getUuid();
     }
 }

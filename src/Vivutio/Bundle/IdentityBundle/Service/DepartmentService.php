@@ -16,14 +16,15 @@ namespace Vivutio\Bundle\IdentityBundle\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Entity\Department;
-use Vivutio\Bundle\IdentityBundle\Entity\Office;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Entity\User;
 use Vivutio\Bundle\IdentityBundle\Exception\InvalidDepartmentException;
+use Vivutio\Bundle\IdentityBundle\Exception\InvalidPlaceException;
 use Vivutio\Bundle\IdentityBundle\Exception\UngrantablePairsException;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Contracts\Access\Grant;
+use Vivutio\Contracts\Place\PlaceInterface;
 
 /**
  * Departments: named once, by what they do; allowing a module's pairs and
@@ -37,6 +38,7 @@ final readonly class DepartmentService
         private DepartmentRepository $departments,
         private UserRepository $users,
         private ConcernCatalogue $catalogue,
+        private PlaceDirectoryService $places,
     ) {
     }
 
@@ -44,10 +46,12 @@ final readonly class DepartmentService
      * A new department allows nothing until it is told what it allows.
      *
      * @throws InvalidDepartmentException
+     * @throws InvalidPlaceException
      */
-    public function create(string $name, ?Office $office = null): Department
+    public function create(string $name, ?PlaceInterface $place = null): Department
     {
-        $department = (new Department())->setOffice($office)->setName($this->name($name, null, $office));
+        $this->places->assertOffered($place, 'place');
+        $department = (new Department())->setPlace($place)->setName($this->name($name, null, $place?->getPlaceKind(), $place?->getPlaceId(), $place?->getName()));
 
         $this->entityManager->persist($department);
         $this->entityManager->flush();
@@ -60,7 +64,7 @@ final readonly class DepartmentService
      */
     public function rename(Department $department, string $name): void
     {
-        $department->setName($this->name($name, $department, $department->getOffice()));
+        $department->setName($this->name($name, $department, $department->getPlaceKind(), $department->getPlaceId(), $this->places->nameOf($department->getPlaceKind(), $department->getPlaceId())));
         $this->entityManager->flush();
     }
 
@@ -128,36 +132,39 @@ final readonly class DepartmentService
     }
 
     /**
-     * Where it sits: the organization's own, or an office. Everybody who
-     * belongs to it or supports it must then be posted where it sits.
+     * Where it sits: the organization's own, an office, or a package's place.
+     * Everybody who belongs to it or supports it must then be posted where it
+     * sits.
      *
      * @throws InvalidDepartmentException
+     * @throws InvalidPlaceException
      */
-    public function moveTo(Department $department, ?Office $office): void
+    public function moveTo(Department $department, ?PlaceInterface $place): void
     {
-        if ($office === $department->getOffice()) {
+        if ($department->sitsAt($place)) {
             return;
         }
+        $this->places->assertOffered($place, 'place');
 
-        if (null !== $office) {
+        if (null !== $place) {
             $elsewhere = array_filter(
                 $this->users->findAll(),
-                static fn (User $user): bool => ($user->getDepartment() === $department || $user->getSupports()->contains($department)) && $user->getPostedAt() !== $office,
+                static fn (User $user): bool => ($user->getDepartment() === $department || $user->getSupports()->contains($department)) && !$user->isPostedAt($place),
             );
             if ([] !== $elsewhere) {
-                throw new InvalidDepartmentException('office', \sprintf('%d %s who belong to it or support it %s not posted at %s.', \count($elsewhere), 1 === \count($elsewhere) ? 'person' : 'people', 1 === \count($elsewhere) ? 'is' : 'are', $office->getName()));
+                throw new InvalidDepartmentException('place', \sprintf('%d %s who belong to it or support it %s not posted at %s.', \count($elsewhere), 1 === \count($elsewhere) ? 'person' : 'people', 1 === \count($elsewhere) ? 'is' : 'are', $place->getName()));
             }
         }
 
-        $this->name($department->getName(), $department, $office);
-        $department->setOffice($office);
+        $this->name($department->getName(), $department, $place?->getPlaceKind(), $place?->getPlaceId(), $place?->getName());
+        $department->setPlace($place);
         $this->entityManager->flush();
     }
 
     /**
      * @throws InvalidDepartmentException
      */
-    private function name(string $name, ?Department $renamed, ?Office $office): string
+    private function name(string $name, ?Department $renamed, ?string $kind, ?string $id, ?string $where): string
     {
         $name = trim($name);
         if ('' === $name) {
@@ -168,9 +175,9 @@ final readonly class DepartmentService
         }
 
         // Once where it sits: two offices may each have a Sales.
-        foreach ($this->departments->findBy(['office' => $office]) as $other) {
+        foreach ($this->departments->findBy(['placeKind' => $kind, 'placeId' => $id]) as $other) {
             if ($other !== $renamed && mb_strtolower($other->getName()) === mb_strtolower($name)) {
-                throw new InvalidDepartmentException('name', \sprintf('There is already a department called %s %s.', $other->getName(), null === $office ? 'in the organization' : 'at '.$office->getName()));
+                throw new InvalidDepartmentException('name', \sprintf('There is already a department called %s %s.', $other->getName(), null === $where ? 'in the organization' : 'at '.$where));
             }
         }
 

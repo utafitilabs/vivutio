@@ -26,6 +26,7 @@ use Vivutio\Bundle\IdentityBundle\Controller\PositionController;
 use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
+use Vivutio\Bundle\IdentityBundle\Place\OfficePlaces;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
@@ -44,12 +45,15 @@ use Vivutio\Bundle\IdentityBundle\Service\OfficeDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\OfficeService;
 use Vivutio\Bundle\IdentityBundle\Service\OrganizationService;
 use Vivutio\Bundle\IdentityBundle\Service\PasswordRulesService;
+use Vivutio\Bundle\IdentityBundle\Service\PlaceDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionMatrixService;
 use Vivutio\Bundle\IdentityBundle\Service\PositionService;
 use Vivutio\Bundle\IdentityBundle\Service\TeamDirectoryService;
 use Vivutio\Bundle\IdentityBundle\Service\UserService;
+use Vivutio\Bundle\IdentityBundle\Twig\PlaceExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Access\ScopeSourceInterface;
+use Vivutio\Contracts\Place\PlaceSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
 
 /*
@@ -109,6 +113,7 @@ return static function (ContainerConfigurator $container): void {
             service('security.user_password_hasher'),
             service(UserRepository::class),
             service(DepartmentRepository::class),
+            service('identity.places'),
         ]);
     $services->alias(UserService::class, 'identity.accounts');
 
@@ -118,8 +123,26 @@ return static function (ContainerConfigurator $container): void {
             service(DepartmentRepository::class),
             service(UserRepository::class),
             service('identity.access.catalogue'),
+            service('identity.places'),
         ]);
     $services->alias(DepartmentService::class, 'identity.departments');
+
+    /*
+     * Every place people are posted at: the core's offices, offered through
+     * the tag any package offers its places with, and whatever a package
+     * offers. The offices come first because they are registered first.
+     */
+    $services->set('identity.places', PlaceDirectoryService::class)
+        ->args([tagged_iterator(PlaceSourceInterface::TAG)]);
+    $services->alias(PlaceDirectoryService::class, 'identity.places');
+
+    $services->set('identity.places.offices', OfficePlaces::class)
+        ->args([service(OfficeRepository::class)])
+        ->tag(PlaceSourceInterface::TAG, ['priority' => 100]);
+
+    $services->set('identity.twig.places', PlaceExtension::class)
+        ->args([service('identity.places')])
+        ->tag('twig.extension');
 
     $services->set('identity.offices', OfficeService::class)
         ->args([service('doctrine.orm.entity_manager'), service(OfficeRepository::class)]);
@@ -263,7 +286,7 @@ return static function (ContainerConfigurator $container): void {
             service('identity.mail_availability'),
             service('identity.password_rules'),
             service(DepartmentRepository::class),
-            service(OfficeRepository::class),
+            service('identity.places'),
         ])
         ->public();
     $services->alias(PersonController::class, 'identity.controller.person')->public();
@@ -284,7 +307,7 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(PositionController::class, 'identity.controller.positions')->public();
 
     $services->set('identity.department_directory', DepartmentDirectoryService::class)
-        ->args([service(DepartmentRepository::class), service(UserRepository::class), service(PositionRepository::class)]);
+        ->args([service(DepartmentRepository::class), service(UserRepository::class), service(PositionRepository::class), service('identity.places')]);
 
     $services->set('identity.controller.departments', DepartmentController::class)
         ->args([
@@ -293,7 +316,7 @@ return static function (ContainerConfigurator $container): void {
             service('identity.department_directory'),
             service('identity.position_matrix'),
             service(PositionRepository::class),
-            service(OfficeRepository::class),
+            service('identity.places'),
             service('security.csrf.token_manager'),
             service('router'),
         ])

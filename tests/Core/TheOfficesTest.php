@@ -118,11 +118,11 @@ final class TheOfficesTest extends MigrationsTestCase
         $this->signedInAs($this->person('Baraka', TierEnum::Admin));
 
         $page = $this->browser->request('GET', '/team/'.$amani->getUuid().'/configure');
-        $this->browser->submit($page->selectButton('Save position')->form(['posted_at' => (string) $nairobi->getUuid(), 'department' => (string) $nairobiSales->getUuid()]));
+        $this->browser->submit($page->selectButton('Save position')->form(['posted_at' => 'office:'.$nairobi->getUuid(), 'department' => (string) $nairobiSales->getUuid()]));
 
         self::assertResponseRedirects('/team/'.$amani->getUuid().'/configure');
         $amani = $this->reloaded($amani);
-        self::assertSame('Sales office', $amani->getPostedAt()?->getName());
+        self::assertTrue($amani->isPostedAt($nairobi));
         self::assertSame($nairobiSales->getId(), $amani->getDepartment()?->getId());
 
         $record = $this->browser->request('GET', '/team/'.$amani->getUuid());
@@ -150,10 +150,10 @@ final class TheOfficesTest extends MigrationsTestCase
         $this->signedInAs($this->person('Baraka', TierEnum::Admin));
 
         $page = $this->browser->request('GET', '/team/departments/'.$sales->getUuid().'/configure');
-        $this->browser->submit($page->selectButton('Save department')->form(['office' => (string) $arusha->getUuid()]));
+        $this->browser->submit($page->selectButton('Save department')->form(['place' => 'office:'.$arusha->getUuid()]));
 
         self::assertResponseRedirects('/team/departments/'.$sales->getUuid());
-        self::assertSame('Head office', $this->find(Department::class, 'Sales')->getOffice()?->getName());
+        self::assertTrue($this->find(Department::class, 'Sales')->sitsAt($arusha));
     }
 
     private function person(string $name, TierEnum $tier = TierEnum::Staff): User
