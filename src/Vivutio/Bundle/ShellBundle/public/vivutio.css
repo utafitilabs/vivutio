@@ -359,3 +359,18 @@ a.chip[aria-current=true] em{color:var(--accent)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--ink-2)}
 .legend span{display:inline-flex;align-items:center;gap:7px}
 .legend i{width:12px;height:12px;border-radius:4px;background:var(--tone,var(--well))}
+/* A month of nights across, one row a thing (a room type): how many are free
+   each night, the number in its cell. A night with none free is drawn open,
+   a ring and no fill; a night with some taken is the well a shade deeper.
+   On a narrow screen the month scrolls inside its panel, the first column
+   staying in view. */
+.nights-scroll{overflow-x:auto;scrollbar-width:thin}
+.nights{width:100%;min-width:880px;border-collapse:separate;border-spacing:2px;table-layout:fixed}
+.nights th{padding:0 0 3px;font-size:10.5px;font-weight:600;color:var(--ink-3);text-align:center;line-height:1.25}
+.nights th:first-child,.nights td:first-child{position:sticky;left:0;z-index:1;width:150px;padding-right:8px;background:var(--panel);text-align:left;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nights td{height:30px;padding:0;border-radius:6px;background:var(--well);text-align:center;font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.nights td a{display:block;line-height:30px;color:inherit;text-decoration:none}
+.nights td a:hover{color:var(--ink);font-weight:600}
+.nights td[data-short]{background:color-mix(in srgb,var(--ink-3) 22%,var(--well));color:var(--ink);font-weight:600}
+.nights td[data-closed]{background:none;box-shadow:inset 0 0 0 1px var(--line-2);color:var(--ink-3)}
+.nights th[data-weekend]{color:var(--ink-2)}
