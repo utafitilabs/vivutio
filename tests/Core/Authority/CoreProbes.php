@@ -24,6 +24,7 @@ use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 use Vivutio\Bundle\IdentityBundle\Test\AuthorityTestCase;
 use Vivutio\Bundle\IdentityBundle\Test\Probe;
+use Vivutio\Bundle\PlaceBundle\Controller\DestinationController;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 
 /**
@@ -42,6 +43,7 @@ final class CoreProbes
     private const string DEPARTMENT = '/team/departments/'.AuthorityTestCase::DEPARTMENT_UUID;
 
     private const string OFFICE = '/team/offices/'.self::OFFICE_UUID;
+    private const string DESTINATION = '/destinations/tz-serengeti';
 
     /**
      * @return list<Probe>
@@ -77,6 +79,12 @@ final class CoreProbes
             // Sent by each kind of person in turn, so the second allowed finds the address taken.
             new Probe(PersonController::CREATE, 'POST', '/team/add/create', ['first_name' => 'Added', 'last_name' => 'By a probe', 'email' => 'added.by.a.probe@vivutio-camps.example', 'password' => 'a first passphrase', 'position' => ''], formAt: '/team/add'),
             new Probe(PersonController::INVITE, 'POST', '/team/add/invite', ['email' => 'invited.by.a.probe@vivutio-camps.example', 'position' => ''], formAt: '/team/add'),
+            new Probe(DestinationController::LIST, 'GET', '/destinations'),
+            new Probe(DestinationController::SHOW, 'GET', self::DESTINATION),
+            // The fee seeded first is removed by the first allowed, and is not found by the next.
+            new Probe(DestinationController::REMOVE_FEE, 'POST', self::DESTINATION.'/fees/1/remove', formAt: self::DESTINATION),
+            new Probe(DestinationController::ADD_FEE, 'POST', self::DESTINATION.'/fees', ['kind' => 'entry', 'guest' => 'adult', 'residency' => 'non_resident', 'per' => 'person_day', 'amount' => '80', 'currency' => 'USD', 'valid_from' => '2026-07-01', 'valid_to' => '2027-06-30'], formAt: self::DESTINATION),
+            new Probe(DestinationController::ADD, 'POST', '/destinations', ['name' => 'Added by a probe', 'kind' => 'lake', 'country' => 'TZ'], formAt: '/destinations'),
             new Probe(OfficeController::REGISTER, 'GET', '/team/offices'),
             new Probe(OfficeController::ADD, 'POST', '/team/offices', ['name' => 'Added by a probe', 'city' => 'Nairobi', 'country' => 'Kenya'], formAt: '/team/offices'),
             new Probe(OfficeController::SHOW, 'GET', self::OFFICE),

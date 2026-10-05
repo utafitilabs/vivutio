@@ -21,6 +21,12 @@ use Vivutio\Bundle\IdentityBundle\Controller\SecurityController;
 use Vivutio\Bundle\IdentityBundle\Entity\Office;
 use Vivutio\Bundle\IdentityBundle\Entity\Position;
 use Vivutio\Bundle\IdentityBundle\Test\AuthorityTestCase;
+use Vivutio\Bundle\PlaceBundle\Entity\Destination;
+use Vivutio\Bundle\PlaceBundle\Entity\DestinationFee;
+use Vivutio\Bundle\PlaceBundle\Enum\FeeKindEnum;
+use Vivutio\Bundle\PlaceBundle\Enum\FeePerEnum;
+use Vivutio\Bundle\PlaceBundle\Enum\GuestEnum;
+use Vivutio\Bundle\PlaceBundle\Enum\ResidencyEnum;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Core\Tests\Application\Kernel;
 use Vivutio\Core\Tests\Core\Authority\CoreProbes;
@@ -65,6 +71,9 @@ final class CoreAuthorityTest extends AuthorityTestCase
             ->setCity('Arusha')
             ->setCountry('Tanzania')
             ->setUuid(Uuid::fromString(CoreProbes::OFFICE_UUID)));
+        $serengeti = $entityManager->getRepository(Destination::class)->findOneBy(['key' => 'tz-serengeti']);
+        \assert($serengeti instanceof Destination);
+        $entityManager->persist(new DestinationFee($serengeti, FeeKindEnum::Conservation, GuestEnum::Adult, ResidencyEnum::NonResident, FeePerEnum::PersonDay, '70.00', 'USD', new \DateTimeImmutable('2026-07-01'), new \DateTimeImmutable('2027-06-30')));
     }
 
     protected static function openRoutes(): array

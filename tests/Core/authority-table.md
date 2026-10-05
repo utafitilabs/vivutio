@@ -354,6 +354,76 @@ Checks: `directory.manage`
 | Admin | redirected to /team/{new} |
 | Super Admin | answered 422 |
 
+## place_destinations: GET /destinations
+
+Checks: `destinations.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Destinations · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Destinations · vivutio |
+| Super Admin | allowed: Destinations · vivutio |
+
+## place_destination: GET /destinations/tz-serengeti
+
+Checks: `destinations.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Serengeti National Park · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Serengeti National Park · vivutio |
+| Super Admin | allowed: Serengeti National Park · vivutio |
+
+## place_destination_fee_remove: POST /destinations/tz-serengeti/fees/1/remove
+
+Checks: `destinations.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /destinations/tz-serengeti |
+| Super Admin | not found |
+
+## place_destination_fee_add: POST /destinations/tz-serengeti/fees
+
+Checks: `destinations.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /destinations/tz-serengeti |
+| Super Admin | answered 422 |
+
+## place_destination_add: POST /destinations
+
+Checks: `destinations.configure`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /destinations/tz-added-by-a-probe |
+| Super Admin | answered 422 |
+
 ## identity_offices: GET /team/offices
 
 Checks: `offices.read`

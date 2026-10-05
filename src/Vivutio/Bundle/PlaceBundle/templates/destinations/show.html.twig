@@ -1,0 +1,48 @@
+{# A destination's page: its fees, by kind, guest and residency, each in
+   force from a first day to a last. Setting them is the tiers' alone. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}{{ destination.name }}{% endblock %}
+{% block here %}destinations{% endblock %}
+
+{% block page %}
+{%- set may = door('destinations.configure') -%}
+<header class="page-head">
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('place_destinations') }}">Destinations</a> / {{ destination.name }}</nav><div class="title"><h1>{{ destination.name }}</h1><span class="about">{{ destination.kind.label }} · {{ country }}</span></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('place_destinations') }}">{{ icons.icon('left', 15) }} Back to destinations</a></div>
+</header>
+
+<div class="stack">
+    <section class="panel">
+        <header class="panel-head"><h2>Fees</h2><p>Charged at the gate, by guest and residency, each from its first day to its last</p></header>
+        {% for fee in destination.fees %}
+            <div class="fact" data-fee>
+                <span>{{ fee.kind.label }} · {{ fee.guest.label }} · {{ fee.residency.label }}</span>
+                <small data-in-force>{{ fee.validFrom|date('j M Y') }} to {{ fee.validTo|date('j M Y') }}</small>
+                <b>{{ fee.currency }} {{ fee.amount|number_format(2) }} {{ fee.per.label }}</b>
+                {% if may %}<form method="post" action="{{ path('place_destination_fee_remove', {key: destination.key, fee: fee.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('place_destination_fee_remove') }}"><button type="submit" class="button outline">Remove</button></form>{% endif %}
+            </div>
+        {% else %}
+            <div class="empty"><b>No fees yet</b><span>The fees charged here, once entered, price the visits tours make.</span></div>
+        {% endfor %}
+    </section>
+
+    {% if may %}
+    <form class="panel" method="post" action="{{ path('place_destination_fee_add', {key: destination.key}) }}" novalidate>
+        <header class="panel-head"><h2>Add a fee</h2><p>One amount for one kind of guest; a new year's fee is added beside the last</p></header>
+        <input type="hidden" name="_token" value="{{ csrf_token('place_destination_fee_add') }}">
+        {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Add it again.</span></div>{% endif %}
+        <div class="grid-3">
+            {% for field, choice in {kind: ['For', kinds], guest: ['Guest', guests], residency: ['Residency', residencies], per: ['Per', pers]} %}
+                <div class="field{{ wrong[field] is defined ? ' wrong' }}"><label for="fee-{{ field }}">{{ choice[0] }}</label><select class="select" id="fee-{{ field }}" name="{{ field }}">{% for case in choice[1] %}<option value="{{ case.value }}"{{ case.value == typed[field] ? ' selected' }}>{{ case.label|capitalize }}</option>{% endfor %}</select>{% if wrong[field] is defined %}<div class="hint"><span>{{ wrong[field] }}</span></div>{% endif %}</div>
+            {% endfor %}
+            {% for field, label in {amount: 'Amount', currency: 'Currency', valid_from: 'From', valid_to: 'To'} %}
+                <div class="field{{ wrong[field] is defined ? ' wrong' }}"><label for="fee-{{ field }}">{{ label }}</label><input class="input" id="fee-{{ field }}" name="{{ field }}" value="{{ typed[field] }}"{{ field starts with 'valid' ? ' type="date"' : (field == 'amount' ? ' inputmode="decimal"' : ' maxlength="3"') }} required>{% if wrong[field] is defined %}<div class="hint"><span>{{ wrong[field] }}</span></div>{% endif %}</div>
+            {% endfor %}
+        </div>
+        <footer class="panel-foot"><span class="state"></span><button type="submit" class="button main">Add the fee</button></footer>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

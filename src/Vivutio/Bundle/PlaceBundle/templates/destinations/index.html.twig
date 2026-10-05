@@ -1,0 +1,48 @@
+{# The destinations tours go to, by country: those the core ships and those
+   the organization added. Adding one is the tiers' alone. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}Destinations{% endblock %}
+{% block here %}destinations{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Organization / Destinations</nav><div class="title"><h1>Destinations</h1><span class="about">The parks, reserves and places tours go to, and the fees charged at each</span></div></div></header>
+
+<div class="stack">
+    {% if door('destinations.configure') %}
+    <form class="panel" method="post" action="{{ path('place_destination_add') }}" novalidate>
+        <header class="panel-head"><h2>Add a destination</h2><p>A place tours go to that the list does not have</p></header>
+        <input type="hidden" name="_token" value="{{ csrf_token('place_destination_add') }}">
+        {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Add it again.</span></div>{% endif %}
+        <div class="grid-3">
+            <div class="field{{ wrong.name is defined ? ' wrong' }}"><label for="destination-name">Name</label><input class="input" id="destination-name" name="name" value="{{ typed.name }}" maxlength="120" required>{% if wrong.name is defined %}<div class="hint"><span>{{ wrong.name }}</span></div>{% endif %}</div>
+            <div class="field{{ wrong.kind is defined ? ' wrong' }}"><label for="destination-kind">Kind</label><select class="select" id="destination-kind" name="kind">{% for kind in kinds %}<option value="{{ kind.value }}"{{ kind.value == typed.kind ? ' selected' }}>{{ kind.label }}</option>{% endfor %}</select>{% if wrong.kind is defined %}<div class="hint"><span>{{ wrong.kind }}</span></div>{% endif %}</div>
+            <div class="field{{ wrong.country is defined ? ' wrong' }}"><label for="destination-country">Country</label><select class="select" id="destination-country" name="country"><option value="">Choose…</option>{% for code, name in countries %}<option value="{{ code }}"{{ code == typed.country ? ' selected' }}>{{ name }}</option>{% endfor %}</select>{% if wrong.country is defined %}<div class="hint"><span>{{ wrong.country }}</span></div>{% endif %}</div>
+        </div>
+        <footer class="panel-foot"><span class="state"></span><button type="submit" class="button main">Add the destination</button></footer>
+    </form>
+    {% endif %}
+
+    <section class="panel list">
+        <table class="table">
+            <thead><tr><th>Destination</th><th style="width:190px">Kind</th><th style="width:130px">Fees</th><th style="width:90px"></th></tr></thead>
+            <tbody>
+            {% for country, destinations in by_country %}
+                <tr data-country><td colspan="4"><span class="label">{{ country }}</span></td></tr>
+                {% for destination in destinations %}
+                    <tr data-destination="{{ destination.key }}">
+                        <td><b>{{ destination.name }}</b>{% if not destination.shipped %} <span class="chip">Added</span>{% endif %}</td>
+                        <td>{{ destination.kind.label }}</td>
+                        <td>{{ destination.fees|length }} {{ destination.fees|length == 1 ? 'fee' : 'fees' }}</td>
+                        <td><a class="button outline" href="{{ path('place_destination', {key: destination.key}) }}">Open</a></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="4"><div class="empty"><b>No destinations</b><span>A destination is a place tours go to: add the first.</span></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

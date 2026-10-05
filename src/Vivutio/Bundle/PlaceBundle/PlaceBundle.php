@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Vivutio\Bundle\PlaceBundle;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 /**
@@ -34,5 +36,45 @@ final class PlaceBundle extends AbstractBundle
     public function getPath(): string
     {
         return __DIR__;
+    }
+
+    /**
+     * Where its entities are mapped and where the versions that build its
+     * tables are, prepended so the installation keeps the last word.
+     *
+     * @see https://symfony.com/doc/current/bundles/prepend_extension.html
+     */
+    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        if ($builder->hasExtension('doctrine')) {
+            $builder->prependExtensionConfig('doctrine', [
+                'orm' => [
+                    'mappings' => [
+                        'Place' => [
+                            'type' => 'attribute',
+                            'dir' => __DIR__.'/Entity',
+                            'prefix' => 'Vivutio\\Bundle\\PlaceBundle\\Entity',
+                            'is_bundle' => false,
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($builder->hasExtension('doctrine_migrations')) {
+            $builder->prependExtensionConfig('doctrine_migrations', [
+                'migrations_paths' => [
+                    'Vivutio\\Bundle\\PlaceBundle\\Migrations' => __DIR__.'/migrations',
+                ],
+            ]);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        $container->import('config/services.php');
     }
 }
