@@ -87,6 +87,7 @@ final class Kernel extends BaseKernel
         $routes->import('@IdentityBundle/Controller/', 'attribute');
         $routes->import('@ShellBundle/Controller/', 'attribute');
         $routes->import('@PlaceBundle/Controller/', 'attribute');
+        $routes->import('@PartnerBundle/Controller/', 'attribute');
 
         // A stand-in module's pages, held to the proofs by a suite of its own.
         $routes->import(__DIR__.'/NotesModule/', 'attribute');

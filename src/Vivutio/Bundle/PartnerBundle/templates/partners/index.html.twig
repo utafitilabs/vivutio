@@ -1,0 +1,55 @@
+{# The partners, by status: the organizations you trade with. Adding one goes
+   on to its Configure page for its contact and terms. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Partner/partners/_macros.html.twig' as partners_ %}
+
+{% block title %}Partners{% endblock %}
+{% block here %}partners{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Organization / Partners</nav><div class="title"><h1>Partners</h1><span class="about">The organizations you trade with, and the terms they trade on</span></div></div></header>
+
+<div class="stack">
+    {% if door('partners.manage') %}
+    <form class="panel" method="post" action="{{ path('partner_partner_add') }}" novalidate>
+        <header class="panel-head"><h2>Add a partner</h2><p>A tour operator, an agent or a supplier; its contact and terms come next</p></header>
+        <input type="hidden" name="_token" value="{{ csrf_token('partner_add') }}">
+        {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Add it again.</span></div>{% endif %}
+        <div class="grid-2">
+            <div class="field{{ wrong.name is defined ? ' wrong' }}"><label for="partner-name">Name</label><input class="input" id="partner-name" name="name" value="{{ typed.name }}" maxlength="120" required>{{ partners_.hint('name', wrong) }}</div>
+            {{ partners_.kind_select(kinds, typed.kind, wrong) }}
+            {{ partners_.country_select(countries, typed.country, wrong) }}
+            <div class="field{{ wrong.email is defined ? ' wrong' }}"><label for="partner-email">Email for requests</label><input class="input" id="partner-email" name="email" type="email" value="{{ typed.email }}" required>{{ partners_.hint('email', wrong) }}</div>
+        </div>
+        <footer class="panel-foot"><span class="state"></span><button type="submit" class="button main">Add the partner</button></footer>
+    </form>
+    {% endif %}
+
+    <form class="tools" method="get" action="{{ path('partner_partners') }}" data-tools>
+        <span data-facet="status">
+            {% for case in statuses %}
+                <a class="chip" data-chip href="{{ path('partner_partners', case == statuses|first ? {} : {status: case.value}) }}"{{ case == status ? ' aria-current="true"' }}>{{ case.label }} <em>{{ counts[case.value] }}</em></a>
+            {% endfor %}
+        </span>
+    </form>
+
+    <section class="panel list">
+        <table class="table">
+            <thead><tr><th>Partner</th><th style="width:170px">What they are</th><th style="width:150px">Terms</th><th style="width:90px"></th></tr></thead>
+            <tbody>
+            {% for partner in partners %}
+                <tr data-partner="{{ partner.name }}">
+                    <td><b>{{ partner.name }}</b><small> {{ partner.email }}</small></td>
+                    <td>{{ partner.kind.label }}</td>
+                    <td>{{ partner.discount != '0.00' ? partner.discount|number_format(partner.discount matches '/\\.00$/' ? 0 : 2) ~ '% off' : 'No discount' }}</td>
+                    <td><a class="button outline" href="{{ path('partner_partner', {uuid: partner.uuid}) }}">Open</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4"><div class="empty"><b>{{ status.value == 'active' ? 'No partners yet' : 'Nothing archived' }}</b><span>{{ status.value == 'active' ? 'A partner is an organization you trade with: add the first.' : 'An archived partner keeps what it has and is offered for nothing new.' }}</span></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

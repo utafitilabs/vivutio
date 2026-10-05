@@ -1,0 +1,12 @@
+{# A field's refusal, said beside it. #}
+{% macro hint(field, wrong) %}{% if wrong[field] is defined %}<div class="hint"><span>{{ wrong[field] }}</span></div>{% endif %}{% endmacro %}
+
+{# What a partner is, as a select. #}
+{% macro kind_select(kinds, chosen, wrong) %}
+<div class="field{{ wrong.kind is defined ? ' wrong' }}"><label for="partner-kind">What they are to you</label><select class="select" id="partner-kind" name="kind">{% for kind in kinds %}<option value="{{ kind.value }}"{{ kind.value == chosen ? ' selected' }}>{{ kind.label }}</option>{% endfor %}</select>{{ _self.hint('kind', wrong) }}</div>
+{% endmacro %}
+
+{# Its country, as a select of every country ISO 3166 knows. #}
+{% macro country_select(countries, chosen, wrong) %}
+<div class="field{{ wrong.country is defined ? ' wrong' }}"><label for="partner-country">Country</label><select class="select" id="partner-country" name="country"><option value="">Choose…</option>{% for code, name in countries %}<option value="{{ code }}"{{ code == chosen ? ' selected' }}>{{ name }}</option>{% endfor %}</select>{{ _self.hint('country', wrong) }}</div>
+{% endmacro %}

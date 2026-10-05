@@ -18,7 +18,24 @@
     ],
     "require": {
         "php": ">=8.4",
-        "symfony/http-kernel": "^8.0"
+        "ext-filter": "*",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.0",
+        "doctrine/doctrine-bundle": "^3.0",
+        "doctrine/migrations": "^3.9",
+        "doctrine/orm": "^3.5",
+        "doctrine/persistence": "^3.1 || ^4.0",
+        "symfony/dependency-injection": "^8.0",
+        "symfony/doctrine-bridge": "^8.0",
+        "symfony/http-foundation": "^8.0",
+        "symfony/http-kernel": "^8.0",
+        "symfony/intl": "^8.0",
+        "symfony/routing": "^8.0",
+        "symfony/security-csrf": "^8.0",
+        "symfony/security-http": "^8.0",
+        "symfony/uid": "^8.0",
+        "twig/twig": "^3.21",
+        "vivutio/contracts": "^0.1"
     },
     "autoload": {
         "psr-4": {

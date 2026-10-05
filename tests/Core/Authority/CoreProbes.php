@@ -24,6 +24,7 @@ use Vivutio\Bundle\IdentityBundle\Controller\SettingsController;
 use Vivutio\Bundle\IdentityBundle\Controller\TeamController;
 use Vivutio\Bundle\IdentityBundle\Test\AuthorityTestCase;
 use Vivutio\Bundle\IdentityBundle\Test\Probe;
+use Vivutio\Bundle\PartnerBundle\Controller\PartnerController;
 use Vivutio\Bundle\PlaceBundle\Controller\DestinationController;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 
@@ -35,6 +36,7 @@ final class CoreProbes
     public const string POSITION_UUID = '0199a6f0-5ea7-7e10-8000-0000000005ea';
 
     public const string OFFICE_UUID = '0199a6f0-0ff1-7e10-8000-000000000ff1';
+    public const string PARTNER_UUID = '0199a6f0-0ff1-7e10-8000-000000000a71';
 
     private const string CANARY = '/team/'.AuthorityTestCase::CANARY_UUID;
 
@@ -44,6 +46,7 @@ final class CoreProbes
 
     private const string OFFICE = '/team/offices/'.self::OFFICE_UUID;
     private const string DESTINATION = '/destinations/tz-serengeti';
+    private const string PARTNER = '/partners/'.self::PARTNER_UUID;
 
     /**
      * @return list<Probe>
@@ -79,6 +82,14 @@ final class CoreProbes
             // Sent by each kind of person in turn, so the second allowed finds the address taken.
             new Probe(PersonController::CREATE, 'POST', '/team/add/create', ['first_name' => 'Added', 'last_name' => 'By a probe', 'email' => 'added.by.a.probe@vivutio-camps.example', 'password' => 'a first passphrase', 'position' => ''], formAt: '/team/add'),
             new Probe(PersonController::INVITE, 'POST', '/team/add/invite', ['email' => 'invited.by.a.probe@vivutio-camps.example', 'position' => ''], formAt: '/team/add'),
+            new Probe(PartnerController::REGISTER, 'GET', '/partners'),
+            new Probe(PartnerController::SHOW, 'GET', self::PARTNER),
+            new Probe(PartnerController::CONFIGURE, 'GET', self::PARTNER.'/configure'),
+            new Probe(PartnerController::CONFIGURE, 'POST', self::PARTNER.'/configure', ['name' => 'Probed partner', 'kind' => 'tour_operator', 'country' => 'KE', 'email' => 'probed@partner.example', 'contact' => '', 'phone' => '', 'discount' => '10', 'credit_days' => '30', 'notes' => ''], formAt: self::PARTNER.'/configure'),
+            new Probe(PartnerController::ARCHIVE, 'POST', self::PARTNER.'/archive', formAt: self::PARTNER.'/configure'),
+            new Probe(PartnerController::REACTIVATE, 'POST', self::PARTNER.'/reactivate', formAt: self::PARTNER.'/configure'),
+            // Sent by each kind of person in turn, so the second allowed finds the name taken.
+            new Probe(PartnerController::ADD, 'POST', '/partners', ['name' => 'Added by a probe', 'kind' => 'travel_agent', 'country' => 'TZ', 'email' => 'added@partner.example'], formAt: '/partners'),
             new Probe(DestinationController::LIST, 'GET', '/destinations'),
             new Probe(DestinationController::SHOW, 'GET', self::DESTINATION),
             // The fee seeded first is removed by the first allowed, and is not found by the next.

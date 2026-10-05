@@ -145,7 +145,7 @@ final class TheFrameTest extends MigrationsTestCase
     public function testAModulesPagesJoinTheMenuForWhoeverMayOpenThem(): void
     {
         $tier = $this->open('/', $this->person('Neema', TierEnum::SuperAdmin));
-        self::assertSame(['Dashboard', 'Notes', 'Team', 'Departments', 'Offices', 'Destinations', 'Positions', 'Settings'], $this->menu($tier));
+        self::assertSame(['Dashboard', 'Notes', 'Team', 'Departments', 'Offices', 'Partners', 'Destinations', 'Positions', 'Settings'], $this->menu($tier));
         self::assertSame('/notes', $tier->filter('nav.menu')->selectLink('Notes')->attr('href'));
 
         $staff = $this->open('/', $this->person('Amani', TierEnum::Staff, ['notes.read'], 'Housekeeper'));

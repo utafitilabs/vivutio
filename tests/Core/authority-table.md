@@ -354,6 +354,104 @@ Checks: `directory.manage`
 | Admin | redirected to /team/{new} |
 | Super Admin | answered 422 |
 
+## partner_partners: GET /partners
+
+Checks: `partners.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Partners · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Partners · vivutio |
+| Super Admin | allowed: Partners · vivutio |
+
+## partner_partner: GET /partners/0199a6f0-0ff1-7e10-8000-000000000a71
+
+Checks: `partners.read`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Probed partner · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Probed partner · vivutio |
+| Super Admin | allowed: Probed partner · vivutio |
+
+## partner_partner_configure: GET /partners/0199a6f0-0ff1-7e10-8000-000000000a71/configure
+
+Checks: `partners.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | allowed: Configure Probed partner · vivutio |
+| Staff holding all but the pair | refused |
+| Admin | allowed: Configure Probed partner · vivutio |
+| Super Admin | allowed: Configure Probed partner · vivutio |
+
+## partner_partner_configure: POST /partners/0199a6f0-0ff1-7e10-8000-000000000a71/configure
+
+Checks: `partners.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+| Super Admin | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+
+## partner_partner_archive: POST /partners/0199a6f0-0ff1-7e10-8000-000000000a71/archive
+
+Checks: `partners.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+| Super Admin | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+
+## partner_partner_reactivate: POST /partners/0199a6f0-0ff1-7e10-8000-000000000a71/reactivate
+
+Checks: `partners.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+| Super Admin | redirected to /partners/0199a6f0-0ff1-7e10-8000-000000000a71 |
+
+## partner_partner_add: POST /partners
+
+Checks: `partners.manage`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | answered 422 |
+| Staff holding all but the pair | refused |
+| Admin | redirected to /partners/{new}/configure |
+| Super Admin | answered 422 |
+
 ## place_destinations: GET /destinations
 
 Checks: `destinations.read`

@@ -1,0 +1,42 @@
+{# A partner's page: what they are, who to write to, the terms they trade on
+   and the channel a request reaches them by. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+
+{% block title %}{{ partner.name }}{% endblock %}
+{% block here %}partners{% endblock %}
+
+{% block page %}
+{%- set may = door('partners.manage') -%}
+{%- set discount = partner.discount|number_format(partner.discount matches '/\\.00$/' ? 0 : 2) -%}
+<header class="page-head">
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('partner_partners') }}">Partners</a> / {{ partner.name }}</nav><div class="title"><h1>{{ partner.name }}</h1><span class="about">{{ partner.kind.label }} · {{ country }}</span>{% if not partner.active %} <span class="chip">Archived</span>{% endif %}</div></div>
+    <div class="actions">
+        <a class="button outline" href="{{ path('partner_partners') }}">{{ icons.icon('left', 15) }} Back to partners</a>
+        {% if may %}
+            <a class="button outline" href="{{ path('partner_partner_configure', {uuid: partner.uuid}) }}">Configure</a>
+        {% endif %}
+    </div>
+</header>
+
+{% if saved %}<div class="notice" role="status">{{ icons.icon('check') }}<span>The partner is saved.</span></div>{% endif %}
+
+<div class="band">
+    <span class="f"><span class="k">Discount</span><span class="v">{% if partner.discount != '0.00' %}{{ discount }}% <em>off</em>{% else %}None{% endif %}</span></span>
+    <span class="f"><span class="k">To pay</span><span class="v">{% if partner.creditDays > 0 %}{{ partner.creditDays }} <em>days</em>{% else %}On booking{% endif %}</span></span>
+    <span class="f"><span class="k">Channel</span><span class="v">{{ partner.channel.label }}</span></span>
+</div>
+
+<div class="columns">
+    <section class="panel" data-contact>
+        <header class="panel-head"><h2>Contact</h2><p>Requests leave for this address as an email, their status recorded by hand</p></header>
+        <div class="fact"><span>Email</span><b><a href="mailto:{{ partner.email }}">{{ partner.email }}</a></b></div>
+        <div class="fact"><span>Ask for</span><b>{{ partner.contact ?: '—' }}</b></div>
+        <div class="fact"><span>Phone</span><b>{{ partner.phone ?: '—' }}</b></div>
+    </section>
+    <section class="panel">
+        <header class="panel-head"><h2>Notes</h2><p>What the team should know</p></header>
+        {% if partner.notes %}<p class="hint" data-notes>{{ partner.notes|nl2br }}</p>{% else %}<div class="empty"><span>No notes.</span></div>{% endif %}
+    </section>
+</div>
+{% endblock %}

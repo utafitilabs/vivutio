@@ -1,0 +1,48 @@
+{# Configuring a partner: what they are, who to write to, and their terms. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Partner/partners/_macros.html.twig' as partners_ %}
+
+{% block title %}Configure {{ partner.name }}{% endblock %}
+{% block here %}partners{% endblock %}
+
+{% block page %}
+<header class="page-head">
+    <div><nav class="trail" aria-label="Where you are"><a href="{{ path('partner_partners') }}">Partners</a> / <a href="{{ path('partner_partner', {uuid: partner.uuid}) }}">{{ partner.name }}</a> / Configure</nav><div class="title"><h1>{{ partner.name }}</h1></div></div>
+    <div class="actions"><a class="button outline" href="{{ path('partner_partner', {uuid: partner.uuid}) }}">{{ icons.icon('record', 15) }} View partner</a></div>
+</header>
+
+<form class="stack" method="post" action="{{ path('partner_partner_configure', {uuid: partner.uuid}) }}" novalidate>
+    <input type="hidden" name="_token" value="{{ csrf_token('partner_configure') }}">
+    {% if expired %}<div class="notice danger" role="alert">{{ icons.icon('alert') }}<span>The form had expired, so nothing was saved. Save again.</span></div>{% endif %}
+    <section class="panel">
+        <header class="panel-head"><h2>Partner</h2><p>Who they are and who to write to there</p></header>
+        <div class="grid-2">
+            <div class="field{{ wrong.name is defined ? ' wrong' }}"><label for="partner-name">Name</label><input class="input" id="partner-name" name="name" value="{{ typed.name }}" maxlength="120" required>{{ partners_.hint('name', wrong) }}</div>
+            {{ partners_.kind_select(kinds, typed.kind, wrong) }}
+            {{ partners_.country_select(countries, typed.country, wrong) }}
+            <div class="field{{ wrong.email is defined ? ' wrong' }}"><label for="partner-email">Email for requests</label><input class="input" id="partner-email" name="email" type="email" value="{{ typed.email }}" required>{{ partners_.hint('email', wrong) }}</div>
+            <div class="field{{ wrong.contact is defined ? ' wrong' }}"><label for="partner-contact">Ask for</label><input class="input" id="partner-contact" name="contact" value="{{ typed.contact }}" maxlength="120">{{ partners_.hint('contact', wrong) }}</div>
+            <div class="field{{ wrong.phone is defined ? ' wrong' }}"><label for="partner-phone">Phone</label><input class="input" id="partner-phone" name="phone" type="tel" value="{{ typed.phone }}" maxlength="40">{{ partners_.hint('phone', wrong) }}</div>
+        </div>
+    </section>
+    <section class="panel">
+        <header class="panel-head"><h2>Terms</h2><p>What they trade at; a booking they make is priced by these</p></header>
+        <div class="grid-2">
+            <div class="field{{ wrong.discount is defined ? ' wrong' }}"><label for="partner-discount">Discount, %</label><input class="input" id="partner-discount" name="discount" inputmode="decimal" value="{{ typed.discount }}" placeholder="0">{{ partners_.hint('discount', wrong) }}</div>
+            <div class="field{{ wrong.credit_days is defined ? ' wrong' }}"><label for="partner-credit-days">Days to pay</label><input class="input" id="partner-credit-days" name="credit_days" inputmode="numeric" value="{{ typed.credit_days }}" placeholder="0, on booking">{{ partners_.hint('credit_days', wrong) }}</div>
+        </div>
+        <div class="field{{ wrong.notes is defined ? ' wrong' }}"><label for="partner-notes">Notes</label><textarea class="textarea" id="partner-notes" name="notes" rows="4">{{ typed.notes }}</textarea>{{ partners_.hint('notes', wrong) }}</div>
+        <footer class="panel-foot"><span class="state">Nothing is saved until Save</span><button type="reset" class="button quiet">Discard</button><button type="submit" class="button main">Save partner</button></footer>
+    </section>
+</form>
+
+<section class="panel">
+    <header class="panel-head"><h2>Status</h2><p>{{ partner.active ? 'Offered for new business' : 'Archived: keeps what it has, offered for nothing new' }}</p></header>
+    {% if partner.active %}
+        <form class="action" method="post" action="{{ path('partner_partner_archive', {uuid: partner.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('partner_status') }}"><div><b>Archive</b><span>Record kept, reversible</span></div><button type="submit" class="button small danger">Archive</button></form>
+    {% else %}
+        <form class="action" method="post" action="{{ path('partner_partner_reactivate', {uuid: partner.uuid}) }}"><input type="hidden" name="_token" value="{{ csrf_token('partner_status') }}"><div><b>Reactivate</b><span>Offered for new business again</span></div><button type="submit" class="button small">Reactivate</button></form>
+    {% endif %}
+</section>
+{% endblock %}
