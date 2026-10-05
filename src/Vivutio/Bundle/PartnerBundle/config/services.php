@@ -14,11 +14,13 @@ declare(strict_types=1);
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Vivutio\Bundle\PartnerBundle\Access\PartnerConcerns;
+use Vivutio\Bundle\PartnerBundle\Channel\ManualChannel;
 use Vivutio\Bundle\PartnerBundle\Controller\PartnerController;
 use Vivutio\Bundle\PartnerBundle\Repository\PartnerRepository;
 use Vivutio\Bundle\PartnerBundle\Service\PartnerDirectory;
 use Vivutio\Bundle\PartnerBundle\Service\PartnerService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
+use Vivutio\Contracts\Partner\PartnerChannelInterface;
 use Vivutio\Contracts\Partner\PartnerDirectoryInterface;
 
 /*
@@ -44,6 +46,11 @@ return static function (ContainerConfigurator $container): void {
     $services->set('partner.directory', PartnerDirectory::class)
         ->args([service(PartnerRepository::class)]);
     $services->alias(PartnerDirectoryInterface::class, 'partner.directory')->public();
+
+    // How a module reaches a partner; the manual channel until the hub takes one over.
+    $services->set('partner.channel.manual', ManualChannel::class)
+        ->args([service('mailer')]);
+    $services->alias(PartnerChannelInterface::class, 'partner.channel.manual')->public();
 
     $services->set('partner.controller.partners', PartnerController::class)
         ->args([

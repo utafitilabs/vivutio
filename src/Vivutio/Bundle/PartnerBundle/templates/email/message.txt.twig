@@ -1,0 +1,6 @@
+{% if contact %}Dear {{ contact }},{% else %}Dear {{ partner.name }},{% endif %}
+
+{{ message.body }}
+
+Our reference: {{ message.reference }}
+Please quote it in your reply.
