@@ -323,3 +323,17 @@ a.chip[aria-current=true] em{color:var(--accent)}
 .band .v{font-size:22px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .band .v em{font-style:normal;font-size:12.5px;font-weight:500;letter-spacing:0;color:var(--ink-2);margin-left:7px}
 .band .more{margin-left:auto;font-size:13px;font-weight:600;color:var(--accent)}
+/* A record's tabs, under its band, as uhifadhi's: the top-level sections of
+   one record, each its own address, so each is a link. The rule under them is
+   an inset shadow, so the underline of the current tab sits on it and a
+   strip that scrolls on a narrow screen clips nothing. */
+.tabs{display:flex;gap:26px;margin:0 0 18px;padding:0 4px;box-shadow:inset 0 -1px 0 var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{padding:9px 1px 11px;border-bottom:2px solid transparent;font-size:14px;font-weight:600;color:var(--ink-3);text-decoration:none;white-space:nowrap;transition:color .15s,border-color .15s}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current=page]{color:var(--ink);border-bottom-color:var(--accent)}
+/* Every tab opens with the same row: one sentence on what it is for, and its
+   actions on the right (uhifadhi's S2). */
+.intro{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin:0 0 16px;padding:0 4px}
+.intro p{margin:0;color:var(--ink-2)}
+.intro .actions{display:flex;gap:8px}
