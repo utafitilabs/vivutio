@@ -2,8 +2,8 @@
  *
  * Ported from the design project, vivutio-designs/vivutio.css; a change to
  * the look is made there first. Soft and rounded: panels float on a light
- * shadow with 16px corners and no edge; every control is a pill; one bar runs
- * across the top and the menu hangs under it; Save and Discard sit in the
+ * shadow with 16px corners and no edge; every control is a pill; the mark
+ * heads the sidebar over the menu and the bar sits beside it; Save and Discard sit in the
  * footer of a panel; a history is a timeline. Type is Figtree, shipped beside
  * this file under the SIL Open Font License (fonts/OFL.txt). Colour is Emerald.
  *
@@ -50,11 +50,16 @@ h1,h2,h3,p{margin:0}
 input[type=radio],input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0;flex:none}
 svg{flex:none}
 
-/* 3. The frame: one bar across the top, the menu under it */
+/* 3. The frame, as uhifadhi's: the sidebar headed by the mark and the fold,
+   the menu under them; beside it the bar over the page, its search and icons
+   on the page's column. Folding the sidebar folds the mark to itself. */
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:var(--side);border-right:1px solid var(--line-2);z-index:31}
+.side-top{flex:none;height:var(--bar);display:flex;align-items:center;gap:6px;padding:0 14px 0 26px}
+.frame{min-width:0;display:flex;flex-direction:column}
 .bar{position:sticky;top:0;z-index:30;height:var(--bar);display:flex;align-items:center;gap:10px;background:var(--panel);box-shadow:var(--lift);
-  padding-right:calc(24px + max(0px,(100vw - var(--menu) - var(--column)) / 2))}
-.brand{flex:none;width:248px;padding:0 26px;display:flex;align-items:center;gap:9px;font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--accent)}
-.fold{border:0;background:none;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;margin-left:-8px}
+  padding:0 calc(24px + max(0px,(100vw - var(--menu) - var(--column)) / 2))}
+.brand{flex:1;min-width:0;display:flex;align-items:center;gap:9px;font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--accent)}
+.fold{flex:none;border:0;background:none;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;width:36px;height:36px;border-radius:50%}
 .fold:hover,.bar-icon:hover,.bar-me:hover{background:var(--well);color:var(--ink)}
 html.folded .fold svg{transform:scaleX(-1)}
 .search{display:flex;align-items:center;gap:9px;height:38px;width:380px;max-width:34vw;margin-right:auto;border-radius:999px;background:var(--well);padding:0 15px;color:var(--ink-3)}
@@ -75,13 +80,16 @@ html.folded .fold svg{transform:scaleX(-1)}
 .search:has(input:disabled),.bar-icon:disabled{opacity:.55;cursor:not-allowed}
 .search input:disabled{cursor:not-allowed}
 
-.shell{display:grid;grid-template-columns:var(--menu) minmax(0,1fr);min-height:calc(100vh - var(--bar))}
-.menu{position:sticky;top:var(--bar);height:calc(100vh - var(--bar));overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:18px 14px 16px;background:var(--side);border-right:1px solid var(--line-2)}
+.shell{display:grid;grid-template-columns:var(--menu) minmax(0,1fr);min-height:100vh}
+.menu{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:8px 14px 16px}
 .menu h2{font-size:12px;font-weight:600;color:var(--ink-3);padding:18px 16px 4px}
 .menu h2:first-child{padding-top:0}
 .menu a{display:flex;align-items:center;gap:13px;height:42px;padding:0 16px;border-radius:999px;font-size:14.5px;font-weight:500;color:var(--ink-2);white-space:nowrap}
 .menu a:hover{background:var(--well)}
 .menu a.here{background:var(--accent-soft);color:var(--accent);font-weight:700}
+html.folded .side-top{flex-direction:column;justify-content:center;height:auto;padding:14px 0 6px;gap:8px}
+html.folded .brand{flex:none}
+html.folded .brand span{display:none}
 html.folded .menu{align-items:center;padding-left:12px;padding-right:12px}
 html.folded .menu h2,html.folded .menu a span{display:none}
 html.folded .menu a{width:44px;padding:0;justify-content:center}
@@ -294,15 +302,16 @@ a.chip[aria-current=true] em{color:var(--accent)}
 .pager a:hover{background:var(--well)}
 .pager b{color:var(--ink-2);font-weight:600}
 
-/* A phone: the menu folds to its strip of icons, whatever was chosen, and the
-   bar keeps the mark, the fold, the theme and the initials. A list wider than
+/* A phone: the sidebar folds to its strip of icons under the mark, whatever
+   was chosen, and the bar keeps the theme and the initials. A list wider than
    the screen scrolls inside its panel, never the page. */
 .panel.list{overflow-x:auto}
 @media (max-width:760px){
   html:root{--menu:64px}
-  .brand{width:auto;padding:0 10px 0 16px}
+  .side-top{flex-direction:column;justify-content:center;height:auto;padding:14px 0 6px;gap:8px}
+  .brand{flex:none}
   .brand span,.bar-me span{display:none}
-  .bar{padding-right:12px}
+  .bar{padding:0 12px}
   .menu{align-items:center;padding-left:10px;padding-right:10px}
   .menu h2,.menu a span{display:none}
   .menu a{width:44px;padding:0;justify-content:center}

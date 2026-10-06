@@ -1,6 +1,8 @@
 {# The frame every signed-in page wears, as designed in
-   vivutio-designs/shell/dashboard.html: one bar across the top, the menu under
-   it listing only what the person may open, the page in one centred column.
+   vivutio-designs/shell/dashboard.html after uhifadhi's: the sidebar headed by
+   the mark and the button that folds it, the menu under them listing only
+   what the person may open; beside it the bar over the page, and the page in
+   one centred column. Folding the sidebar folds the mark to itself.
 
    A page names where it sits in the menu with the `here` block, and fills
    `page`. Search and notifications are drawn as coming until their features
@@ -11,23 +13,13 @@
 {% block body %}
 {%- set signed_in = app.user -%}
 {%- set organization = organization() -%}
-<header class="bar">
-    <a class="brand" href="{{ path('shell_dashboard') }}">{% include '@Shell/_mark.html.twig' with {size: 28} only %}<span>vivutio</span></a>
-    <button type="button" class="fold" onclick="foldMenu()" title="Fold or open the menu" aria-label="Fold or open the menu">{{ icons.icon('fold') }}</button>
-    <label class="search" title="Search is coming">{{ icons.icon('search', 16) }}<input type="search" placeholder="Search people, properties, bookings" aria-label="Search" disabled><kbd>/</kbd></label>
-    <button type="button" class="bar-icon" title="Notifications are coming" aria-label="Notifications are coming" disabled>{{ icons.icon('bell') }}</button>
-    <button type="button" class="bar-icon" onclick="toggleTheme()" title="Dark or light" aria-label="Dark or light">{{ icons.icon('theme') }}</button>
-    <details class="me">
-        <summary class="bar-me">
-            {#- Under the name the tiers read their tier; Staff, who see no
-                tier anywhere, read their position. -#}
-            <span><b>{{ signed_in.fullName }}</b><small>{{ signed_in.tier.holdsEveryPermission ? signed_in.tier.label : (signed_in.position ? signed_in.position.name : 'No position') }}</small></span>
-            <i>{{ signed_in.initials }}</i>
-        </summary>
-        <div class="pick-menu"><a href="{{ path('identity_logout') }}">Sign out</a></div>
-    </details>
-</header>
+
 <div class="shell">
+<aside class="side">
+    <div class="side-top">
+        <a class="brand" href="{{ path('shell_dashboard') }}">{% include '@Shell/_mark.html.twig' with {size: 28} only %}<span>vivutio</span></a>
+        <button type="button" class="fold" onclick="foldMenu()" title="Fold or open the menu" aria-label="Fold or open the menu">{{ icons.icon('fold') }}</button>
+    </div>
     <nav class="menu" aria-label="Menu">
         {%- set here = block('here') is defined ? block('here')|trim : '' -%}
         {% if organization %}<h2>{{ organization.name }}</h2>{% endif %}
@@ -58,11 +50,28 @@
             <a href="{{ path('identity_settings_organization') }}" title="Settings"{{ 'settings' == here ? ' class="here"' }}>{{ icons.icon('settings') }}<span>Settings</span></a>
         {% endif %}
     </nav>
+</aside>
+<div class="frame">
+<header class="bar">
+    <label class="search" title="Search is coming">{{ icons.icon('search', 16) }}<input type="search" placeholder="Search people, properties, bookings" aria-label="Search" disabled><kbd>/</kbd></label>
+    <button type="button" class="bar-icon" title="Notifications are coming" aria-label="Notifications are coming" disabled>{{ icons.icon('bell') }}</button>
+    <button type="button" class="bar-icon" onclick="toggleTheme()" title="Dark or light" aria-label="Dark or light">{{ icons.icon('theme') }}</button>
+    <details class="me">
+        <summary class="bar-me">
+            {#- Under the name the tiers read their tier; Staff, who see no
+                tier anywhere, read their position. -#}
+            <span><b>{{ signed_in.fullName }}</b><small>{{ signed_in.tier.holdsEveryPermission ? signed_in.tier.label : (signed_in.position ? signed_in.position.name : 'No position') }}</small></span>
+            <i>{{ signed_in.initials }}</i>
+        </summary>
+        <div class="pick-menu"><a href="{{ path('identity_logout') }}">Sign out</a></div>
+    </details>
+</header>
     <main>
         <div class="page">
             {% for said in app.flashes('vivutio.deleted') %}<div class="notice" role="status" data-deleted>{{ said }}</div>{% endfor %}
             {% block page %}{% endblock %}
         </div>
     </main>
+</div>
 </div>
 {% endblock %}

@@ -60,14 +60,17 @@ final class TheFrameTest extends MigrationsTestCase
         yield 'the team' => ['/team'];
     }
 
+    /** As uhifadhi's frame (ruled 6 October): the mark and the fold head the sidebar, the bar sits beside it. */
     #[DataProvider('signedInPages')]
-    public function testEverySignedInPageWearsTheBar(string $address): void
+    public function testEverySignedInPageWearsTheFrame(string $address): void
     {
         $page = $this->open($address, $this->person('Neema', TierEnum::SuperAdmin));
 
-        self::assertSame('/', $page->filter('header.bar a.brand')->attr('href'));
-        self::assertCount(1, $page->filter('header.bar button.fold'));
-        self::assertCount(1, $page->filter('header.bar button[onclick="toggleTheme()"]'));
+        self::assertSame('/', $page->filter('aside.side .side-top a.brand')->attr('href'));
+        self::assertCount(1, $page->filter('aside.side .side-top button.fold'));
+        self::assertCount(1, $page->filter('aside.side nav.menu'));
+        self::assertCount(0, $page->filter('header.bar a.brand, header.bar button.fold'));
+        self::assertCount(1, $page->filter('.frame > header.bar button[onclick="toggleTheme()"]'));
         self::assertSame('Neema Kimaro', trim($page->filter('header.bar .bar-me b')->text()));
     }
 
