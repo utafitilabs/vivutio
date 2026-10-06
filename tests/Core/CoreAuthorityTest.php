@@ -75,7 +75,7 @@ final class CoreAuthorityTest extends AuthorityTestCase
             ->setUuid(Uuid::fromString(CoreProbes::OFFICE_UUID)));
         $entityManager->persist((new Partner('Probed partner', PartnerKindEnum::TourOperator, 'KE', 'probed@partner.example'))
             ->setUuid(Uuid::fromString(CoreProbes::PARTNER_UUID)));
-        $serengeti = $entityManager->getRepository(Destination::class)->findOneBy(['key' => 'tz-serengeti']);
+        $serengeti = $entityManager->getRepository(Destination::class)->findOneBy(['key' => 'tz-serengeti-national-park']);
         \assert($serengeti instanceof Destination);
         $entityManager->persist(new DestinationFee($serengeti, FeeKindEnum::Conservation, GuestEnum::Adult, ResidencyEnum::NonResident, FeePerEnum::PersonDay, '70.00', 'USD', new \DateTimeImmutable('2026-07-01'), new \DateTimeImmutable('2027-06-30')));
     }

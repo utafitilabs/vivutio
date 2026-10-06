@@ -56,15 +56,19 @@ final readonly class DestinationService
             }
         }
 
-        $destination = new Destination(self::key($country, $name), $name, $kind, $country);
+        $destination = new Destination(self::keyOf($country, $name), $name, $kind, $country);
         $this->entityManager->persist($destination);
         $this->entityManager->flush();
 
         return $destination;
     }
 
-    /** "tz-lake-natron": the country and the name, in lowercase letters and digits. */
-    private static function key(string $country, string $name): string
+    /**
+     * A destination's key, for those the core ships and those an organization
+     * adds alike: the country and the whole name in lowercase letters and
+     * digits, "tz-lake-natron", "tz-arusha-national-park".
+     */
+    public static function keyOf(string $country, string $name): string
     {
         $slug = trim((string) preg_replace('/[^a-z0-9]+/', '-', mb_strtolower((string) iconv('UTF-8', 'ASCII//TRANSLIT', $name))), '-');
 

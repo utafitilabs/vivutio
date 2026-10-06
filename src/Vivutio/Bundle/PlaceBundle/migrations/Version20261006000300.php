@@ -18,7 +18,8 @@ use Doctrine\Migrations\AbstractMigration;
 
 /**
  * Destinations and their fees, with the parks and reserves of East Africa
- * shipped under the keys the hub knows them by. No fee is shipped: fees
+ * shipped under the keys the hub knows them by: the country and the whole
+ * name, as an organization's own are keyed. No fee is shipped: fees
  * change, and an installation enters those it charges.
  */
 final class Version20261006000300 extends AbstractMigration
@@ -37,37 +38,37 @@ final class Version20261006000300 extends AbstractMigration
         $this->addSql('ALTER TABLE place_destination_fee ADD CONSTRAINT FK_B9334B02816C6140 FOREIGN KEY (destination_id) REFERENCES place_destination (id) ON DELETE CASCADE');
         $this->addSql(<<<'SQL'
             INSERT INTO place_destination ("key", name, kind, country, shipped) VALUES
-            ('tz-serengeti', 'Serengeti National Park', 'national_park', 'TZ', true),
-            ('tz-ngorongoro', 'Ngorongoro Conservation Area', 'conservation_area', 'TZ', true),
-            ('tz-tarangire', 'Tarangire National Park', 'national_park', 'TZ', true),
-            ('tz-lake-manyara', 'Lake Manyara National Park', 'national_park', 'TZ', true),
-            ('tz-arusha', 'Arusha National Park', 'national_park', 'TZ', true),
-            ('tz-kilimanjaro', 'Kilimanjaro National Park', 'mountain', 'TZ', true),
-            ('tz-ruaha', 'Ruaha National Park', 'national_park', 'TZ', true),
-            ('tz-nyerere', 'Nyerere National Park', 'national_park', 'TZ', true),
-            ('tz-mikumi', 'Mikumi National Park', 'national_park', 'TZ', true),
-            ('tz-katavi', 'Katavi National Park', 'national_park', 'TZ', true),
-            ('tz-mahale', 'Mahale Mountains National Park', 'national_park', 'TZ', true),
-            ('tz-gombe', 'Gombe Stream National Park', 'national_park', 'TZ', true),
-            ('tz-jozani', 'Jozani Chwaka Bay National Park', 'forest', 'TZ', true),
+            ('tz-serengeti-national-park', 'Serengeti National Park', 'national_park', 'TZ', true),
+            ('tz-ngorongoro-conservation-area', 'Ngorongoro Conservation Area', 'conservation_area', 'TZ', true),
+            ('tz-tarangire-national-park', 'Tarangire National Park', 'national_park', 'TZ', true),
+            ('tz-lake-manyara-national-park', 'Lake Manyara National Park', 'national_park', 'TZ', true),
+            ('tz-arusha-national-park', 'Arusha National Park', 'national_park', 'TZ', true),
+            ('tz-kilimanjaro-national-park', 'Kilimanjaro National Park', 'mountain', 'TZ', true),
+            ('tz-ruaha-national-park', 'Ruaha National Park', 'national_park', 'TZ', true),
+            ('tz-nyerere-national-park', 'Nyerere National Park', 'national_park', 'TZ', true),
+            ('tz-mikumi-national-park', 'Mikumi National Park', 'national_park', 'TZ', true),
+            ('tz-katavi-national-park', 'Katavi National Park', 'national_park', 'TZ', true),
+            ('tz-mahale-mountains-national-park', 'Mahale Mountains National Park', 'national_park', 'TZ', true),
+            ('tz-gombe-stream-national-park', 'Gombe Stream National Park', 'national_park', 'TZ', true),
+            ('tz-jozani-chwaka-bay-national-park', 'Jozani Chwaka Bay National Park', 'forest', 'TZ', true),
             ('tz-stone-town', 'Stone Town', 'city', 'TZ', true),
-            ('ke-maasai-mara', 'Maasai Mara National Reserve', 'game_reserve', 'KE', true),
-            ('ke-amboseli', 'Amboseli National Park', 'national_park', 'KE', true),
-            ('ke-tsavo-east', 'Tsavo East National Park', 'national_park', 'KE', true),
-            ('ke-tsavo-west', 'Tsavo West National Park', 'national_park', 'KE', true),
-            ('ke-lake-nakuru', 'Lake Nakuru National Park', 'national_park', 'KE', true),
-            ('ke-samburu', 'Samburu National Reserve', 'game_reserve', 'KE', true),
-            ('ke-nairobi', 'Nairobi National Park', 'national_park', 'KE', true),
-            ('ke-ol-pejeta', 'Ol Pejeta Conservancy', 'conservancy', 'KE', true),
-            ('ke-mount-kenya', 'Mount Kenya National Park', 'mountain', 'KE', true),
-            ('ug-bwindi', 'Bwindi Impenetrable National Park', 'national_park', 'UG', true),
-            ('ug-queen-elizabeth', 'Queen Elizabeth National Park', 'national_park', 'UG', true),
-            ('ug-murchison-falls', 'Murchison Falls National Park', 'national_park', 'UG', true),
-            ('ug-kibale', 'Kibale National Park', 'forest', 'UG', true),
-            ('ug-lake-mburo', 'Lake Mburo National Park', 'national_park', 'UG', true),
-            ('rw-volcanoes', 'Volcanoes National Park', 'national_park', 'RW', true),
-            ('rw-akagera', 'Akagera National Park', 'national_park', 'RW', true),
-            ('rw-nyungwe', 'Nyungwe National Park', 'forest', 'RW', true)
+            ('ke-maasai-mara-national-reserve', 'Maasai Mara National Reserve', 'game_reserve', 'KE', true),
+            ('ke-amboseli-national-park', 'Amboseli National Park', 'national_park', 'KE', true),
+            ('ke-tsavo-east-national-park', 'Tsavo East National Park', 'national_park', 'KE', true),
+            ('ke-tsavo-west-national-park', 'Tsavo West National Park', 'national_park', 'KE', true),
+            ('ke-lake-nakuru-national-park', 'Lake Nakuru National Park', 'national_park', 'KE', true),
+            ('ke-samburu-national-reserve', 'Samburu National Reserve', 'game_reserve', 'KE', true),
+            ('ke-nairobi-national-park', 'Nairobi National Park', 'national_park', 'KE', true),
+            ('ke-ol-pejeta-conservancy', 'Ol Pejeta Conservancy', 'conservancy', 'KE', true),
+            ('ke-mount-kenya-national-park', 'Mount Kenya National Park', 'mountain', 'KE', true),
+            ('ug-bwindi-impenetrable-national-park', 'Bwindi Impenetrable National Park', 'national_park', 'UG', true),
+            ('ug-queen-elizabeth-national-park', 'Queen Elizabeth National Park', 'national_park', 'UG', true),
+            ('ug-murchison-falls-national-park', 'Murchison Falls National Park', 'national_park', 'UG', true),
+            ('ug-kibale-national-park', 'Kibale National Park', 'forest', 'UG', true),
+            ('ug-lake-mburo-national-park', 'Lake Mburo National Park', 'national_park', 'UG', true),
+            ('rw-volcanoes-national-park', 'Volcanoes National Park', 'national_park', 'RW', true),
+            ('rw-akagera-national-park', 'Akagera National Park', 'national_park', 'RW', true),
+            ('rw-nyungwe-national-park', 'Nyungwe National Park', 'forest', 'RW', true)
             SQL);
     }
 

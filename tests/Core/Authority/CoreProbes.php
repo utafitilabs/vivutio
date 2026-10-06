@@ -47,7 +47,7 @@ final class CoreProbes
     private const string DEPARTMENT = '/team/departments/'.AuthorityTestCase::DEPARTMENT_UUID;
 
     private const string OFFICE = '/team/offices/'.self::OFFICE_UUID;
-    private const string DESTINATION = '/destinations/tz-serengeti';
+    private const string DESTINATION = '/destinations/tz-serengeti-national-park';
     private const string PARTNER = '/partners/'.self::PARTNER_UUID;
 
     /**

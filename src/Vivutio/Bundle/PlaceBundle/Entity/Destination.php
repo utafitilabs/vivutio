@@ -37,7 +37,7 @@ class Destination
     #[ORM\Column]
     private ?int $id = null; // @phpstan-ignore property.unusedType (assigned by Doctrine)
 
-    /** Its stable key: "tz-serengeti". */
+    /** Its stable key, the country and the whole name: "tz-serengeti-national-park". */
     #[ORM\Column(name: '`key`', length: 64, unique: true)]
     private string $key;
 

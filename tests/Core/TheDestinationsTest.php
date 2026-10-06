@@ -23,6 +23,7 @@ use Vivutio\Bundle\PlaceBundle\Entity\Destination;
 use Vivutio\Bundle\PlaceBundle\Enum\GuestEnum;
 use Vivutio\Bundle\PlaceBundle\Enum\ResidencyEnum;
 use Vivutio\Bundle\PlaceBundle\Service\DestinationFeeService;
+use Vivutio\Bundle\PlaceBundle\Service\DestinationService;
 
 /**
  * Places as reference data (ruled #17): the destinations tours go to, the
@@ -49,19 +50,29 @@ final class TheDestinationsTest extends MigrationsTestCase
 
     public function testTheCoreShipsTheParksOfEastAfricaUnderKeys(): void
     {
-        $serengeti = $this->destination('tz-serengeti');
+        $serengeti = $this->destination('tz-serengeti-national-park');
         self::assertSame('Serengeti National Park', $serengeti->getName());
         self::assertSame('national_park', $serengeti->getKind()->value);
         self::assertSame('TZ', $serengeti->getCountry());
         self::assertTrue($serengeti->isShipped());
-        self::assertSame('Ngorongoro Conservation Area', $this->destination('tz-ngorongoro')->getName());
-        self::assertSame('Maasai Mara National Reserve', $this->destination('ke-maasai-mara')->getName());
+        self::assertSame('Ngorongoro Conservation Area', $this->destination('tz-ngorongoro-conservation-area')->getName());
+        self::assertSame('Maasai Mara National Reserve', $this->destination('ke-maasai-mara-national-reserve')->getName());
 
         $this->signedInAs($this->person('Baraka', TierEnum::Admin));
         $page = $this->browser->request('GET', '/destinations');
         self::assertResponseIsSuccessful();
         self::assertSame(['Kenya', 'Rwanda', 'Tanzania', 'Uganda'], $page->filter('tr[data-country]')->each(static fn (Crawler $row): string => trim($row->text())));
         self::assertSame('/destinations', $this->browser->request('GET', '/')->filter('nav.menu')->selectLink('Destinations')->attr('href'));
+    }
+
+    /** A shipped destination is keyed as an added one is: its country and its whole name, so a park never takes a town's key. */
+    public function testEveryShippedKeyIsItsCountryAndItsWholeName(): void
+    {
+        $this->em()->clear();
+        foreach ($this->em()->getRepository(Destination::class)->findBy(['shipped' => true]) as $destination) {
+            self::assertSame(DestinationService::keyOf($destination->getCountry(), $destination->getName()), $destination->getKey());
+        }
+        self::assertSame('tz-arusha-national-park', $this->destination('tz-arusha-national-park')->getKey());
     }
 
     public function testATierAddsADestinationAnywhere(): void
@@ -95,15 +106,15 @@ final class TheDestinationsTest extends MigrationsTestCase
             ['entry', 'child', 'non_resident', 'person_day', '20', 'USD'],
             ['entry', 'adult', 'citizen', 'person_day', '11800', 'TZS'],
         ] as [$kind, $guest, $residency, $per, $amount, $currency]) {
-            $this->addFee('tz-serengeti', ['kind' => $kind, 'guest' => $guest, 'residency' => $residency, 'per' => $per, 'amount' => $amount, 'currency' => $currency, 'valid_from' => '2026-07-01', 'valid_to' => '2027-06-30']);
+            $this->addFee('tz-serengeti-national-park', ['kind' => $kind, 'guest' => $guest, 'residency' => $residency, 'per' => $per, 'amount' => $amount, 'currency' => $currency, 'valid_from' => '2026-07-01', 'valid_to' => '2027-06-30']);
         }
 
-        $page = $this->browser->request('GET', '/destinations/tz-serengeti');
+        $page = $this->browser->request('GET', '/destinations/tz-serengeti-national-park');
         self::assertSame(['Entry · Adult · Non-resident: USD 80.00 a person a day', 'Entry · Child · Non-resident: USD 20.00 a person a day', 'Entry · Adult · Citizen: TZS 11,800.00 a person a day'], $page->filter('[data-fee]')->each(static fn (Crawler $fee): string => trim((string) preg_replace('/\s+/', ' ', $fee->filter('span')->text().': '.$fee->filter('b')->text()))));
 
         $fees = static::getContainer()->get(DestinationFeeService::class);
         self::assertInstanceOf(DestinationFeeService::class, $fees);
-        $serengeti = $this->destination('tz-serengeti');
+        $serengeti = $this->destination('tz-serengeti-national-park');
         self::assertSame(['80.00'], array_map(static fn ($fee): string => $fee->getAmount(), $fees->charged($serengeti, new \DateTimeImmutable('2026-08-01'), GuestEnum::Adult, ResidencyEnum::NonResident)));
         self::assertSame([], $fees->charged($serengeti, new \DateTimeImmutable('2026-06-30'), GuestEnum::Adult, ResidencyEnum::NonResident), 'not yet in force');
     }
@@ -112,7 +123,7 @@ final class TheDestinationsTest extends MigrationsTestCase
     {
         $this->signedInAs($this->person('Baraka', TierEnum::Admin));
         $fee = ['kind' => 'entry', 'guest' => 'adult', 'residency' => 'non_resident', 'per' => 'person_day', 'amount' => '80', 'currency' => 'USD', 'valid_from' => '2026-07-01', 'valid_to' => '2027-06-30'];
-        $this->addFee('tz-serengeti', $fee);
+        $this->addFee('tz-serengeti-national-park', $fee);
 
         foreach ([
             ['amount', ['amount' => 'eighty']],
@@ -120,7 +131,7 @@ final class TheDestinationsTest extends MigrationsTestCase
             ['valid_to', ['valid_to' => '2026-06-01']],
             ['valid_from', ['valid_from' => '2027-01-01', 'valid_to' => '2027-12-31']],
         ] as [$field, $changed]) {
-            $page = $this->addFee('tz-serengeti', [...$fee, ...$changed], 422);
+            $page = $this->addFee('tz-serengeti-national-park', [...$fee, ...$changed], 422);
             self::assertSame($field, $page->filter('.field.wrong')->filter('input, select')->attr('name'), $field);
         }
     }
@@ -129,7 +140,7 @@ final class TheDestinationsTest extends MigrationsTestCase
     {
         $this->signedInAs($this->person('Elia', TierEnum::Staff, ['destinations.read']));
 
-        $page = $this->browser->request('GET', '/destinations/tz-serengeti');
+        $page = $this->browser->request('GET', '/destinations/tz-serengeti-national-park');
         self::assertResponseIsSuccessful();
         self::assertCount(0, $page->filter('form[method="post"]'));
         $this->browser->request('POST', '/destinations', ['name' => 'Taken over', 'kind' => 'lake', 'country' => 'TZ']);

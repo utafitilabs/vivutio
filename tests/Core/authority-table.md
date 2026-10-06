@@ -606,7 +606,7 @@ Checks: `destinations.read`
 | Admin | allowed: Destinations · vivutio |
 | Super Admin | allowed: Destinations · vivutio |
 
-## place_destination: GET /destinations/tz-serengeti
+## place_destination: GET /destinations/tz-serengeti-national-park
 
 Checks: `destinations.read`
 
@@ -620,7 +620,7 @@ Checks: `destinations.read`
 | Admin | allowed: Serengeti National Park · vivutio |
 | Super Admin | allowed: Serengeti National Park · vivutio |
 
-## place_destination_fee_remove: POST /destinations/tz-serengeti/fees/1/remove
+## place_destination_fee_remove: POST /destinations/tz-serengeti-national-park/fees/1/remove
 
 Checks: `destinations.configure`
 
@@ -631,10 +631,10 @@ Checks: `destinations.configure`
 | Staff, no position | refused |
 | Staff holding the pair | refused |
 | Staff holding all but the pair | refused |
-| Admin | redirected to /destinations/tz-serengeti |
+| Admin | redirected to /destinations/tz-serengeti-national-park |
 | Super Admin | not found |
 
-## place_destination_fee_add: POST /destinations/tz-serengeti/fees
+## place_destination_fee_add: POST /destinations/tz-serengeti-national-park/fees
 
 Checks: `destinations.configure`
 
@@ -645,7 +645,7 @@ Checks: `destinations.configure`
 | Staff, no position | refused |
 | Staff holding the pair | refused |
 | Staff holding all but the pair | refused |
-| Admin | redirected to /destinations/tz-serengeti |
+| Admin | redirected to /destinations/tz-serengeti-national-park |
 | Super Admin | answered 422 |
 
 ## place_destination_add: POST /destinations
