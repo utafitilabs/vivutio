@@ -303,10 +303,22 @@ a.chip[aria-current=true] em{color:var(--accent)}
 .pager b{color:var(--ink-2);font-weight:600}
 
 /* A phone: the sidebar folds to its strip of icons under the mark, whatever
-   was chosen, and the bar keeps the theme and the initials. A list wider than
-   the screen scrolls inside its panel, never the page. */
+   was chosen, and the bar keeps the theme and the initials. Nothing is wider
+   than the screen: a page head's actions and a form's buttons wrap under, a
+   column is as narrow as the screen, a switch scrolls in itself, and a table
+   wider than the screen scrolls inside its panel, never the page. */
 .panel.list{overflow-x:auto}
+.page-head,.panel-foot,.page-head .actions{flex-wrap:wrap}
+.page-head>div:has(>.title){flex:1 1 12rem;min-width:0}
+.page-head .title{flex-wrap:wrap}
+.columns>*,.grid-2>*,.grid-3>*,.grid-1-2>*{min-width:0}
+.switch{overflow-x:auto;scrollbar-width:none}
+.switch::-webkit-scrollbar{display:none}
+.single{grid-template-columns:minmax(0,388px)}
 @media (max-width:760px){
+  .panel{overflow-x:auto}
+  .hint span{white-space:normal}
+  .tools .pick-menu{position:fixed;left:16px;right:16px;top:auto;min-width:0}
   html:root{--menu:64px}
   .side-top{flex-direction:column;justify-content:center;height:auto;padding:14px 0 6px;gap:8px}
   .brand{flex:none}
