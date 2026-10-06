@@ -47,10 +47,25 @@ final readonly class InstallationService
      */
     public function packages(): array
     {
+        return self::packagesIn(InstalledVersions::getAllRawData());
+    }
+
+    /**
+     * The reading, given what Composer knows. The root package of type
+     * project is the installation itself, made from the skeleton, not
+     * something it installed.
+     *
+     * @param list<array{root: array{name: string, type: string}, versions: array<string, array{pretty_version?: string, install_path?: string}>}> $rawData
+     *
+     * @return list<InstalledPackage>
+     */
+    public static function packagesIn(array $rawData): array
+    {
         $found = [];
-        foreach (InstalledVersions::getAllRawData() as $set) {
+        foreach ($rawData as $set) {
+            $installation = 'project' === $set['root']['type'] ? $set['root']['name'] : null;
             foreach ($set['versions'] as $name => $entry) {
-                if (!str_starts_with($name, self::VENDOR) || isset($found[$name]) || !isset($entry['install_path'])) {
+                if (!str_starts_with($name, self::VENDOR) || $name === $installation || isset($found[$name]) || !isset($entry['install_path'])) {
                     continue;
                 }
                 $version = \is_string($entry['pretty_version'] ?? null) ? ltrim($entry['pretty_version'], 'v') : '';
