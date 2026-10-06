@@ -18,12 +18,15 @@
     ],
     "require": {
         "php": ">=8.4",
+        "composer-runtime-api": "^2.2",
+        "doctrine/dbal": "^4.0",
         "symfony/asset": "^8.0",
         "symfony/dependency-injection": "^8.0",
         "symfony/http-foundation": "^8.0",
         "symfony/http-kernel": "^8.0",
         "symfony/routing": "^8.0",
         "symfony/security-core": "^8.0",
+        "symfony/security-http": "^8.0",
         "symfony/twig-bundle": "^8.0",
         "twig/twig": "^3.21",
         "vivutio/contracts": "^0.1"

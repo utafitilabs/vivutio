@@ -28,6 +28,7 @@ use Vivutio\Bundle\IdentityBundle\Test\Probe;
 use Vivutio\Bundle\PartnerBundle\Controller\PartnerController;
 use Vivutio\Bundle\PlaceBundle\Controller\DestinationController;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
+use Vivutio\Bundle\ShellBundle\Controller\InstallationController;
 
 /**
  * A probe for every route of the core, and of this application.
@@ -93,6 +94,7 @@ final class CoreProbes
             new Probe(DeletionController::OFFICE, 'GET', self::OFFICE.'/delete'),
             new Probe(DeletionController::OFFICE, 'POST', self::OFFICE.'/delete', ['reference' => 'not it'], formAt: self::OFFICE.'/delete'),
             new Probe(DeletionController::DELETIONS, 'GET', '/settings/deletions'),
+            new Probe(InstallationController::INSTALLATION, 'GET', '/settings/installation'),
             new Probe(PartnerController::REGISTER, 'GET', '/partners'),
             new Probe(PartnerController::SHOW, 'GET', self::PARTNER),
             new Probe(PartnerController::CONFIGURE, 'GET', self::PARTNER.'/configure'),

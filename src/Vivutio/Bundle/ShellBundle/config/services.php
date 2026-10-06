@@ -16,8 +16,10 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use Vivutio\Bundle\ShellBundle\Access\SettingsConcerns;
 use Vivutio\Bundle\ShellBundle\Access\ShellConcerns;
 use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
+use Vivutio\Bundle\ShellBundle\Controller\InstallationController;
 use Vivutio\Bundle\ShellBundle\EventListener\OrganizationTimeZoneListener;
 use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
+use Vivutio\Bundle\ShellBundle\Service\InstallationService;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
 use Vivutio\Bundle\ShellBundle\Twig\MenuExtension;
 use Vivutio\Bundle\ShellBundle\Twig\OrganizationExtension;
@@ -87,4 +89,12 @@ return static function (ContainerConfigurator $container): void {
     $services->set('shell.twig.organization', OrganizationExtension::class)
         ->args([service(OrganizationIdentitySourceInterface::SERVICE)])
         ->tag('twig.extension');
+
+    // Settings › Installation: what this installation runs, read from it.
+    $services->set('shell.installation', InstallationService::class)
+        ->args([service('doctrine.dbal.default_connection'), param('kernel.environment')]);
+    $services->set('shell.controller.installation', InstallationController::class)
+        ->args([service('twig'), service('shell.installation')])
+        ->public();
+    $services->alias(InstallationController::class, 'shell.controller.installation')->public();
 };

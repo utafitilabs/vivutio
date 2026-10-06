@@ -1,0 +1,38 @@
+{# Settings › Installation, as drawn (vivutio-designs settings/installation):
+   what this installation runs, read from it as it is now, and the platform
+   under it. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Identity/settings/_tabs.html.twig' as settings_ %}
+
+{% block title %}Installation{% endblock %}
+{% block here %}settings{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Settings</nav><div class="title"><h1>Installation</h1><span class="about">What this installation runs, read from it as it is now</span></div></div></header>
+{{ settings_.tabs('installation') }}
+
+<div class="band">
+    <span class="f"><span class="k">Core</span><span class="v">{{ core ? core.version : '—' }}</span></span>
+    <span class="f"><span class="k">Modules</span><span class="v">{{ modules }} <em>installed</em></span></span>
+    <span class="f"><span class="k">PHP</span><span class="v">{{ runtime.PHP }}</span></span>
+    <span class="f"><span class="k">Symfony</span><span class="v">{{ runtime.Symfony }}</span></span>
+</div>
+
+<div class="stack">
+    <section class="panel list" data-packages>
+        <header class="panel-head"><h2>What is installed</h2><p>The core and every vivutio package beside it, at the version this installation runs</p></header>
+        <table class="table">
+            <thead><tr><th>Package</th><th style="width:140px">Version</th></tr></thead>
+            <tbody>
+            {% for package in packages %}
+                <tr data-package="{{ package.name }}"><td><b>{{ package.name }}</b>{% if package.description %}<small>{{ package.description }}</small>{% endif %}</td><td>{{ package.version }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    <section class="panel" data-runtime>
+        <header class="panel-head"><h2>Where it runs</h2><p>The platform under it</p></header>
+        {% for what, version in runtime %}<div class="fact"><span>{{ what }}</span><b>{{ version }}</b></div>{% endfor %}
+    </section>
+</div>
+{% endblock %}
