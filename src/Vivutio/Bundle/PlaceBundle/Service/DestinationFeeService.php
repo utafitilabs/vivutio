@@ -54,6 +54,11 @@ final readonly class DestinationFeeService
         if (1 !== preg_match('{^[A-Z]{3}$}D', $currency)) {
             throw new InvalidDestinationException('currency', 'A currency is its three-letter code: USD, TZS, KES.');
         }
+        $activity = trim($typed['activity'] ?? '');
+        if (mb_strlen($activity) > DestinationFee::ACTIVITY_MAX_LENGTH) {
+            throw new InvalidDestinationException('activity', \sprintf('An activity is named in up to %d characters: Crater descent.', DestinationFee::ACTIVITY_MAX_LENGTH));
+        }
+        $activity = '' === $activity ? null : $activity;
         $from = self::date($typed['valid_from'] ?? '', 'valid_from');
         $to = self::date($typed['valid_to'] ?? '', 'valid_to');
         if ($to < $from) {
@@ -62,12 +67,13 @@ final readonly class DestinationFeeService
 
         foreach ($destination->getFees() as $other) {
             if ($other->getKind() === $kind && $other->getGuest() === $guest && $other->getResidency() === $residency && $other->getPer() === $per
+                && mb_strtolower($other->getActivity() ?? '') === mb_strtolower($activity ?? '')
                 && $other->getValidFrom() <= $to && $other->getValidTo() >= $from) {
                 throw new InvalidDestinationException('valid_from', \sprintf('A %s fee for %s %s %s is in force from %s to %s already.', mb_strtolower($kind->label()), mb_strtolower($residency->label()), mb_strtolower($guest->label()).'s', $per->label(), $other->getValidFrom()->format('j M Y'), $other->getValidTo()->format('j M Y')));
             }
         }
 
-        $fee = new DestinationFee($destination, $kind, $guest, $residency, $per, number_format((float) $amount, 2, '.', ''), $currency, $from, $to);
+        $fee = (new DestinationFee($destination, $kind, $guest, $residency, $per, number_format((float) $amount, 2, '.', ''), $currency, $from, $to))->setActivity($activity);
         $destination->getFees()->add($fee);
         $this->entityManager->persist($fee);
         $this->entityManager->flush();
@@ -90,6 +96,24 @@ final readonly class DestinationFeeService
     public function charged(Destination $destination, \DateTimeImmutable $day, GuestEnum $guest, ResidencyEnum $residency): array
     {
         return array_values(array_filter($destination->getFees()->toArray(), static fn (DestinationFee $fee): bool => $fee->getGuest() === $guest && $fee->getResidency() === $residency && $fee->isInForce($day)));
+    }
+
+    /**
+     * The activities a destination charges for, by name.
+     *
+     * @return list<string>
+     */
+    public function activitiesAt(Destination $destination): array
+    {
+        $names = [];
+        foreach ($destination->getFees() as $fee) {
+            if (null !== $fee->getActivity()) {
+                $names[mb_strtolower($fee->getActivity())] ??= $fee->getActivity();
+            }
+        }
+        ksort($names);
+
+        return array_values($names);
     }
 
     /**

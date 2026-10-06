@@ -31,6 +31,8 @@ use Vivutio\Bundle\PlaceBundle\Repository\DestinationFeeRepository;
 #[ORM\Table(name: 'place_destination_fee')]
 class DestinationFee
 {
+    public const int ACTIVITY_MAX_LENGTH = 60;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -57,6 +59,10 @@ class DestinationFee
 
     #[ORM\Column(length: 3)]
     private string $currency;
+
+    /** The activity it is charged for ("Crater descent"); null, it is charged for being there. */
+    #[ORM\Column(length: self::ACTIVITY_MAX_LENGTH, nullable: true)]
+    private ?string $activity = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     private \DateTimeImmutable $validFrom;
@@ -130,5 +136,17 @@ class DestinationFee
     public function isInForce(\DateTimeImmutable $day): bool
     {
         return $this->validFrom <= $day && $this->validTo >= $day;
+    }
+
+    public function getActivity(): ?string
+    {
+        return $this->activity;
+    }
+
+    public function setActivity(?string $activity): static
+    {
+        $this->activity = $activity;
+
+        return $this;
     }
 }

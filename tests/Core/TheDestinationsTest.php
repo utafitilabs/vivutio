@@ -119,6 +119,30 @@ final class TheDestinationsTest extends MigrationsTestCase
         self::assertSame([], $fees->charged($serengeti, new \DateTimeImmutable('2026-06-30'), GuestEnum::Adult, ResidencyEnum::NonResident), 'not yet in force');
     }
 
+    /** A fee for an activity at a destination, the Crater descent, is told apart from the fee for being there. */
+    public function testAFeeMayBeForAnActivity(): void
+    {
+        $this->signedInAs($this->person('Baraka', TierEnum::Admin));
+        $year = ['guest' => 'adult', 'residency' => 'non_resident', 'currency' => 'USD', 'valid_from' => '2026-07-01', 'valid_to' => '2027-06-30'];
+        $this->addFee('tz-ngorongoro-conservation-area', [...$year, 'kind' => 'conservation', 'per' => 'person_day', 'amount' => '70.80', 'activity' => '']);
+        $this->addFee('tz-ngorongoro-conservation-area', [...$year, 'kind' => 'service', 'per' => 'vehicle_entry', 'amount' => '295', 'activity' => ' Crater descent ']);
+        $this->addFee('tz-ngorongoro-conservation-area', [...$year, 'kind' => 'service', 'per' => 'vehicle_entry', 'amount' => '50', 'activity' => 'Olduvai walk']);
+
+        $page = $this->browser->request('GET', '/destinations/tz-ngorongoro-conservation-area');
+        self::assertSame(['Conservation · Adult · Non-resident', 'Service · Adult · Non-resident · Crater descent', 'Service · Adult · Non-resident · Olduvai walk'], $page->filter('[data-fee] span')->each(static fn (Crawler $span): string => trim((string) preg_replace('/\s+/', ' ', $span->text()))));
+
+        $fees = static::getContainer()->get(DestinationFeeService::class);
+        self::assertInstanceOf(DestinationFeeService::class, $fees);
+        $area = $this->destination('tz-ngorongoro-conservation-area');
+        self::assertSame(['Crater descent', 'Olduvai walk'], $fees->activitiesAt($area));
+        self::assertSame([null, 'Crater descent', 'Olduvai walk'], array_map(static fn ($fee): ?string => $fee->getActivity(), $fees->charged($area, new \DateTimeImmutable('2026-08-01'), GuestEnum::Adult, ResidencyEnum::NonResident)));
+
+        $page = $this->addFee('tz-ngorongoro-conservation-area', [...$year, 'kind' => 'service', 'per' => 'vehicle_entry', 'amount' => '300', 'activity' => 'crater descent'], 422);
+        self::assertSame('valid_from', $page->filter('.field.wrong')->filter('input, select')->attr('name'));
+        $page = $this->addFee('tz-ngorongoro-conservation-area', [...$year, 'kind' => 'service', 'per' => 'vehicle_entry', 'amount' => '300', 'activity' => str_repeat('A walk ', 10)], 422);
+        self::assertSame('activity', $page->filter('.field.wrong')->filter('input, select')->attr('name'));
+    }
+
     public function testAFeeIsRefusedBesideItsField(): void
     {
         $this->signedInAs($this->person('Baraka', TierEnum::Admin));

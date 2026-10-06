@@ -108,7 +108,7 @@ final readonly class DestinationController
     ): Response {
         $payload = $request->getPayload();
         $typed = [];
-        foreach (['kind', 'guest', 'residency', 'per', 'amount', 'currency', 'valid_from', 'valid_to'] as $field) {
+        foreach (['kind', 'guest', 'residency', 'per', 'activity', 'amount', 'currency', 'valid_from', 'valid_to'] as $field) {
             $typed[$field] = $payload->getString($field);
         }
         if (!$this->tokens->isTokenValid(new CsrfToken('place_destination_fee_add', $payload->getString('_token')))) {
@@ -178,7 +178,7 @@ final readonly class DestinationController
             'guests' => GuestEnum::cases(),
             'residencies' => ResidencyEnum::cases(),
             'pers' => FeePerEnum::cases(),
-            'typed' => [...['kind' => 'entry', 'guest' => 'adult', 'residency' => 'non_resident', 'per' => 'person_day', 'amount' => '', 'currency' => 'USD', 'valid_from' => '', 'valid_to' => ''], ...$typed],
+            'typed' => [...['kind' => 'entry', 'guest' => 'adult', 'residency' => 'non_resident', 'per' => 'person_day', 'activity' => '', 'amount' => '', 'currency' => 'USD', 'valid_from' => '', 'valid_to' => ''], ...$typed],
             'wrong' => $wrong,
             'expired' => $expired,
         ]), [] === $wrong && !$expired ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
