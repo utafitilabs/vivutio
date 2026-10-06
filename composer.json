@@ -84,6 +84,7 @@
     "autoload-dev": {
         "psr-4": {
             "Vivutio\\Bundle\\IdentityBundle\\Tests\\": "src/Vivutio/Bundle/IdentityBundle/tests/",
+            "Vivutio\\Bundle\\PlaceBundle\\Tests\\": "src/Vivutio/Bundle/PlaceBundle/tests/",
             "Vivutio\\Bundle\\ShellBundle\\Tests\\": "src/Vivutio/Bundle/ShellBundle/tests/",
             "Vivutio\\Contracts\\Tests\\": "src/Vivutio/Contracts/tests/",
             "Vivutio\\Core\\Tests\\": "tests/"

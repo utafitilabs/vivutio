@@ -19,7 +19,9 @@ use Vivutio\Bundle\PlaceBundle\Repository\DestinationFeeRepository;
 use Vivutio\Bundle\PlaceBundle\Repository\DestinationRepository;
 use Vivutio\Bundle\PlaceBundle\Service\DestinationFeeService;
 use Vivutio\Bundle\PlaceBundle\Service\DestinationService;
+use Vivutio\Bundle\PlaceBundle\Service\NightCostService;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
+use Vivutio\Contracts\Stay\NightCostSourceInterface;
 
 /*
  * Every service is defined explicitly, with an id prefixed by the bundle's
@@ -48,6 +50,11 @@ return static function (ContainerConfigurator $container): void {
     $services->set('place.destination_fees', DestinationFeeService::class)
         ->args([service('doctrine.orm.entity_manager')]);
     $services->alias(DestinationFeeService::class, 'place.destination_fees')->public();
+
+    // What a night at a place costs, asked of the package that keeps the place.
+    $services->set('place.night_costs', NightCostService::class)
+        ->args([tagged_iterator(NightCostSourceInterface::TAG)]);
+    $services->alias(NightCostService::class, 'place.night_costs');
 
     $services->set('place.controller.destinations', DestinationController::class)
         ->args([

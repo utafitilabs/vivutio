@@ -40,6 +40,9 @@
         <testsuite name="IdentityBundle">
             <directory>src/Vivutio/Bundle/IdentityBundle/tests</directory>
         </testsuite>
+        <testsuite name="PlaceBundle">
+            <directory>src/Vivutio/Bundle/PlaceBundle/tests</directory>
+        </testsuite>
         <testsuite name="ShellBundle">
             <directory>src/Vivutio/Bundle/ShellBundle/tests</directory>
         </testsuite>
