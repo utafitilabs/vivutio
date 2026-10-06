@@ -51,10 +51,11 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('doctrine.orm.entity_manager')]);
     $services->alias(DestinationFeeService::class, 'place.destination_fees')->public();
 
-    // What a night at a place costs, asked of the package that keeps the place.
+    // What a night at a place costs, asked of the package that keeps the place,
+    // for touring to cost a tour by.
     $services->set('place.night_costs', NightCostService::class)
         ->args([tagged_iterator(NightCostSourceInterface::TAG)]);
-    $services->alias(NightCostService::class, 'place.night_costs');
+    $services->alias(NightCostService::class, 'place.night_costs')->public();
 
     $services->set('place.controller.destinations', DestinationController::class)
         ->args([
