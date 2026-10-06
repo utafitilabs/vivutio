@@ -19,9 +19,12 @@ use Vivutio\Bundle\PartnerBundle\Controller\PartnerController;
 use Vivutio\Bundle\PartnerBundle\Repository\PartnerRepository;
 use Vivutio\Bundle\PartnerBundle\Service\PartnerDirectory;
 use Vivutio\Bundle\PartnerBundle\Service\PartnerService;
+use Vivutio\Bundle\PartnerBundle\Service\RoomNeedDirectory;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Partner\PartnerChannelInterface;
 use Vivutio\Contracts\Partner\PartnerDirectoryInterface;
+use Vivutio\Contracts\Partner\RoomNeedsInterface;
+use Vivutio\Contracts\Partner\RoomNeedSourceInterface;
 
 /*
  * Every service is defined explicitly, with an id prefixed by the bundle's
@@ -46,6 +49,11 @@ return static function (ContainerConfigurator $container): void {
     $services->set('partner.directory', PartnerDirectory::class)
         ->args([service(PartnerRepository::class)]);
     $services->alias(PartnerDirectoryInterface::class, 'partner.directory')->public();
+
+    // Every package's room needs, for a module that requests rooms.
+    $services->set('partner.room_needs', RoomNeedDirectory::class)
+        ->args([tagged_iterator(RoomNeedSourceInterface::TAG)]);
+    $services->alias(RoomNeedsInterface::class, 'partner.room_needs')->public();
 
     // How a module reaches a partner; the manual channel until the hub takes one over.
     $services->set('partner.channel.manual', ManualChannel::class)
