@@ -17,12 +17,18 @@ use Vivutio\Bundle\PartnerBundle\Access\PartnerConcerns;
 use Vivutio\Bundle\PartnerBundle\Channel\ManualChannel;
 use Vivutio\Bundle\PartnerBundle\Controller\PartnerController;
 use Vivutio\Bundle\PartnerBundle\Repository\PartnerRepository;
+use Vivutio\Bundle\PartnerBundle\Service\ChargeDirectory;
 use Vivutio\Bundle\PartnerBundle\Service\PartnerDirectory;
 use Vivutio\Bundle\PartnerBundle\Service\PartnerService;
+use Vivutio\Bundle\PartnerBundle\Service\PaymentDirectory;
 use Vivutio\Bundle\PartnerBundle\Service\RoomNeedDirectory;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
+use Vivutio\Contracts\Partner\ChargesInterface;
+use Vivutio\Contracts\Partner\ChargeSourceInterface;
 use Vivutio\Contracts\Partner\PartnerChannelInterface;
 use Vivutio\Contracts\Partner\PartnerDirectoryInterface;
+use Vivutio\Contracts\Partner\PaymentsInterface;
+use Vivutio\Contracts\Partner\PaymentSourceInterface;
 use Vivutio\Contracts\Partner\RoomNeedsInterface;
 use Vivutio\Contracts\Partner\RoomNeedSourceInterface;
 
@@ -54,6 +60,12 @@ return static function (ContainerConfigurator $container): void {
     $services->set('partner.room_needs', RoomNeedDirectory::class)
         ->args([tagged_iterator(RoomNeedSourceInterface::TAG)]);
     $services->alias(RoomNeedsInterface::class, 'partner.room_needs')->public();
+    $services->set('partner.charges', ChargeDirectory::class)
+        ->args([tagged_iterator(ChargeSourceInterface::TAG)]);
+    $services->alias(ChargesInterface::class, 'partner.charges')->public();
+    $services->set('partner.payments', PaymentDirectory::class)
+        ->args([tagged_iterator(PaymentSourceInterface::TAG)]);
+    $services->alias(PaymentsInterface::class, 'partner.payments')->public();
 
     // How a module reaches a partner; the manual channel until the hub takes one over.
     $services->set('partner.channel.manual', ManualChannel::class)
