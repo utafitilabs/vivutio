@@ -25,7 +25,7 @@ interface PartnerInterface
 
     public function getName(): string;
 
-    /** What it is to the organization: tour_operator, travel_agent, accommodation or supplier. */
+    /** What it is to the organization: tour_operator, travel_agent, accommodation, supplier or company. */
     public function getPartnerKind(): string;
 
     /** The discount it trades at, a share to the cent: "12.50"; "0.00" for none. */

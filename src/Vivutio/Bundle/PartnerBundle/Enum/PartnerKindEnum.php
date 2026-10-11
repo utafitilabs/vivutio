@@ -15,7 +15,8 @@ namespace Vivutio\Bundle\PartnerBundle\Enum;
 
 /**
  * What a partner is to the organization: one that books its rooms or tours,
- * one that sells them on, or one it books from.
+ * one that sells them on, one it books from, or a company that buys for its
+ * own people.
  */
 enum PartnerKindEnum: string
 {
@@ -23,6 +24,7 @@ enum PartnerKindEnum: string
     case TravelAgent = 'travel_agent';
     case Accommodation = 'accommodation';
     case Supplier = 'supplier';
+    case Company = 'company';
 
     public function label(): string
     {
@@ -31,6 +33,7 @@ enum PartnerKindEnum: string
             self::TravelAgent => 'Travel agent',
             self::Accommodation => 'Accommodation',
             self::Supplier => 'Other supplier',
+            self::Company => 'Company',
         };
     }
 }

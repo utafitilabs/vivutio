@@ -123,6 +123,19 @@ final class ThePartnersTest extends MigrationsTestCase
         self::assertCount(2, $this->directory()->active());
     }
 
+    /** A company buys for its own people: kept as a partner like any other, so a module bills it. */
+    public function testACompanyIsAPartner(): void
+    {
+        $this->signedInAs($this->person('Baraka', TierEnum::Admin));
+        $this->add('Mtandao Logistics', ['kind' => 'company', 'country' => 'TZ']);
+
+        $page = $this->browser->request('GET', '/partners');
+        self::assertSame('Company', trim($page->filter('tr[data-partner="Mtandao Logistics"] td')->eq(1)->text()));
+        $found = $this->directory()->find((string) $this->partner('Mtandao Logistics')->getUuid());
+        self::assertNotNull($found);
+        self::assertSame('company', $found->getPartnerKind());
+    }
+
     /** What a module reads: a partner's name, what it is, its terms, and whether it is active. */
     public function testModulesReadPartnersThroughTheContract(): void
     {
