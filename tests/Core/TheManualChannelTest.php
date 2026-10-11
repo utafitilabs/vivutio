@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mime\Email;
 use Vivutio\Bundle\PartnerBundle\Entity\Partner;
 use Vivutio\Bundle\PartnerBundle\Enum\PartnerKindEnum;
+use Vivutio\Contracts\Partner\PartnerAttachment;
 use Vivutio\Contracts\Partner\PartnerChannelInterface;
 use Vivutio\Contracts\Partner\PartnerMessage;
 
@@ -62,5 +63,27 @@ final class TheManualChannelTest extends MigrationsTestCase
         self::assertSame('RQ-0001 · Rooms for the Mollel party, 2 to 4 Nov 2026', $email->getSubject());
         self::assertStringContainsString('2 double rooms, 2 nights from 2 Nov 2026.', (string) $email->getTextBody());
         self::assertStringContainsString('Our reference: RQ-0001', (string) $email->getTextBody());
+    }
+
+    /** A document a module sends, the request as a PDF, leaves attached to the email. */
+    public function testADocumentLeavesAttachedToTheEmail(): void
+    {
+        $em = static::getContainer()->get('doctrine.orm.entity_manager');
+        self::assertInstanceOf(EntityManagerInterface::class, $em);
+        $camp = new Partner('Ngorongoro Rim Camp', PartnerKindEnum::Accommodation, 'TZ', 'stay@rim-camp.example');
+        $em->persist($camp);
+        $em->flush();
+
+        $channel = static::getContainer()->get(PartnerChannelInterface::class);
+        self::assertInstanceOf(PartnerChannelInterface::class, $channel);
+        $channel->send($camp, new PartnerMessage('RQ-0001', 'Rooms for the Mollel party', 'Two doubles.', [new PartnerAttachment('RQ-0001.pdf', 'application/pdf', '%PDF-1.7 a request')]));
+
+        $email = self::getMailerMessage();
+        self::assertInstanceOf(Email::class, $email);
+        $attachments = $email->getAttachments();
+        self::assertCount(1, $attachments);
+        self::assertSame('RQ-0001.pdf', $attachments[0]->getFilename());
+        self::assertSame('application/pdf', $attachments[0]->getContentType());
+        self::assertSame('%PDF-1.7 a request', $attachments[0]->getBody());
     }
 }

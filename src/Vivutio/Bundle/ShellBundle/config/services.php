@@ -20,12 +20,15 @@ use Vivutio\Bundle\ShellBundle\Controller\InstallationController;
 use Vivutio\Bundle\ShellBundle\EventListener\OrganizationTimeZoneListener;
 use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
 use Vivutio\Bundle\ShellBundle\Service\InstallationService;
+use Vivutio\Bundle\ShellBundle\Service\PdfPrinterService;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
 use Vivutio\Bundle\ShellBundle\Twig\MenuExtension;
 use Vivutio\Bundle\ShellBundle\Twig\OrganizationExtension;
+use Vivutio\Bundle\ShellBundle\Twig\PrintExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
 use Vivutio\Contracts\Shell\MenuSourceInterface;
+use Vivutio\Contracts\Shell\PdfPrinterInterface;
 
 /*
  * Every service is defined explicitly, with an id prefixed by the bundle's
@@ -88,6 +91,13 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set('shell.twig.organization', OrganizationExtension::class)
         ->args([service(OrganizationIdentitySourceInterface::SERVICE)])
+        ->tag('twig.extension');
+
+    // The Shell's PDF service: the browser the installation names, or none.
+    $services->set(PdfPrinterInterface::SERVICE, PdfPrinterService::class)
+        ->args(['%env(default::PDF_BROWSER)%']);
+    $services->alias(PdfPrinterInterface::class, PdfPrinterInterface::SERVICE)->public();
+    $services->set('shell.twig.print', PrintExtension::class)
         ->tag('twig.extension');
 
     // Settings › Installation: what this installation runs, read from it.

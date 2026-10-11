@@ -20,6 +20,8 @@
         -->
         <env name="VIVUTIO_TEST_DATABASE_URL"
              value="postgresql://app:app@127.0.0.1:5434/vivutio_core_test?serverVersion=17&amp;charset=utf8"/>
+        <!-- The browser the PDF service prints with; CI names its own. -->
+        <env name="PDF_BROWSER" value="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"/>
     </php>
     <testsuites>
         <!--

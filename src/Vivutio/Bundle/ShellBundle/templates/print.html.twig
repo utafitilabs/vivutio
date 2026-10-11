@@ -1,0 +1,26 @@
+{# A page printed to a PDF: A4, the house type and colours, everything inside
+   it. A module extends it with its document. #}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}{% endblock %}</title>
+<style>
+{{ print_typeface() }}
+@page{size:A4;margin:18mm 18mm 20mm}
+*{box-sizing:border-box}
+html{--ink:#0f2a22;--ink-2:#4b5d57;--ink-3:#7c8b86;--line:#dfe6e3;--accent:#0f8a5f}
+body{margin:0;font:10.5pt/1.5 Figtree,system-ui,sans-serif;color:var(--ink)}
+h1{font-size:20pt;line-height:1.15;margin:0;letter-spacing:-.01em}
+table{border-collapse:collapse}
+th{font-size:8.5pt;font-weight:600;color:var(--ink-3);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.muted{color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums}
+{% block style %}{% endblock %}
+</style>
+</head>
+<body>
+{% block document %}{% endblock %}
+</body>
+</html>

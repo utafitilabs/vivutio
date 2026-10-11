@@ -29,6 +29,7 @@
         "symfony/security-http": "^8.0",
         "symfony/twig-bundle": "^8.0",
         "twig/twig": "^3.21",
+        "utafitilabs/pdf-scribe-bundle": "^0.1",
         "vivutio/contracts": "^0.1"
     },
     "autoload": {

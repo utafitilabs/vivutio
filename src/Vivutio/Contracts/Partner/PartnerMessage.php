@@ -15,14 +15,19 @@ namespace Vivutio\Contracts\Partner;
 
 /**
  * What a module sends a partner: the reference both sides will quote, a
- * subject, and the request in plain words. The channel decides how it travels.
+ * subject, the request in plain words, and any documents that go with it.
+ * The channel decides how it travels.
  */
 final readonly class PartnerMessage
 {
+    /**
+     * @param list<PartnerAttachment> $attachments
+     */
     public function __construct(
         public string $reference,
         public string $subject,
         public string $body,
+        public array $attachments = [],
     ) {
     }
 }

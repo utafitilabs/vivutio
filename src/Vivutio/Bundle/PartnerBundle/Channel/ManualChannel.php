@@ -23,8 +23,9 @@ use Vivutio\Contracts\Partner\PartnerMessage;
 
 /**
  * The manual channel: a message leaves as an email to the address the partner
- * is kept with, its reference in the subject so a reply quotes it. Always
- * available; it needs nothing outside the installation but its mail.
+ * is kept with, its reference in the subject so a reply quotes it, and its
+ * documents attached. Always available; it needs nothing outside the
+ * installation but its mail.
  */
 final readonly class ManualChannel implements PartnerChannelInterface
 {
@@ -35,11 +36,15 @@ final readonly class ManualChannel implements PartnerChannelInterface
     public function send(PartnerInterface $partner, PartnerMessage $message): string
     {
         $contact = $partner instanceof Partner ? $partner->getContact() : '';
-        $this->mailer->send((new TemplatedEmail())
+        $email = (new TemplatedEmail())
             ->to(new Address($partner->getEmail(), $contact))
             ->subject($message->reference.' · '.$message->subject)
             ->textTemplate('@Partner/email/message.txt.twig')
-            ->context(['partner' => $partner, 'contact' => $contact, 'message' => $message]));
+            ->context(['partner' => $partner, 'contact' => $contact, 'message' => $message]);
+        foreach ($message->attachments as $attachment) {
+            $email->attach($attachment->body, $attachment->filename, $attachment->contentType);
+        }
+        $this->mailer->send($email);
 
         return 'Sent by email to '.$partner->getEmail();
     }
