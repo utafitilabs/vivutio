@@ -1,0 +1,53 @@
+{# Settings › Audit log, as ruled (11 October 2026) and drawn (vivutio-designs
+   settings/audit): each change to who may do what, and each sign-in, under
+   its day, with who and from where; found by words, kind and time. #}
+{% extends '@Shell/page.html.twig' %}
+{% import '@Shell/_icons.html.twig' as icons %}
+{% import '@Identity/settings/_tabs.html.twig' as settings_ %}
+
+{% block title %}Audit log{% endblock %}
+{% block here %}settings{% endblock %}
+
+{% block page %}
+<header class="page-head"><div><nav class="trail" aria-label="Where you are">Settings</nav><div class="title"><h1>Audit log</h1><span class="about">Who changed who may do what, and every sign-in, newest first</span></div></div></header>
+{{ settings_.tabs('audit') }}
+
+<div class="stack">
+    <form class="tools" method="get" action="{{ path('identity_settings_audit') }}" data-tools>
+        {% if query.kind %}<input type="hidden" name="kind" value="{{ query.kind }}">{% endif %}
+        {% if query.time %}<input type="hidden" name="time" value="{{ query.time }}">{% endif %}
+        <label class="find">{{ icons.icon('search', 16) }}<input type="search" name="q" value="{{ query.q }}" placeholder="Name, email or address" aria-label="Search the audit log"></label>
+        <details class="pick" data-facet="kind">
+            <summary{{ kind ? ' class="on"' }}>{{ kind ? kind.label : 'Any kind' }} {{ icons.icon('down', 14) }}</summary>
+            <div class="pick-menu">
+                <h3>Kind</h3>
+                <a data-chip href="{{ path('identity_settings_audit', query|merge({kind: null})|filter(v => v)) }}"{{ kind is null ? ' aria-current="true"' }}><i></i>Any<em>{{ any_kind }}</em></a>
+                <hr>
+                {% for case in kinds %}<a data-chip href="{{ path('identity_settings_audit', query|merge({kind: case.value})|filter(v => v)) }}"{{ kind == case ? ' aria-current="true"' }}><i></i>{{ case.label }}<em>{{ kind_counts[case.value] }}</em></a>{% endfor %}
+            </div>
+        </details>
+        <details class="pick" data-facet="time">
+            <summary{{ time ? ' class="on"' }}>{{ time ? times[time] : 'Any time' }} {{ icons.icon('down', 14) }}</summary>
+            <div class="pick-menu">
+                <h3>Time</h3>
+                <a data-chip href="{{ path('identity_settings_audit', query|merge({time: null})|filter(v => v)) }}"{{ time is null ? ' aria-current="true"' }}><i></i>Any<em>{{ any_time }}</em></a>
+                <hr>
+                {% for key, label in times %}<a data-chip href="{{ path('identity_settings_audit', query|merge({time: key})|filter(v => v)) }}"{{ time == key ? ' aria-current="true"' }}><i></i>{{ label }}<em>{{ time_counts[key] }}</em></a>{% endfor %}
+            </div>
+        </details>
+        <span class="shown" data-shown>showing <b>{{ shown }}</b> of {{ total }}</span>
+    </form>
+
+    {% for day, events in days %}
+        <section class="panel" data-day="{{ day }}">
+            <header class="panel-head"><h2>{{ events|first.at|date('l j F Y') }}</h2><p>{{ events|length }} {{ events|length == 1 ? 'change' : 'changes' }}</p></header>
+            {% for event in events %}
+                <div class="fact" data-event>{%- set said = event.said|e -%}{%- for name in event.named %}{% set said = said|replace({(name|e): '<b>' ~ name|e ~ '</b>'}) %}{% endfor -%}<span>{{ event.at|date('H:i') }} · {{ said|raw }}</span><b>{{ [event.actorName, event.address]|filter(v => v)|join(' · ') ?: 'The installation' }}</b></div>
+            {% endfor %}
+        </section>
+    {% else %}
+        <section class="panel"><div class="empty"><b>{{ total == 0 ? 'Nothing recorded yet' : 'Nothing matches' }}</b><span>{{ total == 0 ? 'Each change to who may do what, and each sign-in, leaves a line here.' : '' }}</span></div></section>
+    {% endfor %}
+    {% if days %}<div class="pager"><span><b>{{ matching }}</b> {{ matching == 1 ? 'change' : 'changes' }} · {{ per_page }} per page</span><span>page <b>{{ page }}</b> of {{ pages }}{% if page > 1 %} · <a href="{{ path('identity_settings_audit', query|merge({page: page - 1})|filter(v => v)) }}">earlier</a>{% endif %}{% if page < pages %} · <a href="{{ path('identity_settings_audit', query|merge({page: page + 1})|filter(v => v)) }}">later</a>{% endif %}</span></div>{% endif %}
+</div>
+{% endblock %}

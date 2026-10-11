@@ -14,9 +14,12 @@ declare(strict_types=1);
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Symfony\Component\Console\Application;
+use Symfony\Component\Security\Http\Event\LoginFailureEvent;
+use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 use Vivutio\Bundle\IdentityBundle\Access\ConcernCatalogue;
 use Vivutio\Bundle\IdentityBundle\Access\IdentityConcerns;
 use Vivutio\Bundle\IdentityBundle\Command\CreateUserCommand;
+use Vivutio\Bundle\IdentityBundle\Controller\AuditController;
 use Vivutio\Bundle\IdentityBundle\Controller\DeletionController;
 use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
@@ -31,8 +34,11 @@ use Vivutio\Bundle\IdentityBundle\Deletion\DepartmentDeletion;
 use Vivutio\Bundle\IdentityBundle\Deletion\OfficeDeletion;
 use Vivutio\Bundle\IdentityBundle\Deletion\PersonDeletion;
 use Vivutio\Bundle\IdentityBundle\Deletion\PositionDeletion;
+use Vivutio\Bundle\IdentityBundle\EventListener\AuditTrailListener;
+use Vivutio\Bundle\IdentityBundle\EventListener\SignInAuditListener;
 use Vivutio\Bundle\IdentityBundle\Place\OfficePlaces;
 use Vivutio\Bundle\IdentityBundle\Repository\AccountLinkRepository;
+use Vivutio\Bundle\IdentityBundle\Repository\AuditEventRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\DeletionRecordRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\DepartmentRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\OfficeRepository;
@@ -41,9 +47,11 @@ use Vivutio\Bundle\IdentityBundle\Repository\PositionRepository;
 use Vivutio\Bundle\IdentityBundle\Repository\UserRepository;
 use Vivutio\Bundle\IdentityBundle\Security\AccountVoter;
 use Vivutio\Bundle\IdentityBundle\Security\ActiveUserChecker;
+use Vivutio\Bundle\IdentityBundle\Security\AuditVoter;
 use Vivutio\Bundle\IdentityBundle\Security\DeletionVoter;
 use Vivutio\Bundle\IdentityBundle\Security\GrantVoter;
 use Vivutio\Bundle\IdentityBundle\Service\AccountLinkService;
+use Vivutio\Bundle\IdentityBundle\Service\AuditTrail;
 use Vivutio\Bundle\IdentityBundle\Service\DeletionPageService;
 use Vivutio\Bundle\IdentityBundle\Service\DeletionService;
 use Vivutio\Bundle\IdentityBundle\Service\DepartmentDirectoryService;
@@ -447,4 +455,31 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('twig'), service('identity.deletion_pages'), service(DeletionRecordRepository::class), service('router')])
         ->public();
     $services->alias(DeletionController::class, 'identity.controller.deletions')->public();
+
+    /*
+     * The audit trail, as ruled (11 October 2026): every change to who may do
+     * what, written in the flush that makes it, and every sign-in, from the
+     * global dispatcher that carries every firewall's sign-in events.
+     *
+     * @see https://symfony.com/doc/current/doctrine/events.html#doctrine-lifecycle-listeners
+     * @see vendor/symfony/security-bundle/DependencyInjection/Compiler/RegisterGlobalSecurityEventListenersPass.php
+     */
+    $services->set(AuditEventRepository::class)
+        ->args([service('doctrine')])
+        ->tag('doctrine.repository_service');
+    $services->set('identity.audit_trail', AuditTrail::class)
+        ->args([service('doctrine.orm.entity_manager'), service('security.helper'), service('request_stack'), service('clock')]);
+    $services->set('identity.audit_trail.flush', AuditTrailListener::class)
+        ->args([service('identity.audit_trail'), service('identity.access.catalogue')])
+        ->tag('doctrine.event_listener', ['event' => 'onFlush']);
+    $services->set('identity.audit_trail.sign_in', SignInAuditListener::class)
+        ->args([service('identity.audit_trail')])
+        ->tag('kernel.event_listener', ['event' => LoginSuccessEvent::class, 'method' => 'onSuccess'])
+        ->tag('kernel.event_listener', ['event' => LoginFailureEvent::class, 'method' => 'onFailure']);
+    $services->set('identity.voter.audit', AuditVoter::class)
+        ->tag('security.voter');
+    $services->set('identity.controller.audit', AuditController::class)
+        ->args([service('twig'), service(AuditEventRepository::class), service('clock')])
+        ->public();
+    $services->alias(AuditController::class, 'identity.controller.audit')->public();
 };

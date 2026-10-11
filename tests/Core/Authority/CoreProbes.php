@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Vivutio\Core\Tests\Core\Authority;
 
+use Vivutio\Bundle\IdentityBundle\Controller\AuditController;
 use Vivutio\Bundle\IdentityBundle\Controller\DeletionController;
 use Vivutio\Bundle\IdentityBundle\Controller\DepartmentController;
 use Vivutio\Bundle\IdentityBundle\Controller\InvitationController;
@@ -94,6 +95,7 @@ final class CoreProbes
             new Probe(DeletionController::OFFICE, 'GET', self::OFFICE.'/delete'),
             new Probe(DeletionController::OFFICE, 'POST', self::OFFICE.'/delete', ['reference' => 'not it'], formAt: self::OFFICE.'/delete'),
             new Probe(DeletionController::DELETIONS, 'GET', '/settings/deletions'),
+            new Probe(AuditController::LOG, 'GET', '/settings/audit'),
             new Probe(InstallationController::INSTALLATION, 'GET', '/settings/installation'),
             new Probe(PartnerController::REGISTER, 'GET', '/partners'),
             new Probe(PartnerController::SHOW, 'GET', self::PARTNER),

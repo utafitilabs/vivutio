@@ -480,6 +480,20 @@ Checks: `identity.delete`
 | Admin | refused |
 | Super Admin | allowed: Deletions · vivutio |
 
+## identity_settings_audit: GET /settings/audit
+
+Checks: `identity.audit`
+
+| Person | Outcome |
+|---|---|
+| signed out | sent to sign-in |
+| deactivated while signed in | sent to sign-in |
+| Staff, no position | refused |
+| Staff holding the pair | refused |
+| Staff holding all but the pair | refused |
+| Admin | refused |
+| Super Admin | allowed: Audit log · vivutio |
+
 ## shell_settings_installation: GET /settings/installation
 
 Checks: `settings.read`

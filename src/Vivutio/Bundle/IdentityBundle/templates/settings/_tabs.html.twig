@@ -1,5 +1,5 @@
 {# Settings' tabs: Organization and Installation for whoever reads Settings,
-   and Deletions for Super Admins. #}
+   and Deletions and the Audit log for Super Admins. #}
 {% macro tabs(current) %}
-<nav class="tabs" aria-label="Settings"><a href="{{ path('identity_settings_organization') }}"{{ current == 'organization' ? ' aria-current="page"' }}>Organization</a><a href="{{ path('shell_settings_installation') }}"{{ current == 'installation' ? ' aria-current="page"' }}>Installation</a>{% if is_granted('identity.delete') %}<a href="{{ path('identity_settings_deletions') }}"{{ current == 'deletions' ? ' aria-current="page"' }}>Deletions</a>{% endif %}</nav>
+<nav class="tabs" aria-label="Settings"><a href="{{ path('identity_settings_organization') }}"{{ current == 'organization' ? ' aria-current="page"' }}>Organization</a><a href="{{ path('shell_settings_installation') }}"{{ current == 'installation' ? ' aria-current="page"' }}>Installation</a>{% if is_granted('identity.delete') %}<a href="{{ path('identity_settings_deletions') }}"{{ current == 'deletions' ? ' aria-current="page"' }}>Deletions</a>{% endif %}{% if is_granted('identity.audit') %}<a href="{{ path('identity_settings_audit') }}"{{ current == 'audit' ? ' aria-current="page"' }}>Audit log</a>{% endif %}</nav>
 {% endmacro %}
