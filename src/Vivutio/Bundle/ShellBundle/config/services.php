@@ -19,6 +19,7 @@ use Vivutio\Bundle\ShellBundle\Controller\DashboardController;
 use Vivutio\Bundle\ShellBundle\Controller\InstallationController;
 use Vivutio\Bundle\ShellBundle\EventListener\OrganizationTimeZoneListener;
 use Vivutio\Bundle\ShellBundle\EventListener\RefusalPage;
+use Vivutio\Bundle\ShellBundle\Service\DashboardService;
 use Vivutio\Bundle\ShellBundle\Service\InstallationService;
 use Vivutio\Bundle\ShellBundle\Service\PdfPrinterService;
 use Vivutio\Bundle\ShellBundle\Twig\DoorExtension;
@@ -27,6 +28,7 @@ use Vivutio\Bundle\ShellBundle\Twig\OrganizationExtension;
 use Vivutio\Bundle\ShellBundle\Twig\PrintExtension;
 use Vivutio\Contracts\Access\ConcernSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
+use Vivutio\Contracts\Shell\DashboardSourceInterface;
 use Vivutio\Contracts\Shell\MenuSourceInterface;
 use Vivutio\Contracts\Shell\PdfPrinterInterface;
 
@@ -54,8 +56,10 @@ return static function (ContainerConfigurator $container): void {
      *
      * @see vendor/symfony/framework-bundle/Resources/config/routing.php — TemplateController registered with its arguments and public
      */
+    $services->set('shell.dashboard', DashboardService::class)
+        ->args([tagged_iterator(DashboardSourceInterface::TAG), service('security.authorization_checker'), service('router')]);
     $services->set('shell.controller.dashboard', DashboardController::class)
-        ->args([service('twig'), service('security.authorization_checker')])
+        ->args([service('twig'), service('security.authorization_checker'), service('shell.dashboard')])
         ->public();
     $services->alias(DashboardController::class, 'shell.controller.dashboard')->public();
 

@@ -28,10 +28,12 @@ use Vivutio\Contracts\Identity\PositionCardFieldInterface;
 use Vivutio\Contracts\Place\PlaceSourceInterface;
 use Vivutio\Contracts\Place\ReachSourceInterface;
 use Vivutio\Contracts\Settings\OrganizationIdentitySourceInterface;
+use Vivutio\Contracts\Shell\DashboardSourceInterface;
 use Vivutio\Contracts\Shell\MenuSourceInterface;
 use Vivutio\Core\Tests\Application\Fixtures\NoticesConcerns;
 use Vivutio\Core\Tests\Application\NotesModule\NotesConcerns;
 use Vivutio\Core\Tests\Application\NotesModule\NotesController;
+use Vivutio\Core\Tests\Application\NotesModule\NotesDashboard;
 use Vivutio\Core\Tests\Application\NotesModule\NotesMenu;
 use Vivutio\Core\Tests\Application\NotesModule\NotesPlaces;
 use Vivutio\Core\Tests\Application\NotesModule\NotesPositionCard;
@@ -215,6 +217,7 @@ final class Kernel extends BaseKernel
             ->tag(ConcernSourceInterface::TAG);
         $services->set(NotesController::class)->public();
         $services->set(NotesMenu::class)->tag(MenuSourceInterface::TAG);
+        $services->set(NotesDashboard::class)->tag(DashboardSourceInterface::TAG);
         $services->set('test.notes.scopes', NotesScopes::class)
             ->tag(ScopeSourceInterface::TAG);
         $services->set('test.notes.places', NotesPlaces::class)

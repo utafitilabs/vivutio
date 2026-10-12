@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Twig\Environment;
+use Vivutio\Bundle\ShellBundle\Service\DashboardService;
 
 /**
  * Where everybody lands: the organization's dashboard for whoever holds
@@ -41,6 +42,7 @@ final readonly class DashboardController
     public function __construct(
         private Environment $twig,
         private AuthorizationCheckerInterface $authorization,
+        private DashboardService $dashboard,
     ) {
     }
 
@@ -51,7 +53,10 @@ final readonly class DashboardController
             return $this->mine();
         }
 
-        return new Response($this->twig->render('@Shell/dashboard/organization.html.twig'));
+        return new Response($this->twig->render('@Shell/dashboard/organization.html.twig', [
+            'figures' => $this->dashboard->figures(),
+            'columns' => $this->dashboard->columns(),
+        ]));
     }
 
     /** One's own dashboard, at its own address for whoever lands on the organization's. */

@@ -1,6 +1,7 @@
 {# The organization's dashboard, as designed in
-   vivutio-designs/shell/dashboard.html. Its cards are contributed by the
-   packages installed; until one does, it says so. #}
+   vivutio-designs/shell/dashboard.html (option A of variants-dashboard): the
+   figures the installed packages give in the band, then their cards dealt
+   into two columns. With none to show, it says so. #}
 {% extends '@Shell/page.html.twig' %}
 {% import '@Shell/_icons.html.twig' as icons %}
 
@@ -12,7 +13,40 @@
     <div><div class="title"><h1>Dashboard</h1>{% if organization() %}<span class="about">{{ organization().name }}</span>{% endif %}</div></div>
     {% if door('dashboard.read') %}<div class="actions"><a class="button outline" href="{{ path('shell_my_dashboard') }}">My dashboard</a></div>{% endif %}
 </header>
+{% if figures is empty and columns[0] is empty %}
 <section class="panel">
     <div class="empty" data-nothing-yet>{{ icons.icon('dashboard', 30) }}<b>Nothing here yet</b><span>The modules you install put their cards here.</span></div>
 </section>
+{% else %}
+{% if figures is not empty %}
+<div class="band">
+    {% for figure in figures %}<span class="f"><span class="k">{{ figure.label }}</span><span class="v">{{ figure.value }}{% if figure.qualifier %}<em>{{ figure.qualifier }}</em>{% endif %}</span></span>{% endfor %}
+</div>
+{% endif %}
+<div class="grid-2" data-cards>
+    {% for column in columns %}
+    <div class="stack">
+        {% for card in column %}
+        <section class="panel list">
+            <header class="panel-head"><div><h2>{{ card.title }}</h2><p>{{ card.kicker }} &middot; {{ card.caption }}</p></div></header>
+            {% if card.rows is empty %}
+            <p class="hint" data-card-empty>{{ card.empty }}</p>
+            {% else %}
+            <table class="table"><tbody>
+                {% for row in card.rows %}
+                <tr>
+                    <td><div><b>{{ row.title }}</b>{% if row.detail %}<small>{{ row.detail }}</small>{% endif %}</div></td>
+                    {% for cell in row.cells %}<td>{{ cell }}</td>{% endfor %}
+                    {% if row.chip is not null %}<td><span class="chip{{ row.tone ? ' ' ~ row.tone }}">{{ row.chip }}</span></td>{% endif %}
+                </tr>
+                {% endfor %}
+            </tbody></table>
+            {% endif %}
+            <footer class="panel-foot"><span class="state">{% if card.total %}{{ card.rows|length }} of {{ card.total }}{% endif %}</span><a class="more" href="{{ path(card.route, card.routeParameters) }}">{{ card.door }}</a></footer>
+        </section>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endblock %}
