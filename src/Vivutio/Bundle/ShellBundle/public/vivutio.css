@@ -291,6 +291,7 @@ a.chip[aria-current=true] em{color:var(--accent)}
 .panel.list .table td:not(:first-child){color:var(--ink-2)}
 .panel.list .table td:first-child{min-width:168px}
 .panel.list .table td:first-child b{white-space:nowrap}
+.panel.list .table td.wrap{white-space:normal}
 [data-cards] .panel.list .table td:not(:first-child):not(:nth-last-child(-n+2)){white-space:normal}
 .panel.list .who{gap:13px}
 .panel.list .who .initials{width:40px;height:40px;font-size:13px}
